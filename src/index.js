@@ -1,10 +1,13 @@
-import { MemoryMap } from "./nes/memory";
+import { GameBoy } from "./gb";
+import { Site } from "./view/react/site";
+import * as React from "react";
+import * as ReactDOM from "react-dom";
 
-let i = 0;
-let cb = () => i++;
-let map = new MemoryMap(cb);
-for(let i = 0x0000; i <= 0xFFFF; i++) {
-  map[i] = 0xBB;
-}
-map[0xCCCC]++;
-console.log(i.toString(16)); //0x10001
+let gameBoy = new GameBoy();
+let mount = document.querySelector("#mount");
+let site = React.createElement(Site, {
+  gameBoy
+});
+ReactDOM.render(site, mount);
+
+window.gb = gameBoy;
