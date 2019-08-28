@@ -29,7 +29,7 @@ export class GBViewer extends React.Component {
 
   shouldComponentUpdate(nextProps, nextState) {
     let inView = state => {
-      return state.changed >= state.top && state.changed <= state.top + (this.rows << 4) + this.cols - 1
+      return state.changed >= state.top && state.changed <= state.top + (this.rows << 4) + this.cols - 1;
     };
     switch(true) {
       case inView(nextState):
@@ -55,14 +55,24 @@ export class GBViewer extends React.Component {
     for(let i = this.top; i <= this.top + (this.rows << 4); i += 0x10) {
       let label = <span key={`${i - this.top}-label`} className={"mem-label"}>{`0x${i.toString(16).padStart(4, "0")}  `}</span>;
       output.push(label);
+      let str1 = "";
+      let changed = null;
+      let str2 = "";
       for(let j = 0x0; j < this.cols; j++) {
-        let str = `${this.GB.M.get(i + j).toString(16).padStart(2, "0")} `;
+        let val = `${this.GB.M.get(i + j).toString(16).padStart(2, "0")} `;
         if(i + j === this.state.changed) {
-          output.push(<span className={"changed-value"} key={"changed"}>{str}</span>);
+          changed = <span className={"changed-value"} key={"changed"}>{val}</span>;
         } else {
-          output.push(str);
+          if(changed === null) {
+            str1 += val;
+          } else {
+            str2 += val;
+          }
         }
       }
+      if(str1.length > 0) output.push(str1);
+      if(changed !== null) output.push(changed);
+      if(str2.length > 0) output.push(str2);
       output.push(<br key={`${i - this.top}-br`} />);
     }
     return output;
