@@ -1,10 +1,10 @@
 body {
   margin: 0;
+  background-color: lightblue;
 }
 
 #mount {
   display: flex;
-  background-color: lightblue;
   width: 100%;
   height: 100%;
 }
@@ -24,12 +24,36 @@ body {
 }
 
 #viewer-wrapper {
+  position:relative;
+  display: flex;
   background-color: white;
   border-left-width: 0px;
   font-family: "Courier New", monospace;
   font-size: 12px;
   line-height: 17px;
+  width: 420px;
+}
+
+#viewer-input {
+  position: absolute;
+  font-size: 10px;
+  width: 55px;
+}
+
+#viewer-text {
   width: 400px;
+  height: 374px;
+}
+
+#viewer-scroll-container {
+  width: 20px;
+  height: 374px;
+  overflow-y: scroll;
+}
+
+#viewer-scroll-space {
+  width: 0;
+  height: 10000px;
 }
 
 .mem-label {
