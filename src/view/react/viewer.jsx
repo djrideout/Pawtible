@@ -27,17 +27,24 @@ export class GBViewer extends React.Component {
     return 16;
   }
 
+  shouldComponentUpdate(nextProps, nextState) {
+    let inView = state => {
+      return state.changed >= state.top && state.changed <= state.top + (this.rows << 4) + this.cols - 1
+    };
+    switch(true) {
+      case inView(nextState):
+      case inView(this.state) && !inView(nextState):
+        return true;
+      default:
+        return false;
+    }
+  }
+
   componentDidMount() {
     this.GB.M.addSetHook(addr => {
-      if(addr >= this.top && addr <= this.top + (this.rows << 4) + this.cols - 1) {
-        this.setState({
-          changed: addr
-        });
-      } else if(this.state.changed !== null) {
-        this.setState({
-          changed: null
-        });
-      }
+      this.setState({
+        changed: addr
+      });
     });
   }
 
