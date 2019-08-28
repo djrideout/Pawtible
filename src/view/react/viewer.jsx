@@ -34,6 +34,7 @@ export class GBViewer extends React.Component {
     switch(true) {
       case inView(nextState):
       case inView(this.state) && !inView(nextState):
+      case nextState.top !== this.state.top:
         return true;
       default:
         return false;
