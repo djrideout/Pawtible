@@ -53,7 +53,7 @@ export class GBViewer extends React.Component {
     let output = [];
     output.push(<span key={"top-row"} className={"mem-label"}>{"        00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f"}</span>, <br key={"top-row-br"} />);
     for(let i = this.top; i <= this.top + (this.rows << 4); i += 0x10) {
-      let label = <span key={`${i}-label`} className={"mem-label"}>{`0x${i.toString(16).padStart(4, "0")}  `}</span>;
+      let label = <span key={`${i - this.top}-label`} className={"mem-label"}>{`0x${i.toString(16).padStart(4, "0")}  `}</span>;
       output.push(label);
       for(let j = 0x0; j < this.cols; j++) {
         let str = `${this.GB.M.get(i + j).toString(16).padStart(2, "0")} `;
@@ -63,7 +63,7 @@ export class GBViewer extends React.Component {
           output.push(str);
         }
       }
-      output.push(<br key={`${i}-br`} />);
+      output.push(<br key={`${i - this.top}-br`} />);
     }
     return output;
   }
