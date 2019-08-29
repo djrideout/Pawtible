@@ -21,7 +21,7 @@ class MemoryViewer extends React.Component {
   constructor(props) {
     super(props);
     this.setTop_ = set_top.bind(this);
-    this.setChanged_ = set_changed.bind(this);
+    this.setChanged_ = set_addr_changed.bind(this);
     this.onKeyPress_ = on_key_press.bind(this);
     this.onScroll_ = on_scroll.bind(this);
     this.scrollContainer_ = null;
@@ -113,7 +113,7 @@ function set_top(row) {
   });
 }
 
-function set_changed(addr) {
+function set_addr_changed(addr) {
   this.setState({
     changed: addr
   });
@@ -141,6 +141,7 @@ function on_scroll(e) {
 class RegisterViewer extends React.Component {
   constructor(props) {
     super(props);
+    this.setChanged_ = set_register_changed.bind(this);
     this.state = {
       changed: null,
       flags: {}
@@ -160,12 +161,7 @@ class RegisterViewer extends React.Component {
   }
 
   componentDidMount() {
-    this.GB.CPU.addSetHook((register, value, flags) => {
-      this.setState({
-        changed: register,
-        flags
-      });
-    });
+    this.GB.CPU.addSetHook(this.setChanged_);
   }
 
   render() {
@@ -192,4 +188,11 @@ class RegisterViewer extends React.Component {
       </div>
     )
   }
+}
+
+function set_register_changed(register, value, flags) {
+  this.setState({
+    changed: register,
+    flags
+  });
 }
