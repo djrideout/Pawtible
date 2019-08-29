@@ -161,13 +161,10 @@ class RegisterViewer extends React.Component {
 
   componentDidMount() {
     this.GB.CPU.addSetHook((register, value, flags) => {
-      let newState = {
-        changed: register
-      };
-      if(flags) {
-        newState.flags = flags;
-      }
-      this.setState(newState);
+      this.setState({
+        changed: register,
+        flags
+      });
     });
   }
 
