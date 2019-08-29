@@ -43,7 +43,7 @@ export class CPU {
     this.setHooks_.push(callback);
   }
 
-  callSetHooks(register, val, flags = null) {
+  callSetHooks(register, val, flags = get_flags_updated()) {
     for(let i = 0; i < this.setHooks_.length; i++) {
       this.setHooks_[i](register, val, flags);
     }
@@ -65,13 +65,7 @@ export class CPU {
   set F(val) {
     let og = this.f_;
     this.f_ = val & 0xFF
-    let flags = {
-      [Flags.Z]: !!((og & 0x80) ^ (this.f_ & 0x80)),
-      [Flags.N]: !!((og & 0x40) ^ (this.f_ & 0x40)),
-      [Flags.H]: !!((og & 0x20) ^ (this.f_ & 0x20)),
-      [Flags.C]: !!((og & 0x10) ^ (this.f_ & 0x10))
-    };
-    this.callSetHooks(Registers.F, this.F, flags);
+    this.callSetHooks(Registers.F, this.F, get_flags_updated(og, this.f_));
   }
 
   get AF() {
@@ -80,8 +74,9 @@ export class CPU {
 
   set AF(val) {
     this.A = val >> 8;
+    let og = this.F;
     this.F = val;
-    this.callSetHooks(Registers.AF, this.AF);
+    this.callSetHooks(Registers.AF, this.AF, get_flags_updated(og, this.F));
   }
 
   get B() {
@@ -217,4 +212,13 @@ export class CPU {
   set FlagC(bool) {
     bool ? this.F |= 0x10 : this.F &= ~0x10;
   }
+}
+
+function get_flags_updated(oldF = 0x00, newF = 0x00) {
+  return {
+    [Flags.Z]: !!((oldF & 0x80) ^ (newF & 0x80)),
+    [Flags.N]: !!((oldF & 0x40) ^ (newF & 0x40)),
+    [Flags.H]: !!((oldF & 0x20) ^ (newF & 0x20)),
+    [Flags.C]: !!((oldF & 0x10) ^ (newF & 0x10))
+  };
 }
