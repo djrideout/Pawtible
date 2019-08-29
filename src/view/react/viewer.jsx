@@ -1,4 +1,6 @@
+import { Registers, Flags } from "../../gb/cpu";
 import * as React from "react";
+
 
 export class GBViewer extends React.Component {
   get GB() {
@@ -137,21 +139,59 @@ function on_scroll(e) {
 }
 
 class RegisterViewer extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      changed: null,
+      flags: {}
+    }
+  }
+
   get GB() {
     return this.props.gameBoy;
   }
 
+  get changed() {
+    return this.state.changed;
+  }
+
+  get flags() {
+    return this.state.flags;
+  }
+
   componentDidMount() {
-    this.GB.CPU.addSetHook(() => this.forceUpdate());
+    this.GB.CPU.addSetHook((register, value, flags) => {
+      let newState = {
+        changed: register
+      };
+      if(flags) {
+        newState.flags = flags;
+      }
+      this.setState(newState);
+    });
   }
 
   render() {
     let cpu = this.GB.CPU;
     return (
       <div id={"viewer-registers"}>
-        {`AF: ${cpu.AF.toString(16).padStart(4, "0")}  BC: ${cpu.BC.toString(16).padStart(4, "0")}  DE: ${cpu.DE.toString(16).padStart(4, "0")}  HL: ${cpu.HL.toString(16).padStart(4, "0")}  SP: ${cpu.SP.toString(16).padStart(4, "0")}  PC: ${cpu.PC.toString(16).padStart(4, "0")}`}
+        {this.changed === Registers.A || this.changed === Registers.AF ? <span className={"changed-value"}>{"A"}</span> : "A"}{`: ${cpu.A.toString(16).padStart(2, "0")}  `}
+        {this.changed === Registers.B || this.changed === Registers.BC ? <span className={"changed-value"}>{"B"}</span> : "B"}{`: ${cpu.B.toString(16).padStart(2, "0")}  `}
+        {this.changed === Registers.D || this.changed === Registers.DE ? <span className={"changed-value"}>{"D"}</span> : "D"}{`: ${cpu.D.toString(16).padStart(2, "0")}  `}
+        {this.changed === Registers.H || this.changed === Registers.HL ? <span className={"changed-value"}>{"H"}</span> : "H"}{`: ${cpu.H.toString(16).padStart(2, "0")}`}
         <br />
-        {`Z: ${cpu.FlagZ}  N: ${cpu.FlagN}  H: ${cpu.FlagH}  C: ${cpu.FlagC}`}
+        {this.changed === Registers.F || this.changed === Registers.AF ? <span className={"changed-value"}>{"F"}</span> : "F"}{`: ${cpu.F.toString(16).padStart(2, "0")}  `}
+        {this.changed === Registers.C || this.changed === Registers.BC ? <span className={"changed-value"}>{"C"}</span> : "C"}{`: ${cpu.C.toString(16).padStart(2, "0")}  `}
+        {this.changed === Registers.E || this.changed === Registers.DE ? <span className={"changed-value"}>{"E"}</span> : "E"}{`: ${cpu.E.toString(16).padStart(2, "0")}  `}
+        {this.changed === Registers.L || this.changed === Registers.HL ? <span className={"changed-value"}>{"L"}</span> : "L"}{`: ${cpu.L.toString(16).padStart(2, "0")}`}
+        <br />
+        {this.changed === Registers.SP ? <span className={"changed-value"}>{"SP"}</span> : "SP"}{`: ${cpu.SP.toString(16).padStart(4, "0")}  `}
+        {this.changed === Registers.PC ? <span className={"changed-value"}>{"PC"}</span> : "PC"}{`: ${cpu.PC.toString(16).padStart(4, "0")}`}
+        <br />
+        {this.flags[Flags.Z] ? <span className={"changed-value"}>{"Z"}</span> : "Z"}{`: ${cpu.FlagZ}  `}
+        {this.flags[Flags.N] ? <span className={"changed-value"}>{"N"}</span> : "N"}{`: ${cpu.FlagN}  `}
+        {this.flags[Flags.H] ? <span className={"changed-value"}>{"H"}</span> : "H"}{`: ${cpu.FlagH}  `}
+        {this.flags[Flags.C] ? <span className={"changed-value"}>{"C"}</span> : "C"}{`: ${cpu.FlagC}`}
       </div>
     )
   }
