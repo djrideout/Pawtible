@@ -3,7 +3,7 @@ export const Registers = {
   F: "F",
   AF: "AF",
   B: "B",
-  C: "B",
+  C: "C",
   BC: "BC",
   D: "D",
   E: "E",
@@ -13,6 +13,13 @@ export const Registers = {
   HL: "HL",
   SP: "SP",
   PC: "PC"
+};
+
+export const Flags = {
+  Z: "Z",
+  N: "N",
+  H: "H",
+  C: "C"
 };
 
 export class CPU {
@@ -36,9 +43,9 @@ export class CPU {
     this.setHooks_.push(callback);
   }
 
-  callSetHooks(register, val) {
+  callSetHooks(register, val, flags = null) {
     for(let i = 0; i < this.setHooks_.length; i++) {
-      this.setHooks_[i](register, val);
+      this.setHooks_[i](register, val, flags);
     }
   }
 
@@ -56,8 +63,15 @@ export class CPU {
   }
 
   set F(val) {
-    this.f_ = val & 0xFF;
-    this.callSetHooks(Registers.F, this.F);
+    let og = this.f_;
+    this.f_ = val & 0xFF
+    let flags = {
+      [Flags.Z]: !!((og & 0x80) ^ (this.f_ & 0x80)),
+      [Flags.N]: !!((og & 0x40) ^ (this.f_ & 0x40)),
+      [Flags.H]: !!((og & 0x20) ^ (this.f_ & 0x20)),
+      [Flags.C]: !!((og & 0x10) ^ (this.f_ & 0x10))
+    };
+    this.callSetHooks(Registers.F, this.F, flags);
   }
 
   get AF() {
