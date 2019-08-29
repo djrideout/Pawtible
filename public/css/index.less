@@ -16,7 +16,6 @@ body {
 }
 
 .wrapper {
-  display: inline-block;
   border-style: solid;
   border-color: black;
   border-width: 1px;
@@ -24,8 +23,8 @@ body {
 }
 
 #viewer-wrapper {
-  position:relative;
   display: flex;
+  flex-direction: column;
   background-color: white;
   border-left-width: 0px;
   font-family: "Courier New", monospace;
@@ -34,26 +33,36 @@ body {
   width: 420px;
 }
 
-#viewer-input {
+#viewer-memory {
+  position: relative;
+  display: flex;
+  height: 374px;
+}
+
+#viewer-memory-input {
   position: absolute;
   font-size: 10px;
   width: 55px;
 }
 
-#viewer-text {
-  width: 400px;
-  height: 374px;
+#viewer-memory-text {
+  flex: auto;
 }
 
-#viewer-scroll-container {
+#viewer-memory-scroll-container {
   width: 20px;
-  height: 374px;
   overflow-y: scroll;
 }
 
-#viewer-scroll-space {
+#viewer-memory-scroll-space {
   width: 0;
   height: 10000px;
+}
+
+#viewer-registers {
+  margin: auto;
+  white-space: pre;
+  text-align: center;
 }
 
 .mem-label {

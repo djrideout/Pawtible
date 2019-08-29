@@ -1,6 +1,21 @@
 import * as React from "react";
 
 export class GBViewer extends React.Component {
+  get GB() {
+    return this.props.gameBoy;
+  }
+
+  render() {
+    return (
+      <>
+        <MemoryViewer gameBoy={this.GB} />
+        <RegisterViewer gameBoy={this.GB} />
+      </>
+    );
+  }
+}
+
+class MemoryViewer extends React.Component {
   constructor(props) {
     super(props);
     this.setTop_ = set_top.bind(this);
@@ -20,6 +35,10 @@ export class GBViewer extends React.Component {
 
   get top() {
     return this.state.top;
+  }
+
+  get changed() {
+    return this.state.changed;
   }
 
   get rows() {
@@ -59,7 +78,7 @@ export class GBViewer extends React.Component {
       let str2 = "";
       for(let j = 0x0; j < this.cols; j++) {
         let val = `${this.GB.M.get(i + j).toString(16).padStart(2, "0")} `;
-        if(i + j === this.state.changed) {
+        if(i + j === this.changed) {
           changed = <span className={"changed-value"} key={"changed"}>{val}</span>;
         } else {
           if(changed === null) {
@@ -75,13 +94,13 @@ export class GBViewer extends React.Component {
       output.push(<br key={`${i - this.top}-br`} />);
     }
     return (
-      <>
-        <input id={"viewer-input"} type={"text"} onKeyPress={this.onKeyPress_}/>
-        <div id={"viewer-text"}>{output}</div>
-        <div id={"viewer-scroll-container"} onScroll={this.onScroll_} ref={ref => this.scrollContainer_ = ref}>
-          <div id={"viewer-scroll-space"} />
+      <div id={"viewer-memory"}>
+        <input id={"viewer-memory-input"} type={"text"} onKeyPress={this.onKeyPress_}/>
+        <div id={"viewer-memory-text"}>{output}</div>
+        <div id={"viewer-memory-scroll-container"} onScroll={this.onScroll_} ref={ref => this.scrollContainer_ = ref}>
+          <div id={"viewer-memory-scroll-space"} />
         </div>
-      </>
+      </div>
     );
   }
 }
@@ -115,4 +134,25 @@ function on_scroll(e) {
   let r = el.scrollTop / max;
   let row = Math.ceil(((this.GB.M.length - 1) >> 4) * r) << 4;
   this.setTop_(row);
+}
+
+class RegisterViewer extends React.Component {
+  get GB() {
+    return this.props.gameBoy;
+  }
+
+  componentDidMount() {
+    this.GB.CPU.addSetHook(() => this.forceUpdate());
+  }
+
+  render() {
+    let cpu = this.GB.CPU;
+    return (
+      <div id={"viewer-registers"}>
+        {`AF: ${cpu.AF.toString(16).padStart(4, "0")}  BC: ${cpu.BC.toString(16).padStart(4, "0")}  DE: ${cpu.DE.toString(16).padStart(4, "0")}  HL: ${cpu.HL.toString(16).padStart(4, "0")}  SP: ${cpu.SP.toString(16).padStart(4, "0")}  PC: ${cpu.PC.toString(16).padStart(4, "0")}`}
+        <br />
+        {`Z: ${cpu.FlagZ}  N: ${cpu.FlagN}  H: ${cpu.FlagH}  C: ${cpu.FlagC}`}
+      </div>
+    )
+  }
 }
