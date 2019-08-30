@@ -1,6 +1,7 @@
-export class MemoryMap {
-  constructor() {
+export class Memory {
+  constructor(cart) {
     this.setHooks_ = [];
+    this.cart_ = cart;
     this.temp_ = new Array(this.length);
     this.temp_.fill(0x00);
   }
