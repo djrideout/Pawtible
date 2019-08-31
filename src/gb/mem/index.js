@@ -1,46 +1,18 @@
 import { MemoryBlock } from "./block";
 
-export const Blocks = {
-  CART: "cart",
-  VRAM: "vram",
-  EXTRAM: "extram",
-  WORKRAM: "workram",
-  ECHORAM: "echoram",
-  OAM: "oam",
-  TRASH: "trash",
-  IOREG: "ioreg",
-  HRAM: "hram",
-  INTERRUPT: "interrupt"
-};
-
-export const StartAddrs = {
-  [Blocks.CART]: 0x0000,
-  [Blocks.VRAM]: 0x8000,
-  [Blocks.EXTRAM]: 0xA000,
-  [Blocks.WORKRAM]: 0xC000,
-  [Blocks.ECHORAM]: 0xE000,
-  [Blocks.OAM]: 0xFE00,
-  [Blocks.TRASH]: 0xFEA0,
-  [Blocks.IOREG]: 0xFF00,
-  [Blocks.HRAM]: 0xFF80,
-  [Blocks.INTERRUPT]: 0xFFFF
-};
-
 export class Memory {
   constructor() {
-    let work = null;
-    this.blocks_ = [
-      new MemoryBlock(Blocks.CART, 0x8000),
-      new MemoryBlock(Blocks.VRAM, 0x2000),
-      new MemoryBlock(Blocks.EXTRAM, 0x2000),
-      work = new MemoryBlock(Blocks.WORKRAM, 0x2000),
-      work.echo(Blocks.ECHORAM, 0x1E00),
-      new MemoryBlock(Blocks.OAM, 0x00A0),
-      new MemoryBlock(Blocks.TRASH, 0x0060),
-      new MemoryBlock(Blocks.IOREG, 0x0080),
-      new MemoryBlock(Blocks.HRAM, 0x007F),
-      new MemoryBlock(Blocks.INTERRUPT, 0x0001)
-    ];
+    let cart = new MemoryBlock(0x0000, 0x8000);
+    let vram = new MemoryBlock(0x8000, 0x2000);
+    let extram = new MemoryBlock(0xA000, 0x2000);
+    let workram = new MemoryBlock(0xC000, 0x2000);
+    let echoram = workram.echo(0xE000, 0x1E00);
+    let oam = new MemoryBlock(0xFE00, 0x00A0);
+    let trash = new MemoryBlock(0xFEA0, 0x0060);
+    let ioreg = new MemoryBlock(0xFF00, 0x0080);
+    let hram = new MemoryBlock(0xFF80, 0x007F);
+    let interrupt = new MemoryBlock(0xFFFF, 0x0001);
+    this.blocks_ = [cart, vram, extram, workram, echoram, oam, trash, ioreg, hram, interrupt];
   }
 
   get Blocks() {
@@ -98,8 +70,8 @@ export class Memory {
   get(addr) {
     for(let i = 0; i < this.Blocks.length; i++) {
       let b = this.Blocks[i];
-      if(addr >= StartAddrs[b.key] && addr < StartAddrs[b.key] + b.length) {
-        return b.get(addr - StartAddrs[b.key]);
+      if(addr >= b.start && addr < b.start + b.length) {
+        return b.get(addr - b.start);
       }
     }
   }
@@ -107,8 +79,8 @@ export class Memory {
   set(addr, val) {
     for(let i = 0; i < this.Blocks.length; i++) {
       let b = this.Blocks[i];
-      if(addr >= StartAddrs[b.key] && addr < StartAddrs[b.key] + b.length) {
-        b.set(addr - StartAddrs[b.key], val);
+      if(addr >= b.start && addr < b.start + b.length) {
+        b.set(addr - b.start, val);
       }
     }
   }
