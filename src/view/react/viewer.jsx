@@ -1,6 +1,6 @@
+import { StartAddrs } from "../../gb/mem";
 import { Registers, Flags } from "../../gb/cpu";
 import * as React from "react";
-
 
 export class GBViewer extends React.Component {
   get GB() {
@@ -21,7 +21,6 @@ class MemoryViewer extends React.Component {
   constructor(props) {
     super(props);
     this.setTop_ = set_top.bind(this);
-    this.setChanged_ = set_addr_changed.bind(this);
     this.onKeyPress_ = on_key_press.bind(this);
     this.onScroll_ = on_scroll.bind(this);
     this.scrollContainer_ = null;
@@ -66,7 +65,9 @@ class MemoryViewer extends React.Component {
   }
 
   componentDidMount() {
-    this.GB.M.addSetHook(this.setChanged_);
+    for(let i = 0; i < this.GB.M.Blocks.length; i++) {
+      set_closure(this.GB.M.Blocks[i], this);
+    }
   }
 
   render() {
@@ -113,12 +114,6 @@ function set_top(row) {
   });
 }
 
-function set_addr_changed(addr) {
-  this.setState({
-    changed: addr
-  });
-}
-
 function on_key_press(e) {
   if(e.nativeEvent.keyCode === 13) { //enter
     let addr = parseInt(e.target.value, 16);
@@ -136,6 +131,16 @@ function on_scroll(e) {
   let r = el.scrollTop / max;
   let row = Math.ceil(((this.GB.M.length - 1) >> 4) * r) << 4;
   this.setTop_(row);
+}
+
+function set_closure(block, viewer) {
+  let ogSet = block.set.bind(block);
+  block.set = function(addr, val) {
+    ogSet(addr, val);
+    viewer.setState({
+      changed: StartAddrs[block.key] + addr
+    });
+  }
 }
 
 class RegisterViewer extends React.Component {
