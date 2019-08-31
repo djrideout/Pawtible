@@ -1,4 +1,5 @@
 import { MemoryBlock } from "./block";
+import { Interrupt } from "./interrupt";
 
 export class Memory {
   constructor() {
@@ -11,7 +12,7 @@ export class Memory {
     let trash = new MemoryBlock(0xFEA0, 0x0060);
     let ioreg = new MemoryBlock(0xFF00, 0x0080);
     let hram = new MemoryBlock(0xFF80, 0x007F);
-    let interrupt = new MemoryBlock(0xFFFF, 0x0001);
+    let interrupt = new Interrupt(0xFFFF);
     this.blocks_ = [cart, vram, extram, workram, echoram, oam, trash, ioreg, hram, interrupt];
   }
 
@@ -47,7 +48,7 @@ export class Memory {
     return this.Blocks[6];
   }
 
-  get IOREG() {
+  get IOReg() {
     return this.Blocks[7];
   }
 
