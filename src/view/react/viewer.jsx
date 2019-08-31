@@ -1,4 +1,4 @@
-import { Registers, Flags } from "../../gb/cpu";
+import { Registers, Flags, get_flags_updated } from "../../gb/cpu";
 import * as React from "react";
 
 export class GBViewer extends React.Component {
@@ -65,7 +65,7 @@ class MemoryViewer extends React.Component {
 
   componentDidMount() {
     for(let i = 0; i < this.GB.M.Blocks.length; i++) {
-      set_closure(this.GB.M.Blocks[i], this);
+      mem_set_closure(this.GB.M.Blocks[i], this);
     }
   }
 
@@ -132,7 +132,7 @@ function on_scroll(e) {
   this.setTop_(row);
 }
 
-function set_closure(block, viewer) {
+function mem_set_closure(block, viewer) {
   let ogSet = block.set.bind(block);
   block.set = function(addr, val) {
     ogSet(addr, val);
@@ -145,7 +145,6 @@ function set_closure(block, viewer) {
 class RegisterViewer extends React.Component {
   constructor(props) {
     super(props);
-    this.setChanged_ = set_register_changed.bind(this);
     this.state = {
       changed: null,
       flags: {}
@@ -165,7 +164,7 @@ class RegisterViewer extends React.Component {
   }
 
   componentDidMount() {
-    this.GB.CPU.addSetHook(this.setChanged_);
+    cpu_set_closure(this.GB.CPU, this);
   }
 
   render() {
@@ -194,9 +193,14 @@ class RegisterViewer extends React.Component {
   }
 }
 
-function set_register_changed(register, value, flags) {
-  this.setState({
-    changed: register,
-    flags
-  });
+function cpu_set_closure(cpu, viewer) {
+  let ogSet = cpu.set.bind(cpu);
+  cpu.set = function(register, val) {
+    let ogVal = cpu.get(register);
+    ogSet(register, val);
+    viewer.setState({
+      changed: register,
+      flags: get_flags_updated(register, ogVal, cpu.get(register))
+    });
+  }
 }
