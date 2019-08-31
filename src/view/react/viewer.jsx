@@ -1,4 +1,3 @@
-import { StartAddrs } from "../../gb/mem";
 import { Registers, Flags } from "../../gb/cpu";
 import * as React from "react";
 
@@ -138,7 +137,7 @@ function set_closure(block, viewer) {
   block.set = function(addr, val) {
     ogSet(addr, val);
     viewer.setState({
-      changed: StartAddrs[block.key] + addr
+      changed: block.start + addr
     });
   }
 }
