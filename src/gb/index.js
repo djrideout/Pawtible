@@ -1,11 +1,9 @@
-import { Memory } from "./memory";
+import { Memory } from "./mem";
 import { CPU } from "./cpu";
-import { Cartridge } from "./cart";
 
 export class GameBoy {
   constructor() {
-    this.cart_ = new Cartridge();
-    this.memoryMap_ = new Memory(this.cart_);
+    this.memoryMap_ = new Memory();
     this.cpu_ = new CPU();
   }
 
@@ -29,5 +27,14 @@ export class GameBoy {
     for(let i = 0x0000; i <= 0xFFFF; i++) {
       this.M.set(i, 0x00);
     }
+  }
+
+  time() {
+    let t0 = performance.now();
+    for(let i = 0; i < 100; i++) {
+      this.init();
+    }
+    let t1 = performance.now();
+    console.log(t1 - t0);
   }
 }
