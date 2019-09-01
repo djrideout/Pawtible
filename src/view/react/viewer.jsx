@@ -1,4 +1,5 @@
-import { Registers, Flags, get_flags_updated } from "../../gb/cpu";
+import { MemoryBlock } from "../../gb/mem/block";
+import { CPU, Registers, Flags, get_flags_updated } from "../../gb/cpu";
 import * as React from "react";
 
 export class GBViewer extends React.Component {
@@ -27,6 +28,7 @@ class MemoryViewer extends React.Component {
       top: 0x0000,
       changed: null
     };
+    mem_set_closure(this);
   }
 
   get GB() {
@@ -60,12 +62,6 @@ class MemoryViewer extends React.Component {
         return true;
       default:
         return false;
-    }
-  }
-
-  componentDidMount() {
-    for(let i = 0; i < this.GB.M.Blocks.length; i++) {
-      mem_set_closure(this.GB.M.Blocks[i], this);
     }
   }
 
@@ -132,12 +128,12 @@ function on_scroll(e) {
   this.setTop_(row);
 }
 
-function mem_set_closure(block, viewer) {
-  let ogSet = block.set.bind(block);
-  block.set = function(addr, val) {
-    ogSet(addr, val);
+function mem_set_closure(viewer) {
+  let og = MemoryBlock.prototype.set;
+  MemoryBlock.prototype.set = function(addr, val) {
+    og.call(this, addr, val);
     viewer.setState({
-      changed: block.start + addr
+      changed: this.start + addr
     });
   }
 }
@@ -148,7 +144,8 @@ class RegisterViewer extends React.Component {
     this.state = {
       changed: null,
       flags: {}
-    }
+    };
+    cpu_set_closure(this);
   }
 
   get GB() {
@@ -161,10 +158,6 @@ class RegisterViewer extends React.Component {
 
   get flags() {
     return this.state.flags;
-  }
-
-  componentDidMount() {
-    cpu_set_closure(this.GB.CPU, this);
   }
 
   render() {
@@ -193,14 +186,14 @@ class RegisterViewer extends React.Component {
   }
 }
 
-function cpu_set_closure(cpu, viewer) {
-  let ogSet = cpu.set.bind(cpu);
-  cpu.set = function(register, val) {
-    let ogVal = cpu.get(register);
-    ogSet(register, val);
+function cpu_set_closure(viewer) {
+  let og = CPU.prototype.set;
+  CPU.prototype.set = function(register, val) {
+    let ogVal = this.get(register);
+    og.call(this, register, val);
     viewer.setState({
       changed: register,
-      flags: get_flags_updated(register, ogVal, cpu.get(register))
+      flags: get_flags_updated(register, ogVal, this.get(register))
     });
   }
 }

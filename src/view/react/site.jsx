@@ -7,6 +7,10 @@ export class Site extends React.Component {
     return this.props.gameBoy;
   }
 
+  componentDidMount() {
+    this.GB.loadROM(this.props.testROM);
+  }
+
   render() {
     return (
       <>

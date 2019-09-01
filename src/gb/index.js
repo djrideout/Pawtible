@@ -8,6 +8,10 @@ export class GameBoy {
     this.reset();
   }
 
+  loadROM(byteArr) {
+    console.log(byteArr);
+  }
+
   get M() {
     return this.memoryMap_;
   }
