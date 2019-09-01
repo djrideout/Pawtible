@@ -1,4 +1,5 @@
 import { Memory } from "./mem";
+import { CartridgeFactory } from "./mem/block/cart/factory";
 import { CPU } from "./cpu";
 
 export class GameBoy {
@@ -8,16 +9,16 @@ export class GameBoy {
     this.reset();
   }
 
-  loadROM(byteArr) {
-    console.log(byteArr);
-  }
-
   get M() {
     return this.memoryMap_;
   }
 
   get CPU() {
     return this.cpu_;
+  }
+
+  load(byteArr) {
+    this.M.Cart = CartridgeFactory.create(byteArr);
   }
 
   //Initial state from pan docs: http://bgb.bircd.org/pandocs.htm#cpuregistersandflags
