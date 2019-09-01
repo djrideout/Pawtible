@@ -17,8 +17,9 @@ export class Canvas extends React.Component {
   }
 
   componentDidMount() {
-    this.screen_ = new Screen(this.canvas_);
-    this.Screen.pinkScreen();
+    this.screen_ = new Screen(this.canvas_, this.GB);
+    this.Screen.blank();
+    //this.Screen.run();
   }
 
   render() {

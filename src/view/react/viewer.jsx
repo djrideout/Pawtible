@@ -130,6 +130,8 @@ function on_scroll(e) {
   this.setTop_(row);
 }
 
+let testRomString = "";
+
 function mem_set_closure(viewer) {
   let mbSet = MemoryBlock.prototype.set;
   MemoryBlock.prototype.set = function(addr, val) {
@@ -137,6 +139,15 @@ function mem_set_closure(viewer) {
     viewer.setState({
       changed: this.start + addr
     });
+
+    //FOR TEST ROM ONLY, WILL REMOVE LATER
+    if(this.start + addr === 0xFF01) {
+      testRomString += String.fromCharCode(this.get(addr));
+    }
+    if(this.start + addr === 0xFF02 && this.get(addr) === 0x81) {
+      console.log(testRomString);
+    }
+
   }
   let mSetBlock = Memory.prototype.setBlock;
   Memory.prototype.setBlock = function(index, block) {
