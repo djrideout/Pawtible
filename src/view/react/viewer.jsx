@@ -71,13 +71,13 @@ class MemoryViewer extends React.Component {
     let output = [];
     output.push(<span key={"top-row"} className={"mem-label"}>{"        00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f"}</span>, <br key={"top-row-br"} />);
     for(let i = this.top; i <= this.top + (this.rows << 4); i += 0x10) {
-      let label = <span key={`${i - this.top}-label`} className={"mem-label"}>{`0x${i.toString(16).padStart(4, "0")}  `}</span>;
+      let label = <span key={`${i - this.top}-label`} className={"mem-label"}>{`0x${i.toString(16).toUpperCase().padStart(4, "0")}  `}</span>;
       output.push(label);
       let str1 = "";
       let changed = null;
       let str2 = "";
       for(let j = 0x0; j < this.cols; j++) {
-        let val = `${this.GB.M.get(i + j).toString(16).padStart(2, "0")} `;
+        let val = `${this.GB.M.get(i + j).toString(16).toUpperCase().padStart(2, "0")} `;
         if(i + j === this.changed) {
           changed = <span className={"changed-value"} key={"changed"}>{val}</span>;
         } else {
@@ -171,18 +171,18 @@ class RegisterViewer extends React.Component {
     let cpu = this.GB.CPU;
     return (
       <div id={"viewer-registers"}>
-        {this.changed === Registers.A || this.changed === Registers.AF ? <span className={"changed-value"}>{"A"}</span> : "A"}{`: ${cpu.A.toString(16).padStart(2, "0")}  `}
-        {this.changed === Registers.B || this.changed === Registers.BC ? <span className={"changed-value"}>{"B"}</span> : "B"}{`: ${cpu.B.toString(16).padStart(2, "0")}  `}
-        {this.changed === Registers.D || this.changed === Registers.DE ? <span className={"changed-value"}>{"D"}</span> : "D"}{`: ${cpu.D.toString(16).padStart(2, "0")}  `}
-        {this.changed === Registers.H || this.changed === Registers.HL ? <span className={"changed-value"}>{"H"}</span> : "H"}{`: ${cpu.H.toString(16).padStart(2, "0")}`}
+        {this.changed === Registers.A || this.changed === Registers.AF ? <span className={"changed-value"}>{"A"}</span> : "A"}{`: ${cpu.A.toString(16).toUpperCase().padStart(2, "0")}  `}
+        {this.changed === Registers.B || this.changed === Registers.BC ? <span className={"changed-value"}>{"B"}</span> : "B"}{`: ${cpu.B.toString(16).toUpperCase().padStart(2, "0")}  `}
+        {this.changed === Registers.D || this.changed === Registers.DE ? <span className={"changed-value"}>{"D"}</span> : "D"}{`: ${cpu.D.toString(16).toUpperCase().padStart(2, "0")}  `}
+        {this.changed === Registers.H || this.changed === Registers.HL ? <span className={"changed-value"}>{"H"}</span> : "H"}{`: ${cpu.H.toString(16).toUpperCase().padStart(2, "0")}`}
         <br />
-        {this.changed === Registers.F || this.changed === Registers.AF ? <span className={"changed-value"}>{"F"}</span> : "F"}{`: ${cpu.F.toString(16).padStart(2, "0")}  `}
-        {this.changed === Registers.C || this.changed === Registers.BC ? <span className={"changed-value"}>{"C"}</span> : "C"}{`: ${cpu.C.toString(16).padStart(2, "0")}  `}
-        {this.changed === Registers.E || this.changed === Registers.DE ? <span className={"changed-value"}>{"E"}</span> : "E"}{`: ${cpu.E.toString(16).padStart(2, "0")}  `}
-        {this.changed === Registers.L || this.changed === Registers.HL ? <span className={"changed-value"}>{"L"}</span> : "L"}{`: ${cpu.L.toString(16).padStart(2, "0")}`}
+        {this.changed === Registers.F || this.changed === Registers.AF ? <span className={"changed-value"}>{"F"}</span> : "F"}{`: ${cpu.F.toString(16).toUpperCase().padStart(2, "0")}  `}
+        {this.changed === Registers.C || this.changed === Registers.BC ? <span className={"changed-value"}>{"C"}</span> : "C"}{`: ${cpu.C.toString(16).toUpperCase().padStart(2, "0")}  `}
+        {this.changed === Registers.E || this.changed === Registers.DE ? <span className={"changed-value"}>{"E"}</span> : "E"}{`: ${cpu.E.toString(16).toUpperCase().padStart(2, "0")}  `}
+        {this.changed === Registers.L || this.changed === Registers.HL ? <span className={"changed-value"}>{"L"}</span> : "L"}{`: ${cpu.L.toString(16).toUpperCase().padStart(2, "0")}`}
         <br />
-        {this.changed === Registers.SP ? <span className={"changed-value"}>{"SP"}</span> : "SP"}{`: ${cpu.SP.toString(16).padStart(4, "0")}  `}
-        {this.changed === Registers.PC ? <span className={"changed-value"}>{"PC"}</span> : "PC"}{`: ${cpu.PC.toString(16).padStart(4, "0")}`}
+        {this.changed === Registers.SP ? <span className={"changed-value"}>{"SP"}</span> : "SP"}{`: ${cpu.SP.toString(16).toUpperCase().padStart(4, "0")}  `}
+        {this.changed === Registers.PC ? <span className={"changed-value"}>{"PC"}</span> : "PC"}{`: ${cpu.PC.toString(16).toUpperCase().padStart(4, "0")}`}
         <br />
         {this.flags[Flags.Z] ? <span className={"changed-value"}>{"Z"}</span> : "Z"}{`: ${cpu.FlagZ}  `}
         {this.flags[Flags.N] ? <span className={"changed-value"}>{"N"}</span> : "N"}{`: ${cpu.FlagN}  `}
