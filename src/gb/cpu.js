@@ -23,7 +23,8 @@ export const Flags = {
 };
 
 export class CPU {
-  constructor() {
+  constructor(gameBoy) {
+    this.gameBoy_ = gameBoy;
     this[Registers.A] = 0x01;
     this[Registers.F] = 0x02;
     this[Registers.B] = 0x03;
@@ -34,6 +35,23 @@ export class CPU {
     this[Registers.L] = 0x08;
     this[Registers.SP] = 0x1234;
     this[Registers.PC] = 0x1234;
+  }
+
+  get GB() {
+    return this.gameBoy_;
+  }
+
+  runFrame() {
+    this.runInst();
+  }
+
+  runInst() {
+    switch(this.GB.M.get(this.PC)) {
+      case 0x00:
+        
+      default:
+        throw Error(`Unimplemented instruction 0x${this.GB.M.get(this.PC).toString(16).toUpperCase().padStart(2, "0")}`);
+    }
   }
 
   get(register) {

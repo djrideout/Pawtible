@@ -5,7 +5,7 @@ import { CPU } from "./cpu";
 export class GameBoy {
   constructor() {
     this.memoryMap_ = new Memory();
-    this.cpu_ = new CPU();
+    this.cpu_ = new CPU(this);
     this.reset();
   }
 
@@ -19,6 +19,10 @@ export class GameBoy {
 
   load(byteArr) {
     this.M.Cart = CartridgeFactory.create(byteArr);
+  }
+
+  runFrame() {
+    this.CPU.runFrame();
   }
 
   //Initial state from pan docs: http://bgb.bircd.org/pandocs.htm#cpuregistersandflags
