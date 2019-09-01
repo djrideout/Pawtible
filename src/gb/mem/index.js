@@ -114,7 +114,7 @@ export class Memory {
     return total;
   }
 
-  get(addr) {
+  getByte_(addr) {
     for(let i = 0; i < this.Blocks.length; i++) {
       let b = this.Blocks[i];
       if(addr >= b.start && addr < b.start + b.length) {
@@ -123,12 +123,26 @@ export class Memory {
     }
   }
 
-  set(addr, val) {
+  get(addr, bytes = 1) {
+    let val = 0x00;
+    for(let i = 0; i < bytes; i++) {
+      val += this.getByte_(addr + i) << (8 * i);
+    }
+    return val;
+  }
+
+  setByte_(addr, val) {
     for(let i = 0; i < this.Blocks.length; i++) {
       let b = this.Blocks[i];
       if(addr >= b.start && addr < b.start + b.length) {
         b.set(addr - b.start, val);
       }
+    }
+  }
+
+  set(addr, val, bytes = 1) {
+    for(let i = 0; i < bytes; i++) {
+      this.setByte_(addr + i, val >> (8 * i));
     }
   }
 }

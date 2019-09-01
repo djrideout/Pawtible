@@ -33,6 +33,7 @@ export class GameBoy {
     this.CPU.HL = 0x014D;
     this.CPU.PC = 0x0100;
     this.CPU.SP = 0xFFFE;
+    this.CPU.FlagIME = false;
     this.M.IOReg.set(0x0005, 0x00);
     this.M.IOReg.set(0x0006, 0x00);
     this.M.IOReg.set(0x0007, 0x00);

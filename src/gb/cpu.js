@@ -12,7 +12,8 @@ export const Registers = {
   L: "regL",
   HL: "regH_regL",
   SP: "regSP",
-  PC: "regPC"
+  PC: "regPC",
+  IME: "regIME" //not actually a register, it's a flag, but i'll say it's a register to have a single entrypoint to modifying cpu
 };
 
 export const Flags = {
@@ -35,6 +36,7 @@ export class CPU {
     this[Registers.L] = 0x08;
     this[Registers.SP] = 0x1234;
     this[Registers.PC] = 0x1234;
+    this[Registers.IME] = 0;
   }
 
   get GB() {
@@ -46,11 +48,18 @@ export class CPU {
   }
 
   runInst() {
-    switch(this.GB.M.get(this.PC)) {
+    let addr = this.PC++;
+    switch(this.GB.M.get(addr)) {
       case 0x00:
-        
+        return 4;
+      case 0xC3:
+        this.PC = this.GB.M.get(this.PC, 2);
+        return 16;
+      case 0xF3:
+        this.FlagIME = false;
+        return 4;
       default:
-        throw Error(`Unimplemented instruction 0x${this.GB.M.get(this.PC).toString(16).toUpperCase().padStart(2, "0")}`);
+        throw Error(`Unimplemented instruction 0x${this.GB.M.get(addr).toString(16).toUpperCase().padStart(2, "0")}`);
     }
   }
 
@@ -66,6 +75,7 @@ export class CPU {
       case Registers.L:
       case Registers.SP:
       case Registers.PC:
+      case Registers.IME:
         return this[register];
       case Registers.AF:
       case Registers.BC:
@@ -86,6 +96,7 @@ export class CPU {
       case Registers.E:
       case Registers.H:
       case Registers.L:
+      case Registers.IME:
         this[register] = val & 0xFF;
         break;
       case Registers.AF:
@@ -213,6 +224,14 @@ export class CPU {
 
   set PC(val) {
     this.set(Registers.PC, val);
+  }
+
+  get FlagIME() {
+    return !!(this.get(Registers.IME));
+  }
+
+  set FlagIME(bool) {
+    bool ? this.set(Registers.IME, 1) : this.set(Registers.IME, 0);
   }
 
   get FlagZ() {

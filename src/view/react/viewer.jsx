@@ -134,8 +134,8 @@ let testRomString = "";
 
 function mem_set_closure(viewer) {
   let mbSet = MemoryBlock.prototype.set;
-  MemoryBlock.prototype.set = function(addr, val) {
-    mbSet.call(this, addr, val);
+  MemoryBlock.prototype.set = function(addr, val, bytes) {
+    mbSet.call(this, addr, val, bytes);
     viewer.setState({
       changed: this.start + addr
     });
@@ -195,6 +195,7 @@ class RegisterViewer extends React.Component {
         {this.changed === Registers.SP ? <span className={"changed-value"}>{"SP"}</span> : "SP"}{`: ${cpu.SP.toString(16).toUpperCase().padStart(4, "0")}  `}
         {this.changed === Registers.PC ? <span className={"changed-value"}>{"PC"}</span> : "PC"}{`: ${cpu.PC.toString(16).toUpperCase().padStart(4, "0")}`}
         <br />
+        {this.changed === Registers.IME ? <span className={"changed-value"}>{"IME"}</span> : "IME"}{`: ${cpu.FlagIME}  `}
         {this.flags[Flags.Z] ? <span className={"changed-value"}>{"Z"}</span> : "Z"}{`: ${cpu.FlagZ}  `}
         {this.flags[Flags.N] ? <span className={"changed-value"}>{"N"}</span> : "N"}{`: ${cpu.FlagN}  `}
         {this.flags[Flags.H] ? <span className={"changed-value"}>{"H"}</span> : "H"}{`: ${cpu.FlagH}  `}
