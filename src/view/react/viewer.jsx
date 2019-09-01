@@ -1,3 +1,4 @@
+import { Memory } from "../../gb/mem";
 import { MemoryBlock } from "../../gb/mem/block";
 import { CPU, Registers, Flags, get_flags_updated } from "../../gb/cpu";
 import * as React from "react";
@@ -56,6 +57,7 @@ class MemoryViewer extends React.Component {
       return state.changed >= state.top && state.changed <= state.top + (this.rows << 4) + this.cols - 1;
     };
     switch(true) {
+      case nextState.changed <= 0x7FFF: //bankswitch most likely
       case inView(nextState):
       case inView(this.state) && !inView(nextState):
       case nextState.top !== this.top:
@@ -129,12 +131,17 @@ function on_scroll(e) {
 }
 
 function mem_set_closure(viewer) {
-  let og = MemoryBlock.prototype.set;
+  let mbSet = MemoryBlock.prototype.set;
   MemoryBlock.prototype.set = function(addr, val) {
-    og.call(this, addr, val);
+    mbSet.call(this, addr, val);
     viewer.setState({
       changed: this.start + addr
     });
+  }
+  let mSetBlock = Memory.prototype.setBlock;
+  Memory.prototype.setBlock = function(index, block) {
+    mSetBlock.call(this, index, block);
+    viewer.forceUpdate();
   }
 }
 

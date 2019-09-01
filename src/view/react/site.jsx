@@ -8,7 +8,7 @@ export class Site extends React.Component {
   }
 
   componentDidMount() {
-    this.GB.loadROM(this.props.testROM);
+    this.GB.load(this.props.testROM);
   }
 
   render() {

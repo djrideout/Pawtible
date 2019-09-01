@@ -1,4 +1,4 @@
-import { MemoryBlock } from "./block";
+import { MemoryBlock } from ".";
 
 export class Interrupt extends MemoryBlock {
   constructor(start) {
