@@ -52,8 +52,22 @@ export class CPU {
     switch(this.GB.M.get(addr)) {
       case 0x00:
         return 4;
+      case 0x31:
+        this.ldr_(Registers.SP, this.GB.M.get(this.PC, 2));
+        this.PC += 2;
+        return 12;
+      case 0x3E:
+        this.ldr_(Registers.A, this.GB.M.get(this.PC++));
+        return 8;
       case 0xC3:
-        this.PC = this.GB.M.get(this.PC, 2);
+        this.jp_(this.GB.M.get(this.PC, 2));
+        return 16;
+      case 0xE0:
+        this.lda_(0xFF00 + this.GB.M.get(this.PC++), this.A);
+        return 12;
+      case 0xEA:
+        this.lda_(this.GB.M.get(this.PC, 2), this.A);
+        this.PC += 2;
         return 16;
       case 0xF3:
         this.FlagIME = false;
@@ -61,6 +75,18 @@ export class CPU {
       default:
         throw Error(`Unimplemented instruction 0x${this.GB.M.get(addr).toString(16).toUpperCase().padStart(2, "0")}`);
     }
+  }
+
+  ldr_(register, val) {
+    this.set(register, val);
+  }
+
+  lda_(addr, val) {
+    this.GB.M.set(addr, val);
+  }
+
+  jp_(addr) {
+    this.PC = addr;
   }
 
   get(register) {
