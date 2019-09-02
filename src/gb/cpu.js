@@ -23,6 +23,8 @@ export const Flags = {
   C: "C"
 };
 
+const CYCLES_PER_FRAME = 69905; //approx. 4194304Hz/60fps
+
 export class CPU {
   constructor(gameBoy) {
     this.gameBoy_ = gameBoy;
@@ -44,7 +46,10 @@ export class CPU {
   }
 
   runFrame() {
-    this.runInst();
+    let cycles = 0;
+    while(cycles < CYCLES_PER_FRAME) {
+      cycles += this.runInst();
+    }
   }
 
   runInst() {
@@ -312,7 +317,7 @@ export class CPU {
         this.cpv_(this.GB.M.get(this.PC++));
         return 8;
       default:
-        throw Error(`Unimplemented instruction 0x${this.GB.M.get(addr).toString(16).toUpperCase().padStart(2, "0")}`);
+        throw Error(`Unimplemented opcode 0x${this.GB.M.get(addr).toString(16).toUpperCase().padStart(2, "0")}`);
     }
   }
 
