@@ -59,8 +59,14 @@ export class CPU {
       case 0x03:
         this.inc_(Registers.BC);
         return 8;
+      case 0x06:
+        this.ldr_(Registers.B, this.GB.M.get(this.PC++));
+        return 8;
       case 0x0A:
         this.ldr_(Registers.A, this.GB.M.get(this.BC));
+        return 8;
+      case 0x0E:
+        this.ldr_(Registers.C, this.GB.M.get(this.PC++));
         return 8;
       case 0x11:
         this.ldr_(Registers.DE, this.GB.M.get(this.PC, 2));
@@ -69,12 +75,25 @@ export class CPU {
       case 0x13:
         this.inc_(Registers.DE);
         return 8;
+      case 0x16:
+        this.ldr_(Registers.D, this.GB.M.get(this.PC++));
+        return 8;
       case 0x18:
         this.jr_(this.GB.M.get(this.PC++));
         return 12;
       case 0x1A:
         this.ldr_(Registers.A, this.GB.M.get(this.DE));
         return 8;
+      case 0x1E:
+        this.ldr_(Registers.E, this.GB.M.get(this.PC++));
+        return 8;
+      case 0x20:
+        if(!this.FlagZ) {
+          this.jr_(this.GB.M.get(this.PC++));
+          return 12;
+        } else {
+          return 8;
+        }
       case 0x21:
         this.ldr_(Registers.HL, this.GB.M.get(this.PC, 2));
         this.PC += 2;
@@ -82,10 +101,30 @@ export class CPU {
       case 0x23:
         this.inc_(Registers.HL);
         return 8;
+      case 0x26:
+        this.ldr_(Registers.H, this.GB.M.get(this.PC++));
+        return 8;
+      case 0x28:
+        if(this.FlagZ) {
+          this.jr_(this.GB.M.get(this.PC++));
+          return 12;
+        } else {
+          return 8;
+        }
       case 0x2A:
         this.ldr_(Registers.A, this.GB.M.get(this.HL));
         this.inc_(Registers.HL);
         return 8;
+      case 0x2E:
+        this.ldr_(Registers.L, this.GB.M.get(this.PC++));
+        return 8;
+      case 0x30:
+        if(!this.FlagC) {
+          this.jr_(this.GB.M.get(this.PC++));
+          return 12;
+        } else {
+          return 8;
+        }
       case 0x31:
         this.ldr_(Registers.SP, this.GB.M.get(this.PC, 2));
         this.PC += 2;
@@ -93,6 +132,16 @@ export class CPU {
       case 0x33:
         this.inc_(Registers.SP);
         return 8;
+      case 0x36:
+        this.lda_(this.HL, this.GB.M.get(this.PC++));
+        return 12;
+      case 0x38:
+        if(this.FlagC) {
+          this.jr_(this.GB.M.get(this.PC++));
+          return 12;
+        } else {
+          return 8;
+        }
       case 0x3A:
         this.ldr_(Registers.A, this.GB.M.get(this.HL));
         this.dec_(Registers.HL);
@@ -100,15 +149,27 @@ export class CPU {
       case 0x3E:
         this.ldr_(Registers.A, this.GB.M.get(this.PC++));
         return 8;
+      case 0x44:
+        this.ldr_(Registers.B, this.H);
+        return 4;
       case 0x48:
         this.ldr_(Registers.C, this.B);
+        return 4;
+      case 0x54:
+        this.ldr_(Registers.D, this.H);
         return 4;
       case 0x58:
         this.ldr_(Registers.E, this.B);
         return 4;
+      case 0x64:
+        //this.ldr_(Registers.H, this.H);
+        return 4;
       case 0x68:
         this.ldr_(Registers.L, this.B);
         return 4;
+      case 0x74:
+        this.lda_(this.HL, this.H);
+        return 8;
       case 0x78:
         this.ldr_(Registers.A, this.B);
         return 4;
@@ -117,6 +178,78 @@ export class CPU {
         return 4;
       case 0x7D:
         this.ldr_(Registers.A, this.L);
+        return 4;
+      case 0x90:
+        this.subr_(Registers.B);
+        return 4;
+      case 0x91:
+        this.subr_(Registers.C);
+        return 4;
+      case 0x92:
+        this.subr_(Registers.D);
+        return 4;
+      case 0x93:
+        this.subr_(Registers.E);
+        return 4;
+      case 0x94:
+        this.subr_(Registers.H);
+        return 4;
+      case 0x95:
+        this.subr_(Registers.L);
+        return 4;
+      case 0x96:
+        this.subv_(this.GB.M.get(this.HL));
+        return 8;
+      case 0x97:
+        this.subr_(Registers.A);
+        return 4;
+      case 0xB0:
+        this.orr_(Registers.B);
+        return 4;
+      case 0xB1:
+        this.orr_(Registers.C);
+        return 4;
+      case 0xB2:
+        this.orr_(Registers.D);
+        return 4;
+      case 0xB3:
+        this.orr_(Registers.E);
+        return 4;
+      case 0xB4:
+        this.orr_(Registers.H);
+        return 4;
+      case 0xB5:
+        this.orr_(Registers.L);
+        return 4;
+      case 0xB6:
+        this.orv_(this.GB.M.get(this.HL));
+        return 8;
+      case 0xB7:
+        this.orr_(Registers.A);
+        return 4;
+      case 0xB8:
+        this.cpr_(Registers.B);
+        return 4;
+      case 0xB9:
+        this.cpr_(Registers.C);
+        return 4;
+      case 0xBA:
+        this.cpr_(Registers.D);
+        return 4;
+      case 0xBB:
+        this.cpr_(Registers.E);
+        return 4;
+      case 0xBC:
+        this.cpr_(Registers.H);
+        return 4;
+      case 0xBD:
+        this.cpr_(Registers.L);
+        return 4;
+      case 0xBE:
+        this.cpv_(this.GB.M.get(this.HL));
+        return 8;
+      case 0xBF:
+        this.cpr_(Registers.A);
         return 4;
       case 0xC1:
         this.pop_(Registers.BC);
@@ -143,6 +276,9 @@ export class CPU {
       case 0xD5:
         this.push_(Registers.DE);
         return 16;
+      case 0xD6:
+        this.subv_(this.GB.M.get(this.PC++));
+        return 8;
       case 0xE0:
         this.lda_(0xFF00 + this.GB.M.get(this.PC++), this.A);
         return 12;
@@ -165,6 +301,12 @@ export class CPU {
       case 0xF5:
         this.push_(Registers.AF);
         return 16;
+      case 0xF6:
+        this.orv_(this.GB.M.get(this.PC++));
+        return 8;
+      case 0xFE:
+        this.cpv_(this.GB.M.get(this.PC++));
+        return 8;
       default:
         throw Error(`Unimplemented instruction 0x${this.GB.M.get(addr).toString(16).toUpperCase().padStart(2, "0")}`);
     }
@@ -176,6 +318,49 @@ export class CPU {
 
   dec_(register) {
     this.set(register, this.get(register) - 1);
+  }
+
+  orr_(register) {
+    this.A |= this.get(register);
+    this.FlagZ = !this.A;
+    this.FlagN = false;
+    this.FlagH = false;
+    this.FlagC = false;
+  }
+
+  orv_(value) {
+    this.A |= value;
+    this.FlagZ = !this.A;
+    this.FlagN = false;
+    this.FlagH = false;
+    this.FlagC = false;
+  }
+
+  subr_(register) {
+    this.cpr_(register);
+    this.A -= this.get(register);
+  }
+
+  subv_(value) {
+    this.cpv_(value);
+    this.A -= value;
+  }
+
+  cpr_(register) {
+    let a = this.A;
+    let r = this.get(register);
+    this.FlagZ = a === r;
+    this.FlagN = true;
+    this.FlagH = (r & 0b1111) > (a & 0b1111);
+    this.FlagC = r > a;
+  }
+
+  cpv_(value) {
+    let a = this.A;
+    this.FlagZ = a === value;
+    this.FlagN = true;
+    this.FlagH = (value & 0b1111) > (a & 0b1111);
+    this.FlagC = value > a;
   }
 
   ldr_(register, val) {
