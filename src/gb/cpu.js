@@ -88,8 +88,9 @@ export class CPU {
         this.ldr_(Registers.E, this.GB.M.get(this.PC++));
         return 8;
       case 0x20:
+        this.PC++;
         if(!this.FlagZ) {
-          this.jr_(this.GB.M.get(this.PC++));
+          this.jr_(this.GB.M.get(this.PC));
           return 12;
         } else {
           return 8;
@@ -105,8 +106,9 @@ export class CPU {
         this.ldr_(Registers.H, this.GB.M.get(this.PC++));
         return 8;
       case 0x28:
+        this.PC++;
         if(this.FlagZ) {
-          this.jr_(this.GB.M.get(this.PC++));
+          this.jr_(this.GB.M.get(this.PC));
           return 12;
         } else {
           return 8;
@@ -119,8 +121,9 @@ export class CPU {
         this.ldr_(Registers.L, this.GB.M.get(this.PC++));
         return 8;
       case 0x30:
+        this.PC++;
         if(!this.FlagC) {
-          this.jr_(this.GB.M.get(this.PC++));
+          this.jr_(this.GB.M.get(this.PC));
           return 12;
         } else {
           return 8;
@@ -136,8 +139,9 @@ export class CPU {
         this.lda_(this.HL, this.GB.M.get(this.PC++));
         return 12;
       case 0x38:
+        this.PC++;
         if(this.FlagC) {
-          this.jr_(this.GB.M.get(this.PC++));
+          this.jr_(this.GB.M.get(this.PC));
           return 12;
         } else {
           return 8;
@@ -382,7 +386,7 @@ export class CPU {
   }
 
   jr_(offset) {
-    this.PC += (offset & 0b10000000) ? -(offset & 0b01111111) : (offset & 0b01111111);
+    this.PC += offset;
   }
 
   jp_(addr) {
