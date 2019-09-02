@@ -46,10 +46,11 @@ export class CPU {
   }
 
   runFrame() {
-    let cycles = 0;
-    while(cycles < CYCLES_PER_FRAME) {
-      cycles += this.runInst();
-    }
+    // let cycles = 0;
+    // while(cycles < CYCLES_PER_FRAME) {
+    //   cycles += this.runInst();
+    // }
+    this.runInst();
   }
 
   runInst() {
@@ -93,11 +94,11 @@ export class CPU {
         this.ldr_(Registers.E, this.GB.M.get(this.PC++));
         return 8;
       case 0x20:
-        this.PC++;
         if(!this.FlagZ) {
-          this.jr_(this.GB.M.get(this.PC));
+          this.jr_(this.GB.M.get(this.PC++));
           return 12;
         } else {
+          this.PC++
           return 8;
         }
       case 0x21:
@@ -111,11 +112,11 @@ export class CPU {
         this.ldr_(Registers.H, this.GB.M.get(this.PC++));
         return 8;
       case 0x28:
-        this.PC++;
         if(this.FlagZ) {
-          this.jr_(this.GB.M.get(this.PC));
+          this.jr_(this.GB.M.get(this.PC++));
           return 12;
         } else {
+          this.PC++;
           return 8;
         }
       case 0x2A:
@@ -126,11 +127,11 @@ export class CPU {
         this.ldr_(Registers.L, this.GB.M.get(this.PC++));
         return 8;
       case 0x30:
-        this.PC++;
         if(!this.FlagC) {
-          this.jr_(this.GB.M.get(this.PC));
+          this.jr_(this.GB.M.get(this.PC++));
           return 12;
         } else {
+          this.PC++;
           return 8;
         }
       case 0x31:
@@ -144,11 +145,11 @@ export class CPU {
         this.lda_(this.HL, this.GB.M.get(this.PC++));
         return 12;
       case 0x38:
-        this.PC++;
         if(this.FlagC) {
-          this.jr_(this.GB.M.get(this.PC));
+          this.jr_(this.GB.M.get(this.PC++));
           return 12;
         } else {
+          this.PC++
           return 8;
         }
       case 0x3A:
@@ -301,6 +302,9 @@ export class CPU {
         this.lda_(this.GB.M.get(this.PC, 2), this.A);
         this.PC += 2;
         return 16;
+      case 0xF0:
+        this.ldr_(Registers.A, this.GB.M.get(0xFF00 + this.GB.M.get(this.PC++)));
+        return 12;
       case 0xF1:
         this.pop_(Registers.AF);
         return 12;
@@ -391,7 +395,9 @@ export class CPU {
   }
 
   jr_(offset) {
-    this.PC += offset;
+    //JS numbers are 32-bit when using bitwise operators
+    //GB numbers are 8-bit, and so this happens
+    this.PC += (offset & 0x80) ? -~(0xFFFFFF00 + offset - 1) : offset;
   }
 
   jp_(addr) {
