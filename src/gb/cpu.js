@@ -52,41 +52,161 @@ export class CPU {
     switch(this.GB.M.get(addr)) {
       case 0x00:
         return 4;
+      case 0x01:
+        this.ldr_(Registers.BC, this.GB.M.get(this.PC, 2));
+        this.PC += 2;
+        return 12;
+      case 0x03:
+        this.inc_(Registers.BC);
+        return 8;
+      case 0x0A:
+        this.ldr_(Registers.A, this.GB.M.get(this.BC));
+        return 8;
+      case 0x11:
+        this.ldr_(Registers.DE, this.GB.M.get(this.PC, 2));
+        this.PC += 2;
+        return 12;
+      case 0x13:
+        this.inc_(Registers.DE);
+        return 8;
+      case 0x18:
+        this.jr_(this.GB.M.get(this.PC++));
+        return 12;
+      case 0x1A:
+        this.ldr_(Registers.A, this.GB.M.get(this.DE));
+        return 8;
+      case 0x21:
+        this.ldr_(Registers.HL, this.GB.M.get(this.PC, 2));
+        this.PC += 2;
+        return 12;
+      case 0x23:
+        this.inc_(Registers.HL);
+        return 8;
+      case 0x2A:
+        this.ldr_(Registers.A, this.GB.M.get(this.HL));
+        this.inc_(Registers.HL);
+        return 8;
       case 0x31:
         this.ldr_(Registers.SP, this.GB.M.get(this.PC, 2));
         this.PC += 2;
         return 12;
+      case 0x33:
+        this.inc_(Registers.SP);
+        return 8;
+      case 0x3A:
+        this.ldr_(Registers.A, this.GB.M.get(this.HL));
+        this.dec_(Registers.HL);
+        return 8;
       case 0x3E:
         this.ldr_(Registers.A, this.GB.M.get(this.PC++));
         return 8;
+      case 0x48:
+        this.ldr_(Registers.C, this.B);
+        return 4;
+      case 0x58:
+        this.ldr_(Registers.E, this.B);
+        return 4;
+      case 0x68:
+        this.ldr_(Registers.L, this.B);
+        return 4;
+      case 0x78:
+        this.ldr_(Registers.A, this.B);
+        return 4;
+      case 0x7C:
+        this.ldr_(Registers.A, this.H);
+        return 4;
+      case 0x7D:
+        this.ldr_(Registers.A, this.L);
+        return 4;
+      case 0xC1:
+        this.pop_(Registers.BC);
+        return 12;
       case 0xC3:
         this.jp_(this.GB.M.get(this.PC, 2));
+        return 16;
+      case 0xC5:
+        this.push_(Registers.BC);
+        return 16;
+      case 0xC9:
+        this.ret_();
+        return 16;
+      case 0xCD:
+        let a16 = this.GB.M.get(this.PC, 2);
+        this.PC += 2;
+        this.SP -= 2;
+        this.lda_(this.SP, this.PC, 2);
+        this.PC = a16;
+        return 24;
+      case 0xD1:
+        this.pop_(Registers.DE);
+        return 12;
+      case 0xD5:
+        this.push_(Registers.DE);
         return 16;
       case 0xE0:
         this.lda_(0xFF00 + this.GB.M.get(this.PC++), this.A);
         return 12;
+      case 0xE1:
+        this.pop_(Registers.HL);
+        return 12;
+      case 0xE5:
+        this.push_(Registers.HL);
+        return 16;
       case 0xEA:
         this.lda_(this.GB.M.get(this.PC, 2), this.A);
         this.PC += 2;
         return 16;
+      case 0xF1:
+        this.pop_(Registers.AF);
+        return 12;
       case 0xF3:
         this.FlagIME = false;
         return 4;
+      case 0xF5:
+        this.push_(Registers.AF);
+        return 16;
       default:
         throw Error(`Unimplemented instruction 0x${this.GB.M.get(addr).toString(16).toUpperCase().padStart(2, "0")}`);
     }
+  }
+
+  inc_(register) {
+    this.set(register, this.get(register) + 1);
+  }
+
+  dec_(register) {
+    this.set(register, this.get(register) - 1);
   }
 
   ldr_(register, val) {
     this.set(register, val);
   }
 
-  lda_(addr, val) {
-    this.GB.M.set(addr, val);
+  lda_(addr, val, bytes = 1) {
+    this.GB.M.set(addr, val, bytes);
+  }
+
+  push_(register) {
+    this.SP -= 2;
+    this.GB.M.set(this.SP, this.get(register), 2);
+  }
+
+  pop_(register) {
+    this.set(register, this.GB.M.get(this.SP, 2));
+    this.SP += 2;
+  }
+
+  jr_(offset) {
+    this.PC += (offset & 0b10000000) ? -(offset & 0b01111111) : (offset & 0b01111111);
   }
 
   jp_(addr) {
     this.PC = addr;
+  }
+
+  ret_() {
+    this.PC = this.GB.M.get(this.SP, 2);
+    this.SP += 2;
   }
 
   get(register) {
