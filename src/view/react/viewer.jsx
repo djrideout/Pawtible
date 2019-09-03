@@ -27,6 +27,7 @@ class MemoryViewer extends React.Component {
     this.setTop_ = set_top.bind(this);
     this.onKeyPress_ = on_mem_key_press.bind(this);
     this.onScroll_ = on_scroll.bind(this);
+    this.setTopScroll_ = set_top_scroll.bind(this);
     this.scrollContainer_ = null;
     this.state = {
       top: 0x0000,
@@ -114,13 +115,17 @@ function set_top(row) {
   });
 }
 
+function set_top_scroll(addr) {
+  let r = (addr >> 4 << 4) / ((this.GB.M.length - 1) >> 4 << 4);
+  let max = this.scrollContainer_.firstChild.offsetHeight - this.scrollContainer_.offsetHeight;
+  this.scrollContainer_.scrollTop = r * max;
+}
+
 function on_mem_key_press(e) {
   if(e.nativeEvent.keyCode === 13) { //enter
     let addr = parseInt(e.target.value, 16);
     if(Number.isInteger(addr) && addr <= this.GB.M.length - 1) {
-      let r = (addr >> 4 << 4) / ((this.GB.M.length - 1) >> 4 << 4);
-      let max = this.scrollContainer_.firstChild.offsetHeight - this.scrollContainer_.offsetHeight;
-      this.scrollContainer_.scrollTop = r * max;
+      this.setTopScroll_(addr);
     }
   }
 }
@@ -160,7 +165,7 @@ function mem_set_closure(viewer) {
   let cpuPause = CPU.prototype.pause;
   CPU.prototype.pause = function() {
     cpuPause.call(this);
-    viewer.setTop_(this.PC >> 4 << 4);
+    viewer.setTopScroll_(this.PC);
   }
 }
 
