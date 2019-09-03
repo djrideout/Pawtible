@@ -21,10 +21,6 @@ export class GameBoy {
     this.M.Cart = CartridgeFactory.create(byteArr);
   }
 
-  runFrame() {
-    this.CPU.runFrame();
-  }
-
   //Initial state from pan docs: http://bgb.bircd.org/pandocs.htm#cpuregistersandflags
   reset() {
     this.CPU.AF = 0x01B0;

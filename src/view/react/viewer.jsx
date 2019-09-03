@@ -11,8 +11,11 @@ export class GBViewer extends React.Component {
   render() {
     return (
       <>
-        <MemoryViewer gameBoy={this.GB} />
-        <RegisterViewer gameBoy={this.GB} />
+        <div className={"wrapper"} id={"viewer-left"}>
+          <MemoryViewer gameBoy={this.GB} />
+          <RegisterViewer gameBoy={this.GB} />
+        </div>
+        <BreakpointViewer gameBoy={this.GB} />
       </>
     );
   }
@@ -22,7 +25,7 @@ class MemoryViewer extends React.Component {
   constructor(props) {
     super(props);
     this.setTop_ = set_top.bind(this);
-    this.onKeyPress_ = on_key_press.bind(this);
+    this.onKeyPress_ = on_mem_key_press.bind(this);
     this.onScroll_ = on_scroll.bind(this);
     this.scrollContainer_ = null;
     this.state = {
@@ -111,7 +114,7 @@ function set_top(row) {
   });
 }
 
-function on_key_press(e) {
+function on_mem_key_press(e) {
   if(e.nativeEvent.keyCode === 13) { //enter
     let addr = parseInt(e.target.value, 16);
     if(Number.isInteger(addr) && addr <= this.GB.M.length - 1) {
@@ -153,6 +156,11 @@ function mem_set_closure(viewer) {
   Memory.prototype.setBlock = function(index, block) {
     mSetBlock.call(this, index, block);
     viewer.forceUpdate();
+  }
+  let cpuPause = CPU.prototype.pause;
+  CPU.prototype.pause = function() {
+    cpuPause.call(this);
+    viewer.setTop_(this.PC >> 4 << 4);
   }
 }
 
@@ -214,5 +222,70 @@ function cpu_set_closure(viewer) {
       changed: register,
       flags: get_flags_updated(register, ogVal, this.get(register))
     });
+  }
+}
+
+class BreakpointViewer extends React.Component {
+  constructor(props) {
+    super(props);
+    this.onKeyPress_ = on_breakpoint_key_press.bind(this);
+    breakpoint_set_closure(this);
+  }
+
+  get GB() {
+    return this.props.gameBoy;
+  }
+
+  render() {
+    let bps = this.GB.CPU.Breakpoints;
+    let bpDivs = [];
+    for(let i = 0; i < bps.length; i++) {
+      bpDivs.push(<div key={i} className={"breakpoint"}>
+        {`0x${bps[i].addr.toString(16).padStart(4, "0")}         `}
+        <input type={"checkbox"} checked={bps[i].enabled} onChange={() => this.GB.CPU.setBreakpoint(bps[i].addr, !bps[i].enabled)} /> 
+      </div>);
+    }
+    return (
+      <div className={"wrapper"} id={"viewer-breakpoints"}>
+        <input type={"text"} id={"viewer-breakpoint-input"} onKeyPress={this.onKeyPress_} />
+        <input type={"button"} onClick={() => this.GB.CPU.isPaused() ? this.GB.CPU.unpause() : this.GB.CPU.pause()} value={this.GB.CPU.isPaused() ? "Unpause" : "Pause"} />
+        <input type={"button"} onClick={() => this.GB.CPU.step()} value={"Step"} disabled={!this.GB.CPU.isPaused()} />
+        <div id={"breakpoint-items"}>
+          {bpDivs}
+        </div>
+      </div>
+    )
+  }
+}
+
+function on_breakpoint_key_press(e) {
+  if(e.nativeEvent.keyCode === 13) { //enter
+    let addr = parseInt(e.target.value, 16);
+    if(Number.isInteger(addr) && addr <= this.GB.M.length - 1) {
+      this.GB.CPU.setBreakpoint(addr);
+    }
+  }
+}
+
+function breakpoint_set_closure(viewer) {
+  let ogPause = CPU.prototype.pause;
+  CPU.prototype.pause = function() {
+    ogPause.call(this);
+    viewer.forceUpdate();
+  }
+  let ogUnpause = CPU.prototype.unpause;
+  CPU.prototype.unpause = function() {
+    ogUnpause.call(this);
+    viewer.forceUpdate();
+  }
+  let ogSet = CPU.prototype.setBreakpoint;
+  CPU.prototype.setBreakpoint = function(addr, enabled) {
+    ogSet.call(this, addr, enabled);
+    viewer.forceUpdate();
+  }
+  let ogRemove = CPU.prototype.removeBreakpoint;
+  CPU.prototype.removeBreakpoint = function(addr) {
+    ogRemove.call(this, addr);
+    viewer.forceUpdate();
   }
 }

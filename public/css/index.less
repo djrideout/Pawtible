@@ -17,20 +17,33 @@ body {
 }
 
 .wrapper {
+  white-space: pre;
   border-style: solid;
   border-color: black;
   border-width: 1px;
   height: 432;
 }
 
-#viewer-wrapper {
+#viewer-left, #viewer-breakpoints {
   display: flex;
   flex-direction: column;
   background-color: white;
   border-left-width: 0px;
   font-family: "Courier New", monospace;
   font-size: 12px;
+}
+
+#viewer-left {
   width: 420px;
+}
+
+#viewer-breakpoints {
+  width: 150px;
+}
+
+#breakpoint-items {
+  overflow-y: scroll;
+  height: 369px;
 }
 
 #viewer-memory {
@@ -63,7 +76,6 @@ body {
 #viewer-registers {
   line-height: 13px;
   margin: auto;
-  white-space: pre;
   text-align: center;
 }
 
