@@ -27,6 +27,8 @@ const CYCLES_PER_FRAME = 69905; //approx. 4194304Hz/60fps
 
 export class CPU {
   constructor(gameBoy) {
+    this.paused_ = true;
+    this.breakpoints_ = new Map();
     this.gameBoy_ = gameBoy;
     this[Registers.A] = 0x01;
     this[Registers.F] = 0x02;
@@ -45,11 +47,53 @@ export class CPU {
     return this.gameBoy_;
   }
 
+  pause() {
+    this.paused_ = true;
+  }
+
+  isPaused() {
+    return this.paused_;
+  }
+
+  unpause() {
+    this.paused_ = false;
+  }
+
+  get Breakpoints() {
+    let bps = [];
+    this.breakpoints_.forEach((value, key) => {
+      bps.push({
+        addr: key,
+        enabled: value
+      });
+    });
+    return bps.sort((a, b) => a.addr - b.addr);
+  }
+
+  setBreakpoint(addr, enabled = true) {
+    this.breakpoints_.set(addr, enabled);
+  }
+
+  isBreakpointEnabled(addr) {
+    return !!this.breakpoints_.get(addr);
+  }
+
+  removeBreakpoint(addr) {
+    this.breakpoints_.delete(addr);
+  }
+
   runFrame() {
-    // let cycles = 0;
-    // while(cycles < CYCLES_PER_FRAME) {
-    //   cycles += this.runInst();
-    // }
+    if(this.paused_) {
+      return;
+    }
+    //more stuff will happen per frame here, not just step
+    this.step();
+    if(this.isBreakpointEnabled(this.PC)) {
+      this.pause();
+    }
+  }
+
+  step() {
     this.runInst();
   }
 
