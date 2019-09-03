@@ -32,6 +32,6 @@ export class Screen {
 }
 
 function on_update(now) {
-  this.GB.runFrame();
+  this.GB.CPU.runFrame();
   this.update();
 }

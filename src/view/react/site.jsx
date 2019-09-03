@@ -17,9 +17,7 @@ export class Site extends React.Component {
         <div className={"wrapper"}>
           <Canvas gameBoy={this.GB} />
         </div>
-        <div className={"wrapper"} id={"viewer-wrapper"}>
-          <GBViewer gameBoy={this.GB} />
-        </div>
+        <GBViewer gameBoy={this.GB} />
       </>
     );
   }
