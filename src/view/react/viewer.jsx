@@ -224,11 +224,11 @@ class RegisterViewer extends React.Component {
         {this.changed === Registers.SP ? <span className={"changed-value"}>{"SP"}</span> : "SP"}{`: ${cpu.SP.toString(16).toUpperCase().padStart(4, "0")}  `}
         {this.changed === Registers.PC ? <span className={"changed-value"}>{"PC"}</span> : "PC"}{`: ${cpu.PC.toString(16).toUpperCase().padStart(4, "0")}`}
         <br />
-        {this.changed === Registers.IME ? <span className={"changed-value"}>{"IME"}</span> : "IME"}{`: ${cpu.FlagIME}  `}
-        {this.flags[Flags.Z] ? <span className={"changed-value"}>{"Z"}</span> : "Z"}{`: ${cpu.FlagZ}  `}
-        {this.flags[Flags.N] ? <span className={"changed-value"}>{"N"}</span> : "N"}{`: ${cpu.FlagN}  `}
-        {this.flags[Flags.H] ? <span className={"changed-value"}>{"H"}</span> : "H"}{`: ${cpu.FlagH}  `}
-        {this.flags[Flags.C] ? <span className={"changed-value"}>{"C"}</span> : "C"}{`: ${cpu.FlagC}`}
+        {this.changed === Registers.IME ? <span className={"changed-value"}>{"IME"}</span> : "IME"}{`: ${cpu.FlagIME.toString().padEnd(5, " ")}  `}
+        {this.flags[Flags.Z] ? <span className={"changed-value"}>{"Z"}</span> : "Z"}{`: ${cpu.FlagZ.toString().padEnd(5, " ")}  `}
+        {this.flags[Flags.N] ? <span className={"changed-value"}>{"N"}</span> : "N"}{`: ${cpu.FlagN.toString().padEnd(5, " ")}  `}
+        {this.flags[Flags.H] ? <span className={"changed-value"}>{"H"}</span> : "H"}{`: ${cpu.FlagH.toString().padEnd(5, " ")}  `}
+        {this.flags[Flags.C] ? <span className={"changed-value"}>{"C"}</span> : "C"}{`: ${cpu.FlagC.toString().padEnd(5, " ")}`}
       </div>
     )
   }
