@@ -55,21 +55,6 @@ class MemoryViewer extends React.Component {
     return 16;
   }
 
-  shouldComponentUpdate(nextProps, nextState) {
-    let inView = state => {
-      return state.changed >= state.top && state.changed <= state.top + (this.rows << 4) + this.cols - 1;
-    };
-    switch(true) {
-      case nextState.changed <= 0x7FFF: //bankswitch most likely
-      case inView(nextState):
-      case inView(this.state) && !inView(nextState):
-      case nextState.top !== this.top:
-        return true;
-      default:
-        return false;
-    }
-  }
-
   render() {
     let output = [];
     output.push(<span key={"top-row"} className={"mem-label"}>{"        00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f"}</span>, <br key={"top-row-br"} />);
