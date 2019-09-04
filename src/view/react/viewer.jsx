@@ -177,11 +177,12 @@ function mem_set_closure(viewer) {
   }
   let cpuStep = CPU.prototype.step;
   CPU.prototype.step = function() {
-    cpuStep.call(this);
+    let cycles = cpuStep.call(this);
     if(this.isPaused()) {
       viewer.setTopScroll_(this.PC);
       viewer.forceUpdate();
     }
+    return cycles;
   }
 }
 
