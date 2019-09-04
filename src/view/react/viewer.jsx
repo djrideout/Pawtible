@@ -84,6 +84,8 @@ class MemoryViewer extends React.Component {
         let val = `${this.GB.M.get(i + j).toString(16).toUpperCase().padStart(2, "0")} `;
         if(i + j === this.changed) {
           changed = <span className={"changed-value"} key={"changed"}>{val}</span>;
+        } else if(this.GB.CPU.isPaused() && i + j === this.GB.CPU.PC) {
+          changed = <span className={"program-counter"} key={"changed"}>{val}</span>;
         } else {
           if(changed === null) {
             str1 += val;
@@ -166,6 +168,20 @@ function mem_set_closure(viewer) {
   CPU.prototype.pause = function() {
     cpuPause.call(this);
     viewer.setTopScroll_(this.PC);
+    viewer.forceUpdate();
+  }
+  let cpuUnpause = CPU.prototype.unpause;
+  CPU.prototype.unpause = function() {
+    cpuUnpause.call(this);
+    viewer.forceUpdate();
+  }
+  let cpuStep = CPU.prototype.step;
+  CPU.prototype.step = function() {
+    cpuStep.call(this);
+    if(this.isPaused()) {
+      viewer.setTopScroll_(this.PC);
+      viewer.forceUpdate();
+    }
   }
 }
 
