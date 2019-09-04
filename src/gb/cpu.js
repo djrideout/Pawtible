@@ -94,7 +94,8 @@ export class CPU {
   }
 
   step() {
-    this.runInst();
+    let cycles = this.runInst();
+    this.GB.PPU.step(cycles);
   }
 
   runInst() {

@@ -1,11 +1,13 @@
 import { Memory } from "./mem";
 import { CartridgeFactory } from "./mem/block/cart/factory";
 import { CPU } from "./cpu";
+import { PPU } from "./ppu";
 
 export class GameBoy {
   constructor() {
-    this.memoryMap_ = new Memory();
+    this.memoryMap_ = new Memory(this);
     this.cpu_ = new CPU(this);
+    this.ppu_ = new PPU();
     this.reset();
   }
 
@@ -15,6 +17,10 @@ export class GameBoy {
 
   get CPU() {
     return this.cpu_;
+  }
+
+  get PPU() {
+    return this.ppu_;
   }
 
   load(byteArr) {
