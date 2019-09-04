@@ -54,8 +54,8 @@ export class PPU {
   }
 
   vblank_() {
-    this.line++;
-    if(this.line > 153) {
+    this.line_++;
+    if(this.line_ > 153) {
       this.mode_ = Modes.OAM;
       this.line_ = 0;
     }
