@@ -1,8 +1,9 @@
 import { MemoryBlock } from "./block";
 import { Interrupt } from "./block/interrupt";
+import { IORegisters } from "./block/io";
 
 export class Memory {
-  constructor() {
+  constructor(gameBoy) {
     this.Cart = new MemoryBlock(0x0000, 0x8000);
     this.VRAM = new MemoryBlock(0x8000, 0x2000);
     this.ExtRAM = new MemoryBlock(0xA000, 0x2000); //supposed to be part of cartridge, will implement later
@@ -10,7 +11,7 @@ export class Memory {
     this.EchoRAM = this.WorkRAM.echo(0xE000, 0x1E00);
     this.OAM = new MemoryBlock(0xFE00, 0x00A0);
     this.Trash = new MemoryBlock(0xFEA0, 0x0060);
-    this.IOReg = new MemoryBlock(0xFF00, 0x0080);
+    this.IOReg = new IORegisters(gameBoy);
     this.HighRAM = new MemoryBlock(0xFF80, 0x007F);
     this.Interrupt = new Interrupt(0xFFFF);
   }
