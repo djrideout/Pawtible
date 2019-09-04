@@ -88,13 +88,13 @@ export class CPU {
     }
     //more stuff will happen per frame here, not just step
     let cycles = 0;
-    // while(cycles < CYCLES_PER_FRAME) {
+    while(cycles < CYCLES_PER_FRAME) {
       cycles += this.step();
       if(this.isBreakpointEnabled(this.PC)) {
         this.pause();
         return;
       }
-    // }
+    }
   }
 
   step() {
