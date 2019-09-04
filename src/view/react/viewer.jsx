@@ -30,8 +30,7 @@ class MemoryViewer extends React.Component {
     this.setTopScroll_ = set_top_scroll.bind(this);
     this.scrollContainer_ = null;
     this.state = {
-      top: 0x0000,
-      changed: null
+      top: 0x0000
     };
     mem_set_closure(this);
   }
@@ -82,9 +81,7 @@ class MemoryViewer extends React.Component {
       let str2 = "";
       for(let j = 0x0; j < this.cols; j++) {
         let val = `${this.GB.M.get(i + j).toString(16).toUpperCase().padStart(2, "0")} `;
-        if(i + j === this.changed) {
-          changed = <span className={"changed-value"} key={"changed"}>{val}</span>;
-        } else if(this.GB.CPU.isPaused() && i + j === this.GB.CPU.PC) {
+        if(this.GB.CPU.isPaused() && i + j === this.GB.CPU.PC) {
           changed = <span className={"program-counter"} key={"changed"}>{val}</span>;
         } else {
           if(changed === null) {
@@ -146,18 +143,12 @@ function mem_set_closure(viewer) {
   let mbSet = MemoryBlock.prototype.set;
   MemoryBlock.prototype.set = function(addr, val, bytes) {
     mbSet.call(this, addr, val, bytes);
-    viewer.setState({
-      changed: this.start + addr
-    });
-
     //FOR TEST ROM ONLY, WILL REMOVE LATER
     if(this.start + addr === 0xFF01) {
       testRomString += String.fromCharCode(this.get(addr));
-    }
-    if(this.start + addr === 0xFF02 && this.get(addr) === 0x81) {
+    } else if(this.start + addr === 0xFF02 && this.get(addr) === 0x81) {
       console.log(testRomString);
     }
-
   }
   let mSetBlock = Memory.prototype.setBlock;
   Memory.prototype.setBlock = function(index, block) {
@@ -236,14 +227,26 @@ class RegisterViewer extends React.Component {
 }
 
 function cpu_set_closure(viewer) {
-  let og = CPU.prototype.set;
+  let ogRunFrame = CPU.prototype.runFrame;
+  CPU.prototype.runFrame = function() {
+    ogRunFrame.call(this);
+    viewer.forceUpdate();
+  }
+  let ogPause = CPU.prototype.pause;
+  CPU.prototype.pause = function() {
+    ogPause.call(this);
+    viewer.forceUpdate();
+  }
+  let ogSet = CPU.prototype.set;
   CPU.prototype.set = function(register, val) {
     let ogVal = this.get(register);
-    og.call(this, register, val);
-    viewer.setState({
-      changed: register,
-      flags: get_flags_updated(register, ogVal, this.get(register))
-    });
+    ogSet.call(this, register, val);
+    if(this.isPaused()) {
+      viewer.setState({
+        changed: register,
+        flags: get_flags_updated(register, ogVal, this.get(register))
+      });
+    }
   }
 }
 
