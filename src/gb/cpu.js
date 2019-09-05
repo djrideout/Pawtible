@@ -314,7 +314,7 @@ export class CPU {
         this.ldr_(Registers.B, this.L);
         return 4;
       case 0x46:
-        this.ldv_(Registers.B, this.GB.M.get(this.HL));
+        this.ldr_(Registers.B, this.GB.M.get(this.HL));
         return 8;
       case 0x47:
         this.ldr_(Registers.B, this.A);
@@ -362,7 +362,7 @@ export class CPU {
         this.ldr_(Registers.D, this.L);
         return 4;
       case 0x56:
-        this.ldv_(Registers.D, this.GB.M.get(this.HL));
+        this.ldr_(Registers.D, this.GB.M.get(this.HL));
         return 8;
       case 0x57:
         this.ldr_(Registers.D, this.A);
@@ -410,7 +410,7 @@ export class CPU {
         this.ldr_(Registers.H, this.L);
         return 4;
       case 0x66:
-        this.ldv_(Registers.H, this.GB.M.get(this.HL));
+        this.ldr_(Registers.H, this.GB.M.get(this.HL));
         return 8;
       case 0x67:
         this.ldr_(Registers.H, this.A);
