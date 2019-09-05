@@ -295,14 +295,53 @@ export class CPU {
       case 0x3E:
         this.ldr_(Registers.A, this.GB.M.get(this.PC++));
         return 8;
+      case 0x40:
+        //this.ldr_(Registers.B, this.B);
+        return 4;
+      case 0x41:
+        this.ldr_(Registers.B, this.C);
+        return 4;
+      case 0x42:
+        this.ldr_(Registers.B, this.D);
+        return 4;
+      case 0x43:
+        this.ldr_(Registers.B, this.E);
+        return 4;
       case 0x44:
         this.ldr_(Registers.B, this.H);
         return 4;
+      case 0x45:
+        this.ldr_(Registers.B, this.L);
+        return 4;
+      case 0x46:
+        this.ldv_(Registers.B, this.GB.M.get(this.HL));
+        return 8;
       case 0x47:
         this.ldr_(Registers.B, this.A);
         return 4;
       case 0x48:
         this.ldr_(Registers.C, this.B);
+        return 4;
+      case 0x49:
+        //this.ldr_(Registers.C, this.C);
+        return 4;
+      case 0x4A:
+        this.ldr_(Registers.C, this.D);
+        return 4;
+      case 0x4B:
+        this.ldr_(Registers.C, this.E);
+        return 4;
+      case 0x4C:
+        this.ldr_(Registers.C, this.H);
+        return 4;
+      case 0x4D:
+        this.ldr_(Registers.C, this.L);
+        return 4;
+      case 0x4E:
+        this.ldr_(Registers.C, this.GB.M.get(this.HL));
+        return 8;
+      case 0x4F:
+        this.ldr_(Registers.C, this.A);
         return 4;
       case 0x54:
         this.ldr_(Registers.D, this.H);
