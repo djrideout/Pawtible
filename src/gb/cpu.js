@@ -112,6 +112,9 @@ export class CPU {
         this.ldr_(Registers.BC, this.GB.M.get(this.PC, 2));
         this.PC += 2;
         return 12;
+      case 0x02:
+        this.lda_(this.BC, this.A);
+        return 8;
       case 0x03:
         this.inc16_(Registers.BC);
         return 8;
@@ -143,6 +146,9 @@ export class CPU {
         this.ldr_(Registers.DE, this.GB.M.get(this.PC, 2));
         this.PC += 2;
         return 12;
+      case 0x12:
+        this.lda_(this.DE, this.A);
+        return 8;
       case 0x13:
         this.inc16_(Registers.DE);
         return 8;
@@ -185,6 +191,10 @@ export class CPU {
         this.ldr_(Registers.HL, this.GB.M.get(this.PC, 2));
         this.PC += 2;
         return 12;
+      case 0x22:
+        this.lda_(this.HL, this.A);
+        this.inc16_(this.HL);
+        return 8;
       case 0x23:
         this.inc16_(Registers.HL);
         return 8;
@@ -233,6 +243,10 @@ export class CPU {
         this.ldr_(Registers.SP, this.GB.M.get(this.PC, 2));
         this.PC += 2;
         return 12;
+      case 0x32:
+        this.lda_(this.HL, this.A);
+        this.dec16_(this.HL);
+        return 8;
       case 0x33:
         this.inc16_(Registers.SP);
         return 8;
