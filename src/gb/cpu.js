@@ -487,8 +487,8 @@ export class CPU {
 
   inc8r_(register) {
     let v0 = this.get(register);
-    let v1 = v0 + 1;
-    this.set(register, v1);
+    this.set(register, v0 + 1);
+    let v1 = this.get(register);
     this.FlagZ = !v1;
     this.FlagN = false;
     this.FlagH = (v1 & 0b1111) > (v0 & 0b1111);
@@ -496,8 +496,8 @@ export class CPU {
 
   inc8a_(addr) {
     let v0 = this.GB.M.get(addr);
-    let v1 = v0 + 1;
-    this.GB.M.set(addr, v1);
+    this.GB.M.set(addr, v0 + 1);
+    let v1 = this.GB.M.get(addr);
     this.FlagZ = !v1;
     this.FlagN = false;
     this.FlagH = (v1 & 0b1111) > (v0 & 0b1111);
