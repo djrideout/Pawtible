@@ -127,6 +127,9 @@ export class CPU {
       case 0x06:
         this.ldr_(Registers.B, this.GB.M.get(this.PC++));
         return 8;
+      case 0x09:
+        this.add16r_(this.BC);
+        return 8;
       case 0x0A:
         this.ldr_(Registers.A, this.GB.M.get(this.BC));
         return 8;
@@ -164,6 +167,9 @@ export class CPU {
       case 0x18:
         this.jr_(this.GB.M.get(this.PC++));
         return 12;
+      case 0x19:
+        this.add16r_(this.DE);
+        return 8;
       case 0x1A:
         this.ldr_(Registers.A, this.GB.M.get(this.DE));
         return 8;
@@ -215,6 +221,9 @@ export class CPU {
           this.PC++;
           return 8;
         }
+      case 0x29:
+        this.add16r_(this.HL);
+        return 8;
       case 0x2A:
         this.ldr_(Registers.A, this.GB.M.get(this.HL));
         this.inc16_(Registers.HL);
@@ -267,6 +276,9 @@ export class CPU {
           this.PC++
           return 8;
         }
+      case 0x39:
+        this.add16r_(this.SP);
+        return 8;
       case 0x3A:
         this.ldr_(Registers.A, this.GB.M.get(this.HL));
         this.dec16_(Registers.HL);
@@ -324,6 +336,30 @@ export class CPU {
         return 4;
       case 0x7D:
         this.ldr_(Registers.A, this.L);
+        return 4;
+      case 0x80:
+        this.add8r_(Registers.B);
+        return 4;
+      case 0x81:
+        this.add8r_(Registers.C);
+        return 4;
+      case 0x82:
+        this.add8r_(Registers.D);
+        return 4;
+      case 0x83:
+        this.add8r_(Registers.E);
+        return 4;
+      case 0x84:
+        this.add8r_(Registers.H);
+        return 4;
+      case 0x85:
+        this.add8r_(Registers.L);
+        return 4;
+      case 0x86:
+        this.add8v_(this.GB.M.get(this.PC++));
+        return 8;
+      case 0x87:
+        this.add8r_(Registers.A);
         return 4;
       case 0x90:
         this.subr_(Registers.B);
@@ -462,6 +498,9 @@ export class CPU {
       case 0xC5:
         this.push_(Registers.BC);
         return 16;
+      case 0xC6:
+        this.add8v_(this.GB.M.get(this.PC++));
+        return 8;
       case 0xC9:
         this.ret_();
         return 16;
@@ -513,6 +552,9 @@ export class CPU {
       case 0xE6:
         this.andv_(this.GB.M.get(this.PC++));
         return 8;
+      case 0xE8:
+        this.add16signed8v_(this.GB.M.get(this.PC++));
+        return 16;
       case 0xEA:
         this.lda_(this.GB.M.get(this.PC, 2), this.A);
         this.PC += 2;
@@ -565,7 +607,7 @@ export class CPU {
     let v1 = this.get(register);
     this.FlagZ = !v1;
     this.FlagN = false;
-    this.FlagH = (v1 & 0b1111) > (v0 & 0b1111);
+    this.FlagH = (v1 & 0xF) + (v0 & 0xF) > 0xF;
   }
 
   inc8a_(addr) {
@@ -574,7 +616,7 @@ export class CPU {
     let v1 = this.GB.M.get(addr);
     this.FlagZ = !v1;
     this.FlagN = false;
-    this.FlagH = (v1 & 0b1111) > (v0 & 0b1111);
+    this.FlagH = (v1 & 0xF) + (v0 & 0xF) > 0xF;
   }
 
   dec16_(register) {
@@ -587,7 +629,7 @@ export class CPU {
     let v1 = this.get(register);
     this.FlagZ = !v1;
     this.FlagN = true;
-    this.FlagH = (v1 & 0b1111) > (v0 & 0b1111);
+    this.FlagH = (v1 & 0xF) > (v0 & 0xF);
   }
 
   dec8a_(addr) {
@@ -596,7 +638,7 @@ export class CPU {
     let v1 = this.GB.M.get(addr);
     this.FlagZ = !v1;
     this.FlagN = true;
-    this.FlagH = (v1 & 0b1111) > (v0 & 0b1111);
+    this.FlagH = (v1 & 0xF) > (v0 & 0xF);
   }
 
   andr_(register) {
@@ -647,6 +689,53 @@ export class CPU {
     this.FlagC = false;
   }
 
+  add16r_(register) {
+    let v0 = this.HL;
+    let value = this.get(register);
+    this.HL = v0 + value;
+    this.FlagN = false;
+    this.FlagH = (v0 & 0xFF) + (value & 0xFF) > 0xFF;
+    this.FlagC = v0 + value > 0xFFFF;
+  }
+
+  add8r_(register) {
+    let v0 = this.A;
+    let value = this.get(register);
+    this.A = v0 + value;
+    this.FlagZ = !this.A;
+    this.FlagN = false;
+    this.FlagH = (value & 0xF) + (v0 & 0xF) > 0xF;
+    this.FlagC = value + v0 > 0xFF;
+  }
+
+  add8v_(value) {
+    let v0 = this.A;
+    this.A = v0 + value;
+    this.FlagZ = !this.A;
+    this.FlagN = false;
+    this.FlagH = (value & 0xF) + (v0 & 0xF) > 0xF;
+    this.FlagC = value + v0 > 0xFF;
+  }
+
+  add16signed8v_(value) {
+    let v0 = this.SP;
+    let negative = value & 0x80;
+    value = negative ? -~(0xFFFFFF00 + value - 1) : value;
+    this.SP = v0 + value;
+    this.FlagZ = false;
+    this.FlagN = false;
+    if(negative) {
+      this.FlagH = (value & 0xFF) < (v0 & 0xFF);
+    } else {
+      this.FlagH = (value & 0xFF) + (v0 & 0xFF) > 0xFF;
+    }
+    if(negative) {
+      this.FlagC = value + v0 > 0xFFFF;
+    } else {
+      this.FlagC = value > v0;
+    }
+  }
+
   subr_(register) {
     this.cpr_(register);
     this.A -= this.get(register);
@@ -662,7 +751,7 @@ export class CPU {
     let r = this.get(register);
     this.FlagZ = a === r;
     this.FlagN = true;
-    this.FlagH = (r & 0b1111) > (a & 0b1111);
+    this.FlagH = (r & 0xF) > (a & 0xF);
     this.FlagC = r > a;
   }
 
@@ -670,7 +759,7 @@ export class CPU {
     let a = this.A;
     this.FlagZ = a === value;
     this.FlagN = true;
-    this.FlagH = (value & 0b1111) > (a & 0b1111);
+    this.FlagH = (value & 0xF) > (a & 0xF);
     this.FlagC = value > a;
   }
 
