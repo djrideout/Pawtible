@@ -741,13 +741,6 @@ export class CPU {
     }
   }
 
-  runCBInst(op) {
-    switch(op) {
-      default:
-        throw Error(`Unimplemented CB opcode 0x${op.toString(16).toUpperCase().padStart(2, "0")}`);
-    }
-  }
-
   call_() {
     let a16 = this.GB.M.get(this.PC, 2);
     this.PC += 2;
@@ -953,6 +946,173 @@ export class CPU {
   ret_() {
     this.PC = this.GB.M.get(this.SP, 2);
     this.SP += 2;
+  }
+
+  runCBInst(op) {
+    switch(op) {
+      case 0x00:
+        this.rlcr_(Registers.B);
+        return 8;
+      case 0x01:
+        this.rlcr_(Registers.C);
+        return 8;
+      case 0x02:
+        this.rlcr_(Registers.D);
+        return 8;
+      case 0x03:
+        this.rlcr_(Registers.E);
+        return 8;
+      case 0x04:
+        this.rlcr_(Registers.H);
+        return 8;
+      case 0x05:
+        this.rlcr_(Registers.L);
+        return 8;
+      case 0x06:
+        this.rlca_(this.HL);
+        return 16;
+      case 0x07:
+        this.rlcr_(Registers.A);
+        return 8;
+      case 0x08:
+        this.rrcr_(Registers.B);
+        return 8;
+      case 0x09:
+        this.rrcr_(Registers.C);
+        return 8;
+      case 0x0A:
+        this.rrcr_(Registers.D);
+        return 8;
+      case 0x0B:
+        this.rrcr_(Registers.E);
+        return 8;
+      case 0x0C:
+        this.rrcr_(Registers.H);
+        return 8;
+      case 0x0D:
+        this.rrcr_(Registers.L);
+        return 8;
+      case 0x0E:
+        this.rlca_(this.HL);
+        return 16;
+      case 0x0F:
+        this.rrcr_(Registers.A);
+        return 8;
+      case 0x10:
+        this.rlr_(Registers.B);
+        return 8;
+      case 0x11:
+        this.rlr_(Registers.C);
+        return 8;
+      case 0x12:
+        this.rlr_(Registers.D);
+        return 8;
+      case 0x13:
+        this.rlr_(Registers.E);
+        return 8;
+      case 0x14:
+        this.rlr_(Registers.H);
+        return 8;
+      case 0x15:
+        this.rlr_(Registers.L);
+        return 8;
+      case 0x16:
+        this.rla_(this.HL);
+        return 16;
+      case 0x17:
+        this.rlr_(Registers.A);
+        return 8;
+      case 0x18:
+        this.rrr_(Registers.B);
+        return 8;
+      case 0x19:
+        this.rrr_(Registers.C);
+        return 8;
+      case 0x1A:
+        this.rrr_(Registers.D);
+        return 8;
+      case 0x1B:
+        this.rrr_(Registers.E);
+        return 8;
+      case 0x1C:
+        this.rrr_(Registers.H);
+        return 8;
+      case 0x1D:
+        this.rrr_(Registers.L);
+        return 8;
+      case 0x1E:
+        this.rra_(this.HL);
+        return 16;
+      case 0x1F:
+        this.rrr_(Registers.A);
+        return 8;
+      default:
+        throw Error(`Unimplemented CB opcode 0x${op.toString(16).toUpperCase().padStart(2, "0")}`);
+    }
+  }
+
+  rlcr_(register) {
+    let v = this.get(register);
+    let top = (v & 0x80) >>> 7;
+    this.set(register, (v << 1) | top);
+    this.FlagZ = !this.get(register);
+    this.FlagC = !!top;
+  }
+
+  rlca_(addr) {
+    let v = this.GB.M.get(addr);
+    let top = (v & 0x80) >>> 7;
+    this.GB.M.set(addr, (v << 1) | top);
+    this.FlagZ = !this.GB.M.get(addr);
+    this.FlagC = !!top;
+  }
+
+  rrcr_(register) {
+    let v = this.get(register);
+    let bot = (v & 0x01) << 7;
+    this.set(register, (v >>> 1) | bot);
+    this.FlagZ = !this.get(register);
+    this.FlagC = !!bot;
+  }
+
+  rrca_(addr) {
+    let v = this.GB.M.get(addr);
+    let bot = (v & 0x01) << 7;
+    this.GB.M.set(addr, (v >>> 1) | bot);
+    this.FlagZ = !this.GB.M.get(addr);
+    this.FlagC = !!bot;
+  }
+
+  rlr_(register) {
+    let v = this.get(register);
+    let top = (v & 0x80) >>> 7;
+    this.set(register, (v << 1) | (this.FlagC ? 0x01 : 0x00));
+    this.FlagZ = !this.get(register);
+    this.FlagC = !!top;
+  }
+
+  rla_(addr) {
+    let v = this.GB.M.get(addr);
+    let top = (v & 0x80) >>> 7;
+    this.GB.M.set(addr, (v << 1) | (this.FlagC ? 0x01 : 0x00));
+    this.FlagZ = !this.GB.M.get(addr);
+    this.FlagC = !!top;
+  }
+
+  rrr_(register) {
+    let v = this.get(register);
+    let bot = v & 0x01;
+    this.set(register, (v >>> 1) | (this.FlagC ? 0x08 : 0x00));
+    this.FlagZ = !this.get(register);
+    this.FlagC = !!bot;
+  }
+
+  rra_(addr) {
+    let v = this.GB.M.get(addr);
+    let bot = v & 0x01;
+    this.GB.M.set(addr, (v >>> 1) | (this.FlagC ? 0x08 : 0x00));
+    this.FlagZ = !this.GB.M.get(addr);
+    this.FlagC = !!bot;
   }
 
   get(register) {
