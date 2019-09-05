@@ -439,9 +439,27 @@ export class CPU {
       case 0x6F:
         this.ldr_(Registers.L, this.A);
         return 4;
+      case 0x70:
+        this.lda_(this.HL, this.B);
+        return 8;
+      case 0x71:
+        this.lda_(this.HL, this.C);
+        return 8;
+      case 0x72:
+        this.lda_(this.HL, this.D);
+        return 8;
+      case 0x73:
+        this.lda_(this.HL, this.E);
+        return 8;
       case 0x74:
         this.lda_(this.HL, this.H);
         return 8;
+      case 0x75:
+        this.lda_(this.HL, this.L);
+        return 8;
+      //case 0x76:
+      //    HALT, IMPLEMENT LATER
+      //    return 4;
       case 0x77:
         this.lda_(this.HL, this.A);
         return 8;
