@@ -343,23 +343,101 @@ export class CPU {
       case 0x4F:
         this.ldr_(Registers.C, this.A);
         return 4;
+      case 0x50:
+        this.ldr_(Registers.D, this.B);
+        return 4;
+      case 0x51:
+        this.ldr_(Registers.D, this.C);
+        return 4;
+      case 0x52:
+        //this.ldr_(Registers.D, this.D);
+        return 4;
+      case 0x53:
+        this.ldr_(Registers.D, this.E);
+        return 4;
       case 0x54:
         this.ldr_(Registers.D, this.H);
         return 4;
+      case 0x55:
+        this.ldr_(Registers.D, this.L);
+        return 4;
+      case 0x56:
+        this.ldv_(Registers.D, this.GB.M.get(this.HL));
+        return 8;
       case 0x57:
         this.ldr_(Registers.D, this.A);
         return 4;
       case 0x58:
         this.ldr_(Registers.E, this.B);
         return 4;
+      case 0x59:
+        this.ldr_(Registers.E, this.C);
+        return 4;
+      case 0x5A:
+        this.ldr_(Registers.E, this.D);
+        return 4;
+      case 0x5B:
+        //this.ldr_(Registers.E, this.E);
+        return 4;
+      case 0x5C:
+        this.ldr_(Registers.E, this.H);
+        return 4;
+      case 0x5D:
+        this.ldr_(Registers.E, this.L);
+        return 4;
+      case 0x5E:
+        this.ldr_(Registers.E, this.GB.M.get(this.HL));
+        return 8;
+      case 0x5F:
+        this.ldr_(Registers.E, this.A);
+        return 4;
+      case 0x60:
+        this.ldr_(Registers.H, this.B);
+        return 4;
+      case 0x61:
+        this.ldr_(Registers.H, this.C);
+        return 4;
+      case 0x62:
+        this.ldr_(Registers.H, this.D);
+        return 4;
+      case 0x63:
+        this.ldr_(Registers.H, this.E);
+        return 4;
       case 0x64:
         //this.ldr_(Registers.H, this.H);
         return 4;
+      case 0x65:
+        this.ldr_(Registers.H, this.L);
+        return 4;
+      case 0x66:
+        this.ldv_(Registers.H, this.GB.M.get(this.HL));
+        return 8;
       case 0x67:
         this.ldr_(Registers.H, this.A);
-        return r;
+        return 4;
       case 0x68:
         this.ldr_(Registers.L, this.B);
+        return 4;
+      case 0x69:
+        this.ldr_(Registers.L, this.C);
+        return 4;
+      case 0x6A:
+        this.ldr_(Registers.L, this.D);
+        return 4;
+      case 0x6B:
+        this.ldr_(Registers.L, this.E);
+        return 4;
+      case 0x6C:
+        this.ldr_(Registers.L, this.H);
+        return 4;
+      case 0x6D:
+        //this.ldr_(Registers.L, this.L);
+        return 4;
+      case 0x6E:
+        this.ldr_(Registers.L, this.GB.M.get(this.HL));
+        return 8;
+      case 0x6F:
+        this.ldr_(Registers.L, this.A);
         return 4;
       case 0x74:
         this.lda_(this.HL, this.H);
@@ -370,11 +448,26 @@ export class CPU {
       case 0x78:
         this.ldr_(Registers.A, this.B);
         return 4;
+      case 0x79:
+        this.ldr_(Registers.A, this.C);
+        return 4;
+      case 0x7A:
+        this.ldr_(Registers.A, this.D);
+        return 4;
+      case 0x7B:
+        this.ldr_(Registers.A, this.E);
+        return 4;
       case 0x7C:
         this.ldr_(Registers.A, this.H);
         return 4;
       case 0x7D:
         this.ldr_(Registers.A, this.L);
+        return 4;
+      case 0x7E:
+        this.ldr_(Registers.A, this.GB.M.get(this.HL));
+        return 8;
+      case 0x7F:
+        //this.ldr_(Registers.A, this.A);
         return 4;
       case 0x80:
         this.add8r_(Registers.B);
