@@ -654,6 +654,8 @@ export class CPU {
       case 0xC9:
         this.ret_();
         return 16;
+      case 0xCB:
+        return 4 + this.runCBInst(this.GB.M.get(this.PC++));
       case 0xCC:
         if(this.FlagZ) {
           this.call_();
@@ -736,6 +738,13 @@ export class CPU {
         return 8;
       default:
         throw Error(`Unimplemented opcode 0x${this.GB.M.get(addr).toString(16).toUpperCase().padStart(2, "0")}`);
+    }
+  }
+
+  runCBInst(op) {
+    switch(op) {
+      default:
+        throw Error(`Unimplemented CB opcode 0x${op.toString(16).toUpperCase().padStart(2, "0")}`);
     }
   }
 
