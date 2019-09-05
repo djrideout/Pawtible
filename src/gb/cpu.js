@@ -367,6 +367,10 @@ export class CPU {
       case 0xF6:
         this.orv_(this.GB.M.get(this.PC++));
         return 8;
+      case 0xFA:
+        this.ldr_(Registers.A, this.GB.M.get(this.GB.M.get(this.PC, 2)));
+        this.PC += 2;
+        return 16;
       case 0xFE:
         this.cpv_(this.GB.M.get(this.PC++));
         return 8;
