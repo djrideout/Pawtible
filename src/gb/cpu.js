@@ -359,6 +359,30 @@ export class CPU {
       case 0xA7:
         this.andr_(Registers.A);
         return 4;
+      case 0xA8:
+        this.xorr_(Registers.B);
+        return 4;
+      case 0xA9:
+        this.xorr_(Registers.C);
+        return 4;
+      case 0xAA:
+        this.xorr_(Registers.D);
+        return 4;
+      case 0xAB:
+        this.xorr_(Registers.E);
+        return 4;
+      case 0xAC:
+        this.xorr_(Registers.H);
+        return 4;
+      case 0xAD:
+        this.xorr_(Registers.L);
+        return 4;
+      case 0xAE:
+        this.xorv_(this.GB.M.get(this.HL));
+        return 8;
+      case 0xAF:
+        this.xorr_(Registers.A);
+        return 4;
       case 0xB0:
         this.orr_(Registers.B);
         return 4;
@@ -479,6 +503,9 @@ export class CPU {
         this.lda_(this.GB.M.get(this.PC, 2), this.A);
         this.PC += 2;
         return 16;
+      case 0xEE:
+        this.xorv_(this.GB.M.get(this.PC++));
+        return 8;
       case 0xF0:
         this.ldr_(Registers.A, this.GB.M.get(0xFF00 + this.GB.M.get(this.PC++)));
         return 12;
@@ -584,6 +611,22 @@ export class CPU {
 
   orv_(value) {
     this.A |= value;
+    this.FlagZ = !this.A;
+    this.FlagN = false;
+    this.FlagH = false;
+    this.FlagC = false;
+  }
+
+  xorr_(register) {
+    this.A ^= this.get(register);
+    this.FlagZ = !this.A;
+    this.FlagN = false;
+    this.FlagH = false;
+    this.FlagC = false;
+  }
+
+  xorv_(value) {
+    this.A ^= value;
     this.FlagZ = !this.A;
     this.FlagN = false;
     this.FlagH = false;
