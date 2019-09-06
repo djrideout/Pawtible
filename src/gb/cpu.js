@@ -127,6 +127,9 @@ export class CPU {
       case 0x06:
         this.ldr_(Registers.B, this.GB.M.get(this.PC++));
         return 8;
+      case 0x07:
+        this.rlcakku_();
+        return 4;
       case 0x09:
         this.add16r_(this.BC);
         return 8;
@@ -145,6 +148,9 @@ export class CPU {
       case 0x0E:
         this.ldr_(Registers.C, this.GB.M.get(this.PC++));
         return 8;
+      case 0x0F:
+        this.rrcakku_();
+        return 4;
       case 0x11:
         this.ldr_(Registers.DE, this.GB.M.get(this.PC, 2));
         this.PC += 2;
@@ -164,6 +170,9 @@ export class CPU {
       case 0x16:
         this.ldr_(Registers.D, this.GB.M.get(this.PC++));
         return 8;
+      case 0x17:
+        this.rlakku_();
+        return 4;
       case 0x18:
         this.jr_(this.GB.M.get(this.PC++));
         return 12;
@@ -185,6 +194,9 @@ export class CPU {
       case 0x1E:
         this.ldr_(Registers.E, this.GB.M.get(this.PC++));
         return 8;
+      case 0x1F:
+        this.rrakku_();
+        return 4;
       case 0x20:
         if(!this.FlagZ) {
           this.jr_(this.GB.M.get(this.PC++));
@@ -946,6 +958,46 @@ export class CPU {
   ret_() {
     this.PC = this.GB.M.get(this.SP, 2);
     this.SP += 2;
+  }
+
+  rlakku_() {
+    let v = this.A;
+    let top = (v & 0x80) >>> 7;
+    this.A = (v << 1) | (this.FlagC ? 0x01 : 0x00);
+    this.FlagZ = false;
+    this.FlagN = false;
+    this.FlagH = false;
+    this.FlagC = !!top;
+  }
+
+  rlcakku_() {
+    let v = this.A;
+    let top = (v & 0x80) >>> 7;
+    this.A = (v << 1) | top;
+    this.FlagZ = false;
+    this.FlagN = false;
+    this.FlagH = false;
+    this.FlagC = !!top;
+  }
+
+  rrakku_() {
+    let v = this.A;
+    let bot = v & 0x01;
+    this.A = (v >>> 1) | (this.FlagC ? 0x80 : 0x00)
+    this.FlagZ = false;
+    this.FlagN = false;
+    this.FlagH = false;
+    this.FlagC = !!bot;
+  }
+
+  rrcakku_() {
+    let v = this.A;
+    let bot = (v & 0x01) << 7;
+    this.A = (v >>> 1) | bot;
+    this.FlagZ = false;
+    this.FlagN = false;
+    this.FlagH = false;
+    this.FlagC = !!bot;
   }
 
   runCBInst(op) {
