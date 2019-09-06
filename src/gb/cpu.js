@@ -1786,7 +1786,7 @@ export class CPU {
   rrr_(register) {
     let v = this.get(register);
     let bot = v & 0x01;
-    this.set(register, (v >>> 1) | (this.FlagC ? 0x08 : 0x00));
+    this.set(register, (v >>> 1) | (this.FlagC ? 0x80 : 0x00));
     this.FlagZ = !this.get(register);
     this.FlagN = false;
     this.FlagH = false;
@@ -1796,7 +1796,7 @@ export class CPU {
   rra_(addr) {
     let v = this.GB.M.get(addr);
     let bot = v & 0x01;
-    this.GB.M.set(addr, (v >>> 1) | (this.FlagC ? 0x08 : 0x00));
+    this.GB.M.set(addr, (v >>> 1) | (this.FlagC ? 0x80 : 0x00));
     this.FlagZ = !this.GB.M.get(addr);
     this.FlagN = false;
     this.FlagH = false;
