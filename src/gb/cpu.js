@@ -1478,53 +1478,245 @@ export class CPU {
       case 0xAF:
         this.resr_(Registers.A, 5);
         return 8;
-      case 0x70:
+      case 0xB0:
         this.resr_(Registers.B, 6);
         return 8;
-      case 0x71:
+      case 0xB1:
         this.resr_(Registers.C, 6);
         return 8;
-      case 0x72:
+      case 0xB2:
         this.resr_(Registers.D, 6);
         return 8;
-      case 0x73:
+      case 0xB3:
         this.resr_(Registers.E, 6);
         return 8;
-      case 0x74:
+      case 0xB4:
         this.resr_(Registers.H, 6);
         return 8;
-      case 0x75:
+      case 0xB5:
         this.resr_(Registers.L, 6);
         return 8;
-      case 0x76:
+      case 0xB6:
         this.resa_(this.HL, 6);
         return 16;
-      case 0x77:
+      case 0xB7:
         this.resr_(Registers.A, 6);
         return 8;
-      case 0x78:
+      case 0xB8:
         this.resr_(Registers.B, 7);
         return 8;
-      case 0x79:
+      case 0xB9:
         this.resr_(Registers.C, 7);
         return 8;
-      case 0x7A:
+      case 0xBA:
         this.resr_(Registers.D, 7);
         return 8;
-      case 0x7B:
+      case 0xBB:
         this.resr_(Registers.E, 7);
         return 8;
-      case 0x7C:
+      case 0xBC:
         this.resr_(Registers.H, 7);
         return 8;
-      case 0x7D:
+      case 0xBD:
         this.resr_(Registers.L, 7);
         return 8;
-      case 0x7E:
+      case 0xBE:
         this.resa_(this.HL, 7);
         return 16;
-      case 0x7F:
+      case 0xBF:
         this.resr_(Registers.A, 7);
+        return 8;
+      case 0xC0:
+        this.setr_(Registers.B, 0);
+        return 8;
+      case 0xC1:
+        this.setr_(Registers.C, 0);
+        return 8;
+      case 0xC2:
+        this.setr_(Registers.D, 0);
+        return 8;
+      case 0xC3:
+        this.setr_(Registers.E, 0);
+        return 8;
+      case 0xC4:
+        this.setr_(Registers.H, 0);
+        return 8;
+      case 0xC5:
+        this.setr_(Registers.L, 0);
+        return 8;
+      case 0xC6:
+        this.seta_(this.HL, 0);
+        return 16;
+      case 0xC7:
+        this.setr_(Registers.A, 0);
+        return 8;
+      case 0xC8:
+        this.setr_(Registers.B, 1);
+        return 8;
+      case 0xC9:
+        this.setr_(Registers.C, 1);
+        return 8;
+      case 0xCA:
+        this.setr_(Registers.D, 1);
+        return 8;
+      case 0xCB:
+        this.setr_(Registers.E, 1);
+        return 8;
+      case 0xCC:
+        this.setr_(Registers.H, 1);
+        return 8;
+      case 0xCD:
+        this.setr_(Registers.L, 1);
+        return 8;
+      case 0xCE:
+        this.seta_(this.HL, 1);
+        return 16;
+      case 0xCF:
+        this.setr_(Registers.A, 1);
+        return 8;
+      case 0xD0:
+        this.setr_(Registers.B, 2);
+        return 8;
+      case 0xD1:
+        this.setr_(Registers.C, 2);
+        return 8;
+      case 0xD2:
+        this.setr_(Registers.D, 2);
+        return 8;
+      case 0xD3:
+        this.setr_(Registers.E, 2);
+        return 8;
+      case 0xD4:
+        this.setr_(Registers.H, 2);
+        return 8;
+      case 0xD5:
+        this.setr_(Registers.L, 2);
+        return 8;
+      case 0xD6:
+        this.seta_(this.HL, 2);
+        return 16;
+      case 0xD7:
+        this.setr_(Registers.A, 2);
+        return 8;
+      case 0xD8:
+        this.setr_(Registers.B, 3);
+        return 8;
+      case 0xD9:
+        this.setr_(Registers.C, 3);
+        return 8;
+      case 0xDA:
+        this.setr_(Registers.D, 3);
+        return 8;
+      case 0xDB:
+        this.setr_(Registers.E, 3);
+        return 8;
+      case 0xDC:
+        this.setr_(Registers.H, 3);
+        return 8;
+      case 0xDD:
+        this.setr_(Registers.L, 3);
+        return 8;
+      case 0xDE:
+        this.seta_(this.HL, 3);
+        return 16;
+      case 0xDF:
+        this.setr_(Registers.A, 3);
+        return 8;
+      case 0xE0:
+        this.setr_(Registers.B, 4);
+        return 8;
+      case 0xE1:
+        this.setr_(Registers.C, 4);
+        return 8;
+      case 0xE2:
+        this.setr_(Registers.D, 4);
+        return 8;
+      case 0xE3:
+        this.setr_(Registers.E, 4);
+        return 8;
+      case 0xE4:
+        this.setr_(Registers.H, 4);
+        return 8;
+      case 0xE5:
+        this.setr_(Registers.L, 4);
+        return 8;
+      case 0xE6:
+        this.seta_(this.HL, 4);
+        return 16;
+      case 0xE7:
+        this.setr_(Registers.A, 4);
+        return 8;
+      case 0xE8:
+        this.setr_(Registers.B, 5);
+        return 8;
+      case 0xE9:
+        this.setr_(Registers.C, 5);
+        return 8;
+      case 0xEA:
+        this.setr_(Registers.D, 5);
+        return 8;
+      case 0xEB:
+        this.setr_(Registers.E, 5);
+        return 8;
+      case 0xEC:
+        this.setr_(Registers.H, 5);
+        return 8;
+      case 0xED:
+        this.setr_(Registers.L, 5);
+        return 8;
+      case 0xEE:
+        this.seta_(this.HL, 5);
+        return 16;
+      case 0xEF:
+        this.setr_(Registers.A, 5);
+        return 8;
+      case 0xF0:
+        this.setr_(Registers.B, 6);
+        return 8;
+      case 0xF1:
+        this.setr_(Registers.C, 6);
+        return 8;
+      case 0xF2:
+        this.setr_(Registers.D, 6);
+        return 8;
+      case 0xF3:
+        this.setr_(Registers.E, 6);
+        return 8;
+      case 0xF4:
+        this.setr_(Registers.H, 6);
+        return 8;
+      case 0xF5:
+        this.setr_(Registers.L, 6);
+        return 8;
+      case 0xF6:
+        this.seta_(this.HL, 6);
+        return 16;
+      case 0xF7:
+        this.setr_(Registers.A, 6);
+        return 8;
+      case 0xF8:
+        this.setr_(Registers.B, 7);
+        return 8;
+      case 0xF9:
+        this.setr_(Registers.C, 7);
+        return 8;
+      case 0xFA:
+        this.setr_(Registers.D, 7);
+        return 8;
+      case 0xFB:
+        this.setr_(Registers.E, 7);
+        return 8;
+      case 0xFC:
+        this.setr_(Registers.H, 7);
+        return 8;
+      case 0xFD:
+        this.setr_(Registers.L, 7);
+        return 8;
+      case 0xFE:
+        this.seta_(this.HL, 7);
+        return 16;
+      case 0xFF:
+        this.setr_(Registers.A, 7);
         return 8;
       default:
         throw Error(`Unimplemented CB opcode 0x${op.toString(16).toUpperCase().padStart(2, "0")}`);
@@ -1708,7 +1900,15 @@ export class CPU {
   }
 
   resa_(addr, bit) {
-    this.GB.M.set(addr, this.GB.M.set(addr) & ~(0x01 << bit));
+    this.GB.M.set(addr, this.GB.M.get(addr) & ~(0x01 << bit));
+  }
+
+  setr_(register, bit) {
+    this.set(register, this.get(register) | (0x01 << bit));
+  }
+
+  seta_(addr, bit) {
+    this.GB.M.set(addr, this.GB.M.get(addr) | (0x01 << bit));
   }
 
   get(register) {
