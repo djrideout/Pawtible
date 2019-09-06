@@ -1142,6 +1142,198 @@ export class CPU {
       case 0x3F:
         this.srlr_(Registers.A);
         return 8;
+      case 0x40:
+        this.bitr_(Registers.B, 0);
+        return 8;
+      case 0x41:
+        this.bitr_(Registers.C, 0);
+        return 8;
+      case 0x42:
+        this.bitr_(Registers.D, 0);
+        return 8;
+      case 0x43:
+        this.bitr_(Registers.E, 0);
+        return 8;
+      case 0x44:
+        this.bitr_(Registers.H, 0);
+        return 8;
+      case 0x45:
+        this.bitr_(Registers.L, 0);
+        return 8;
+      case 0x46:
+        this.bita_(this.HL, 0);
+        return 12;
+      case 0x47:
+        this.bitr_(Registers.A, 0);
+        return 8;
+      case 0x48:
+        this.bitr_(Registers.B, 1);
+        return 8;
+      case 0x49:
+        this.bitr_(Registers.C, 1);
+        return 8;
+      case 0x4A:
+        this.bitr_(Registers.D, 1);
+        return 8;
+      case 0x4B:
+        this.bitr_(Registers.E, 1);
+        return 8;
+      case 0x4C:
+        this.bitr_(Registers.H, 1);
+        return 8;
+      case 0x4D:
+        this.bitr_(Registers.L, 1);
+        return 8;
+      case 0x4E:
+        this.bita_(this.HL, 1);
+        return 12;
+      case 0x4F:
+        this.bitr_(Registers.A, 1);
+        return 8;
+      case 0x50:
+        this.bitr_(Registers.B, 2);
+        return 8;
+      case 0x51:
+        this.bitr_(Registers.C, 2);
+        return 8;
+      case 0x52:
+        this.bitr_(Registers.D, 2);
+        return 8;
+      case 0x53:
+        this.bitr_(Registers.E, 2);
+        return 8;
+      case 0x54:
+        this.bitr_(Registers.H, 2);
+        return 8;
+      case 0x55:
+        this.bitr_(Registers.L, 2);
+        return 8;
+      case 0x56:
+        this.bita_(this.HL, 2);
+        return 12;
+      case 0x57:
+        this.bitr_(Registers.A, 2);
+        return 8;
+      case 0x58:
+        this.bitr_(Registers.B, 3);
+        return 8;
+      case 0x59:
+        this.bitr_(Registers.C, 3);
+        return 8;
+      case 0x5A:
+        this.bitr_(Registers.D, 3);
+        return 8;
+      case 0x5B:
+        this.bitr_(Registers.E, 3);
+        return 8;
+      case 0x5C:
+        this.bitr_(Registers.H, 3);
+        return 8;
+      case 0x5D:
+        this.bitr_(Registers.L, 3);
+        return 8;
+      case 0x5E:
+        this.bita_(this.HL, 3);
+        return 12;
+      case 0x5F:
+        this.bitr_(Registers.A, 3);
+        return 8;
+      case 0x60:
+        this.bitr_(Registers.B, 4);
+        return 8;
+      case 0x61:
+        this.bitr_(Registers.C, 4);
+        return 8;
+      case 0x62:
+        this.bitr_(Registers.D, 4);
+        return 8;
+      case 0x63:
+        this.bitr_(Registers.E, 4);
+        return 8;
+      case 0x64:
+        this.bitr_(Registers.H, 4);
+        return 8;
+      case 0x65:
+        this.bitr_(Registers.L, 4);
+        return 8;
+      case 0x66:
+        this.bita_(this.HL, 4);
+        return 12;
+      case 0x67:
+        this.bitr_(Registers.A, 4);
+        return 8;
+      case 0x68:
+        this.bitr_(Registers.B, 5);
+        return 8;
+      case 0x69:
+        this.bitr_(Registers.C, 5);
+        return 8;
+      case 0x6A:
+        this.bitr_(Registers.D, 5);
+        return 8;
+      case 0x6B:
+        this.bitr_(Registers.E, 5);
+        return 8;
+      case 0x6C:
+        this.bitr_(Registers.H, 5);
+        return 8;
+      case 0x6D:
+        this.bitr_(Registers.L, 5);
+        return 8;
+      case 0x6E:
+        this.bita_(this.HL, 5);
+        return 12;
+      case 0x6F:
+        this.bitr_(Registers.A, 5);
+        return 8;
+      case 0x70:
+        this.bitr_(Registers.B, 6);
+        return 8;
+      case 0x71:
+        this.bitr_(Registers.C, 6);
+        return 8;
+      case 0x72:
+        this.bitr_(Registers.D, 6);
+        return 8;
+      case 0x73:
+        this.bitr_(Registers.E, 6);
+        return 8;
+      case 0x74:
+        this.bitr_(Registers.H, 6);
+        return 8;
+      case 0x75:
+        this.bitr_(Registers.L, 6);
+        return 8;
+      case 0x76:
+        this.bita_(this.HL, 6);
+        return 12;
+      case 0x77:
+        this.bitr_(Registers.A, 6);
+        return 8;
+      case 0x78:
+        this.bitr_(Registers.B, 7);
+        return 8;
+      case 0x79:
+        this.bitr_(Registers.C, 7);
+        return 8;
+      case 0x7A:
+        this.bitr_(Registers.D, 7);
+        return 8;
+      case 0x7B:
+        this.bitr_(Registers.E, 7);
+        return 8;
+      case 0x7C:
+        this.bitr_(Registers.H, 7);
+        return 8;
+      case 0x7D:
+        this.bitr_(Registers.L, 7);
+        return 8;
+      case 0x7E:
+        this.bita_(this.HL, 7);
+        return 12;
+      case 0x7F:
+        this.bitr_(Registers.A, 7);
+        return 8;
       default:
         throw Error(`Unimplemented CB opcode 0x${op.toString(16).toUpperCase().padStart(2, "0")}`);
     }
@@ -1303,6 +1495,20 @@ export class CPU {
     this.FlagN = false;
     this.FlagH = false;
     this.FlagZ = !this.GB.M.get(addr);
+  }
+
+  bitr_(register, bit) {
+    let v = this.get(register);
+    this.FlagZ = !(v & (0x01 << bit));
+    this.FlagN = false;
+    this.FlagH = true;
+  }
+
+  bita_(addr, bit) {
+    let v = this.GB.M.get(addr);
+    this.FlagZ = !(v & (0x01 << bit));
+    this.FlagN = false;
+    this.FlagH = true;
   }
 
   get(register) {
