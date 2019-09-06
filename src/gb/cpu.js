@@ -1046,6 +1046,102 @@ export class CPU {
       case 0x1F:
         this.rrr_(Registers.A);
         return 8;
+      case 0x20:
+        this.slar_(Registers.B);
+        return 8;
+      case 0x21:
+        this.slar_(Registers.C);
+        return 8;
+      case 0x22:
+        this.slar_(Registers.D);
+        return 8;
+      case 0x23:
+        this.slar_(Registers.E);
+        return 8;
+      case 0x24:
+        this.slar_(Registers.H);
+        return 8;
+      case 0x25:
+        this.slar_(Registers.L);
+        return 8;
+      case 0x26:
+        this.slaa_(this.HL);
+        return 16;
+      case 0x27:
+        this.slar_(Registers.A);
+        return 8;
+      case 0x28:
+        this.srar_(Registers.B);
+        return 8;
+      case 0x29:
+        this.srar_(Registers.C);
+        return 8;
+      case 0x2A:
+        this.srar_(Registers.D);
+        return 8;
+      case 0x2B:
+        this.srar_(Registers.E);
+        return 8;
+      case 0x2C:
+        this.srar_(Registers.H);
+        return 8;
+      case 0x2D:
+        this.srar_(Registers.L);
+        return 8;
+      case 0x2E:
+        this.sraa_(this.HL);
+        return 16;
+      case 0x2F:
+        this.srar_(Registers.A);
+        return 8;
+      case 0x30:
+        this.swapr_(Registers.B);
+        return 8;
+      case 0x31:
+        this.swapr_(Registers.C);
+        return 8;
+      case 0x32:
+        this.swapr_(Registers.D);
+        return 8;
+      case 0x33:
+        this.swapr_(Registers.E);
+        return 8;
+      case 0x34:
+        this.swapr_(Registers.H);
+        return 8;
+      case 0x35:
+        this.swapr_(Registers.L);
+        return 8;
+      case 0x36:
+        this.swapa_(this.HL);
+        return 16;
+      case 0x37:
+        this.swapr_(Registers.A);
+        return 8;
+      case 0x38:
+        this.srlr_(Registers.B);
+        return 8;
+      case 0x39:
+        this.srlr_(Registers.C);
+        return 8;
+      case 0x3A:
+        this.srlr_(Registers.D);
+        return 8;
+      case 0x3B:
+        this.srlr_(Registers.E);
+        return 8;
+      case 0x3C:
+        this.srlr_(Registers.H);
+        return 8;
+      case 0x3D:
+        this.srlr_(Registers.L);
+        return 8;
+      case 0x3E:
+        this.srla_(this.HL);
+        return 16;
+      case 0x3F:
+        this.srlr_(Registers.A);
+        return 8;
       default:
         throw Error(`Unimplemented CB opcode 0x${op.toString(16).toUpperCase().padStart(2, "0")}`);
     }
@@ -1056,6 +1152,8 @@ export class CPU {
     let top = (v & 0x80) >>> 7;
     this.set(register, (v << 1) | top);
     this.FlagZ = !this.get(register);
+    this.FlagN = false;
+    this.FlagH = false;
     this.FlagC = !!top;
   }
 
@@ -1064,6 +1162,8 @@ export class CPU {
     let top = (v & 0x80) >>> 7;
     this.GB.M.set(addr, (v << 1) | top);
     this.FlagZ = !this.GB.M.get(addr);
+    this.FlagN = false;
+    this.FlagH = false;
     this.FlagC = !!top;
   }
 
@@ -1072,6 +1172,8 @@ export class CPU {
     let bot = (v & 0x01) << 7;
     this.set(register, (v >>> 1) | bot);
     this.FlagZ = !this.get(register);
+    this.FlagN = false;
+    this.FlagH = false;
     this.FlagC = !!bot;
   }
 
@@ -1080,6 +1182,8 @@ export class CPU {
     let bot = (v & 0x01) << 7;
     this.GB.M.set(addr, (v >>> 1) | bot);
     this.FlagZ = !this.GB.M.get(addr);
+    this.FlagN = false;
+    this.FlagH = false;
     this.FlagC = !!bot;
   }
 
@@ -1088,6 +1192,8 @@ export class CPU {
     let top = (v & 0x80) >>> 7;
     this.set(register, (v << 1) | (this.FlagC ? 0x01 : 0x00));
     this.FlagZ = !this.get(register);
+    this.FlagN = false;
+    this.FlagH = false;
     this.FlagC = !!top;
   }
 
@@ -1096,6 +1202,8 @@ export class CPU {
     let top = (v & 0x80) >>> 7;
     this.GB.M.set(addr, (v << 1) | (this.FlagC ? 0x01 : 0x00));
     this.FlagZ = !this.GB.M.get(addr);
+    this.FlagN = false;
+    this.FlagH = false;
     this.FlagC = !!top;
   }
 
@@ -1104,6 +1212,8 @@ export class CPU {
     let bot = v & 0x01;
     this.set(register, (v >>> 1) | (this.FlagC ? 0x08 : 0x00));
     this.FlagZ = !this.get(register);
+    this.FlagN = false;
+    this.FlagH = false;
     this.FlagC = !!bot;
   }
 
@@ -1112,7 +1222,87 @@ export class CPU {
     let bot = v & 0x01;
     this.GB.M.set(addr, (v >>> 1) | (this.FlagC ? 0x08 : 0x00));
     this.FlagZ = !this.GB.M.get(addr);
+    this.FlagN = false;
+    this.FlagH = false;
     this.FlagC = !!bot;
+  }
+
+  slar_(register) {
+    let v = this.get(register);
+    this.FlagC = !!(v & 0x80);
+    this.set(register, v << 1);
+    this.FlagN = false;
+    this.FlagH = false;
+    this.FlagZ = !this.get(register);
+  }
+
+  slaa_(addr) {
+    let v = this.GB.M.get(addr);
+    this.FlagC = !!(v & 0x80);
+    this.GB.M.set(addr, v << 1);
+    this.FlagN = false;
+    this.FlagH = false;
+    this.FlagZ = !this.GB.M.get(addr);
+  }
+
+  srar_(register) {
+    let v = this.get(register);
+    let top = v & 0x80;
+    this.FlagC = !!(v & 0x01);
+    this.set(register, (v >> 1 | top));
+    this.FlagN = false;
+    this.FlagH = false;
+    this.FlagZ = !this.get(register);
+  }
+
+  sraa_(addr) {
+    let v = this.GB.M.get(addr);
+    let top = v & 0x80;
+    this.FlagC = !!(v & 0x01);
+    this.GB.M.set(addr, (v >> 1 | top));
+    this.FlagN = false;
+    this.FlagH = false;
+    this.FlagZ = !this.GB.M.get(addr);
+  }
+
+  swapr_(register) {
+    let v = this.get(register);
+    let top = v & 0xFF00;
+    let bot = v & 0x00FF;
+    this.set(register, (bot << 4) | (top >> 4));
+    this.FlagZ = !this.GB.M.get(addr);
+    this.FlagN = false;
+    this.FlagH = false;
+    this.FlagC = false;
+  }
+
+  swapa_(addr) {
+    let v = this.GB.M.get(addr);
+    let top = v & 0xFF00;
+    let bot = v & 0x00FF;
+    this.GB.M.set(addr, (bot << 4) | (top >> 4));
+    this.FlagZ = !this.GB.M.get(addr);
+    this.FlagN = false;
+    this.FlagH = false;
+    this.FlagC = false;
+  }
+
+  srlr_(register) {
+    let v = this.get(register);
+    this.FlagC = !!(v & 0x01);
+    this.set(register, v >>> 1);
+    this.FlagN = false;
+    this.FlagH = false;
+    this.FlagZ = !this.get(register);
+  }
+
+  srla_(addr) {
+    let v = this.GB.M.get(addr);
+    this.FlagC = !!(v & 0x01);
+    this.GB.M.set(addr, v >>> 1);
+    this.FlagN = false;
+    this.FlagH = false;
+    this.FlagZ = !this.GB.M.get(addr);
   }
 
   get(register) {
