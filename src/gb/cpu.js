@@ -701,6 +701,15 @@ export class CPU {
       case 0xC1:
         this.pop_(Registers.BC);
         return 12;
+      case 0xC2:
+        if(!this.FlagZ) {
+          let addr = this.GB.M.get(this.PC, 2);
+          this.PC += 2;
+          this.jp_(addr);
+          return 16;
+        } else {
+          return 12;
+        }
       case 0xC3:
         this.jp_(this.GB.M.get(this.PC, 2));
         return 16;
@@ -728,6 +737,15 @@ export class CPU {
       case 0xC9:
         this.ret_();
         return 16;
+      case 0xCA:
+        if(this.FlagZ) {
+          let addr = this.GB.M.get(this.PC, 2);
+          this.PC += 2;
+          this.jp_(addr);
+          return 16;
+        } else {
+          return 12;
+        }
       case 0xCB:
         return 4 + this.runCBInst(this.GB.M.get(this.PC++));
       case 0xCC:
@@ -754,6 +772,15 @@ export class CPU {
       case 0xD1:
         this.pop_(Registers.DE);
         return 12;
+      case 0xD2:
+        if(!this.FlagC) {
+          let addr = this.GB.M.get(this.PC, 2);
+          this.PC += 2;
+          this.jp_(addr);
+          return 16;
+        } else {
+          return 12;
+        }
       case 0xD4:
         if(!this.FlagC) {
           this.call_();
@@ -774,6 +801,15 @@ export class CPU {
           return 20;
         } else {
           return 8;
+        }
+      case 0xDA:
+        if(this.FlagC) {
+          let addr = this.GB.M.get(this.PC, 2);
+          this.PC += 2;
+          this.jp_(addr);
+          return 16;
+        } else {
+          return 12;
         }
       case 0xDC:
         if(this.FlagC) {
@@ -801,6 +837,9 @@ export class CPU {
       case 0xE8:
         this.add16signed8v_(this.GB.M.get(this.PC++));
         return 16;
+      case 0xE9:
+        this.jp_(this.HL);
+        return 4;
       case 0xEA:
         this.lda_(this.GB.M.get(this.PC, 2), this.A);
         this.PC += 2;
@@ -2011,7 +2050,7 @@ export class CPU {
     let top = v & 0xFF00;
     let bot = v & 0x00FF;
     this.set(register, (bot << 4) | (top >> 4));
-    this.FlagZ = !this.GB.M.get(addr);
+    this.FlagZ = !this.get(register);
     this.FlagN = false;
     this.FlagH = false;
     this.FlagC = false;
