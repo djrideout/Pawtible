@@ -523,6 +523,30 @@ export class CPU {
       case 0x87:
         this.add8r_(Registers.A);
         return 4;
+      case 0x88:
+        this.adcr_(Registers.B);
+        return 4;
+      case 0x89:
+        this.adcr_(Registers.C);
+        return 4;
+      case 0x8A:
+        this.adcr_(Registers.D);
+        return 4;
+      case 0x8B:
+        this.adcr_(Registers.E);
+        return 4;
+      case 0x8C:
+        this.adcr_(Registers.H);
+        return 4;
+      case 0x8D:
+        this.adcr_(Registers.L);
+        return 4;
+      case 0x8E:
+        this.adcv_(this.GB.M.get(this.HL));
+        return 8;
+      case 0x8F:
+        this.adcr_(Registers.A);
+        return 4;
       case 0x90:
         this.subr_(Registers.B);
         return 4;
@@ -546,6 +570,30 @@ export class CPU {
         return 8;
       case 0x97:
         this.subr_(Registers.A);
+        return 4;
+      case 0x98:
+        this.sbcr_(Registers.B);
+        return 4;
+      case 0x99:
+        this.sbcr_(Registers.C);
+        return 4;
+      case 0x9A:
+        this.sbcr_(Registers.D);
+        return 4;
+      case 0x9B:
+        this.sbcr_(Registers.E);
+        return 4;
+      case 0x9C:
+        this.sbcr_(Registers.H);
+        return 4;
+      case 0x9D:
+        this.sbcr_(Registers.L);
+        return 4;
+      case 0x9E:
+        this.sbcv_(this.GB.M.get(this.HL));
+        return 8;
+      case 0x9F:
+        this.sbcr_(Registers.A);
         return 4;
       case 0xA0:
         this.andr_(Registers.B);
@@ -679,6 +727,9 @@ export class CPU {
       case 0xCD:
         this.call_();
         return 24;
+      case 0xCE:
+        this.adcv_(this.GB.M.get(this.PC++));
+        return 8;
       case 0xD1:
         this.pop_(Registers.DE);
         return 12;
@@ -704,6 +755,9 @@ export class CPU {
           this.PC += 2;
           return 12;
         }
+      case 0xDE:
+        this.sbcv_(this.GB.M.get(this.PC++));
+        return 8;
       case 0xE0:
         this.lda_(0xFF00 + this.GB.M.get(this.PC++), this.A);
         return 12;
@@ -908,6 +962,37 @@ export class CPU {
   subv_(value) {
     this.cpv_(value);
     this.A -= value;
+  }
+
+  adcr_(register) {
+    let v0 = this.A;
+    let value = this.get(register);
+    this.A = v0 + value + this.FlagC;
+    this.FlagZ = !this.A;
+    this.FlagN = false;
+    this.FlagH = (value & 0xF) + (v0 & 0xF) + (this.FlagC & 0xF) > 0xF;
+    this.FlagC = value + v0 + this.FlagC > 0xFF;
+  }
+
+  adcv_(value) {
+    let v0 = this.A;
+    this.A = v0 + value + this.FlagC;
+    this.FlagZ = !this.A;
+    this.FlagN = false;
+    this.FlagH = (value & 0xF) + (v0 & 0xF) + (this.FlagC & 0xF) > 0xF;
+    this.FlagC = value + v0 + this.FlagC > 0xFF;
+  }
+
+  sbcr_(register) {
+    let total = this.get(register) + this.FlagC;
+    this.cpv_(total);
+    this.A -= total;
+  }
+
+  sbcv_(value) {
+    let total = value + this.FlagC;
+    this.cpv_(total);
+    this.A -= total;
   }
 
   cpr_(register) {
