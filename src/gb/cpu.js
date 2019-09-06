@@ -691,6 +691,13 @@ export class CPU {
       case 0xBF:
         this.cpr_(Registers.A);
         return 4;
+      case 0xC0:
+        if(!this.FlagZ) {
+          this.ret_();
+          return 20;
+        } else {
+          return 8;
+        }
       case 0xC1:
         this.pop_(Registers.BC);
         return 12;
@@ -711,6 +718,13 @@ export class CPU {
       case 0xC6:
         this.add8v_(this.GB.M.get(this.PC++));
         return 8;
+      case 0xC8:
+        if(this.FlagZ) {
+          this.ret_();
+          return 20;
+        } else {
+          return 8;
+        }
       case 0xC9:
         this.ret_();
         return 16;
@@ -730,6 +744,13 @@ export class CPU {
       case 0xCE:
         this.adcv_(this.GB.M.get(this.PC++));
         return 8;
+      case 0xD0:
+        if(!this.FlagC) {
+          this.ret_();
+          return 20;
+        } else {
+          return 8;
+        }
       case 0xD1:
         this.pop_(Registers.DE);
         return 12;
@@ -747,6 +768,13 @@ export class CPU {
       case 0xD6:
         this.subv_(this.GB.M.get(this.PC++));
         return 8;
+      case 0xD8:
+        if(this.FlagC) {
+          this.ret_();
+          return 20;
+        } else {
+          return 8;
+        }
       case 0xDC:
         if(this.FlagC) {
           this.call_();
