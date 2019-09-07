@@ -202,7 +202,7 @@ export class CPU {
           this.jr_(this.GB.M.get(this.PC++));
           return 12;
         } else {
-          this.PC++
+          this.PC++;
           return 8;
         }
       case 0x21:
@@ -285,7 +285,7 @@ export class CPU {
           this.jr_(this.GB.M.get(this.PC++));
           return 12;
         } else {
-          this.PC++
+          this.PC++;
           return 8;
         }
       case 0x39:
@@ -708,6 +708,7 @@ export class CPU {
           this.jp_(addr);
           return 16;
         } else {
+          this.PC += 2;
           return 12;
         }
       case 0xC3:
@@ -744,6 +745,7 @@ export class CPU {
           this.jp_(addr);
           return 16;
         } else {
+          this.PC += 2;
           return 12;
         }
       case 0xCB:
@@ -779,6 +781,7 @@ export class CPU {
           this.jp_(addr);
           return 16;
         } else {
+          this.PC += 2;
           return 12;
         }
       case 0xD4:
@@ -809,6 +812,7 @@ export class CPU {
           this.jp_(addr);
           return 16;
         } else {
+          this.PC += 2;
           return 12;
         }
       case 0xDC:
