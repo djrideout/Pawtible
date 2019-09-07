@@ -225,6 +225,9 @@ export class CPU {
       case 0x26:
         this.ldr_(Registers.H, this.GB.M.get(this.PC++));
         return 8;
+      case 0x27:
+        this.daa_();
+        return 4;
       case 0x28:
         if(this.FlagZ) {
           this.jr_(this.GB.M.get(this.PC++));
@@ -1154,6 +1157,29 @@ export class CPU {
     this.FlagN = false;
     this.FlagH = false;
     this.FlagC = !!bot;
+  }
+
+  //Very good explanation here:
+  //https://forums.nesdev.com/viewtopic.php?f=20&t=15944#p196282
+  daa_() {
+    if(!this.FlagN) {
+      if(this.FlagC || this.A > 0x99) {
+        this.A += 0x60;
+        this.FlagC = true;
+      }
+      if(this.FlagH || (this.A & 0x0F) > 0x09) {
+        this.A += 0x06;
+      }
+    } else {
+      if(this.FlagC) {
+        this.A -= 0x60;
+      }
+      if(this.FlagH) {
+        this.A -= 0x06;
+      }
+    }
+    this.FlagZ = !this.A;
+    this.FlagH = 0;
   }
 
   runCBInst(op) {
