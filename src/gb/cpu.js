@@ -2143,12 +2143,19 @@ export class CPU {
   }
 
   set(register, val) {
+    //Only the top 4 bits of the F register can be modified.
+    //The bottom 4 are always 0.
+    switch(register) {
+      case Registers.F:
+        val = val & 0xF0;
+        break;
+      case Registers.AF:
+        val = val & 0xFFF0;
+        break;
+    }
     switch(register) {
       case Registers.A:
       case Registers.F:
-        //The bottom 4 bits of F are always 0.
-        //Only top 4 are modifiable.
-        val = val & 0xF0;
       case Registers.B:
       case Registers.C:
       case Registers.D:
@@ -2159,9 +2166,6 @@ export class CPU {
         this[register] = val & 0xFF;
         break;
       case Registers.AF:
-        //The bottom 4 bits of F are always 0.
-        //Only top 4 are modifiable.
-        val = val & 0xFFF0;
       case Registers.BC:
       case Registers.DE:
       case Registers.HL:
