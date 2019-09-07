@@ -131,7 +131,7 @@ export class CPU {
         this.rlcakku_();
         return 4;
       case 0x09:
-        this.add16r_(this.BC);
+        this.add16r_(Registers.BC);
         return 8;
       case 0x0A:
         this.ldr_(Registers.A, this.GB.M.get(this.BC));
@@ -177,7 +177,7 @@ export class CPU {
         this.jr_(this.GB.M.get(this.PC++));
         return 12;
       case 0x19:
-        this.add16r_(this.DE);
+        this.add16r_(Registers.DE);
         return 8;
       case 0x1A:
         this.ldr_(Registers.A, this.GB.M.get(this.DE));
@@ -211,7 +211,7 @@ export class CPU {
         return 12;
       case 0x22:
         this.lda_(this.HL, this.A);
-        this.inc16_(this.HL);
+        this.inc16_(Registers.HL);
         return 8;
       case 0x23:
         this.inc16_(Registers.HL);
@@ -234,7 +234,7 @@ export class CPU {
           return 8;
         }
       case 0x29:
-        this.add16r_(this.HL);
+        this.add16r_(Registers.HL);
         return 8;
       case 0x2A:
         this.ldr_(Registers.A, this.GB.M.get(this.HL));
@@ -266,7 +266,7 @@ export class CPU {
         return 12;
       case 0x32:
         this.lda_(this.HL, this.A);
-        this.dec16_(this.HL);
+        this.dec16_(Registers.HL);
         return 8;
       case 0x33:
         this.inc16_(Registers.SP);
@@ -289,7 +289,7 @@ export class CPU {
           return 8;
         }
       case 0x39:
-        this.add16r_(this.SP);
+        this.add16r_(Registers.SP);
         return 8;
       case 0x3A:
         this.ldr_(Registers.A, this.GB.M.get(this.HL));
