@@ -1,4 +1,4 @@
-import testrompath from "../public/rom/01-special.gb";
+import testrompath from "../public/rom/cpu_instrs.gb";
 import { GameBoy } from "./gb";
 import { Site } from "./view/react/site";
 import * as React from "react";
