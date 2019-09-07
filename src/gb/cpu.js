@@ -98,12 +98,50 @@ export class CPU {
   }
 
   step() {
-    let cycles = this.runInst();
+    let cycles = this.runInst_() + this.interrupts_();
     this.GB.PPU.step(cycles);
     return cycles;
   }
 
-  runInst() {
+  interrupts_() {
+    if(this.FlagIME) {
+      //If several interrupts are requested at once, the interrupt of the lowest bit takes priority.
+      if(this.FlagVBlankEnable && this.FlagVBlankRequest) {
+        this.FlagIME = false;
+        this.FlagVBlankRequest = false;
+        this.push_(this.PC);
+        this.PC = 0x0040;
+        return 5;
+      } else if(this.FlagLCDSTATEnable && this.FlagLCDSTATRequest) {
+        this.FlagIME = false;
+        this.FlagLCDSTATRequest = false;
+        this.push_(this.PC);
+        this.PC = 0x0048;
+        return 5;
+      } else if(this.FlagTimerEnable && this.FlagTimerRequest) {
+        this.FlagIME = false;
+        this.FlagTimerRequest = false;
+        this.push_(this.PC);
+        this.PC = 0x0050;
+        return 5;
+      } else if(this.FlagSerialEnable && this.FlagSerialRequest) {
+        this.FlagIME = false;
+        this.FlagSerialRequest = false;
+        this.push_(this.PC);
+        this.PC = 0x0058;
+        return 5;
+      } else if(this.FlagJoypadEnable && this.FlagJoypadRequest) {
+        this.FlagIME = false;
+        this.FlagJoypadRequest = false;
+        this.push_(this.PC);
+        this.PC = 0x0060;
+        return 5;
+      }
+    }
+    return 0;
+  }
+
+  runInst_() {
     let addr = this.PC++;
     switch(this.GB.M.get(addr)) {
       case 0x00:
@@ -283,6 +321,9 @@ export class CPU {
       case 0x36:
         this.lda_(this.HL, this.GB.M.get(this.PC++));
         return 12;
+      case 0x37:
+        this.scf_();
+        return 4;
       case 0x38:
         if(this.FlagC) {
           this.jr_(this.GB.M.get(this.PC++));
@@ -310,6 +351,9 @@ export class CPU {
       case 0x3E:
         this.ldr_(Registers.A, this.GB.M.get(this.PC++));
         return 8;
+      case 0x3F:
+        this.ccf_();
+        return 4;
       case 0x40:
         //this.ldr_(Registers.B, this.B);
         return 4;
@@ -473,8 +517,8 @@ export class CPU {
         this.lda_(this.HL, this.L);
         return 8;
       //case 0x76:
-      //    HALT, IMPLEMENT LATER
-      //    return 4;
+         //HALT, IMPLEMENT LATER
+        //  return 4;
       case 0x77:
         this.lda_(this.HL, this.A);
         return 8;
@@ -719,7 +763,7 @@ export class CPU {
         return 16;
       case 0xC4:
         if(!this.FlagZ) {
-          this.call_();
+          this.call16_();
           return 24;
         } else {
           this.PC += 2;
@@ -731,6 +775,9 @@ export class CPU {
       case 0xC6:
         this.add8v_(this.GB.M.get(this.PC++));
         return 8;
+      case 0xF7:
+        this.call8_(0x0000);
+        return 16;
       case 0xC8:
         if(this.FlagZ) {
           this.ret_();
@@ -752,21 +799,24 @@ export class CPU {
           return 12;
         }
       case 0xCB:
-        return 4 + this.runCBInst(this.GB.M.get(this.PC++));
+        return 4 + this.runCBInst_(this.GB.M.get(this.PC++));
       case 0xCC:
         if(this.FlagZ) {
-          this.call_();
+          this.call16_();
           return 24;
         } else {
           this.PC += 2;
           return 12;
         }
       case 0xCD:
-        this.call_();
+        this.call16_();
         return 24;
       case 0xCE:
         this.adcv_(this.GB.M.get(this.PC++));
         return 8;
+      case 0xCF:
+        this.call8_(0x0008);
+        return 16;
       case 0xD0:
         if(!this.FlagC) {
           this.ret_();
@@ -789,7 +839,7 @@ export class CPU {
         }
       case 0xD4:
         if(!this.FlagC) {
-          this.call_();
+          this.call16_();
           return 24;
         } else {
           this.PC += 2;
@@ -801,6 +851,9 @@ export class CPU {
       case 0xD6:
         this.subv_(this.GB.M.get(this.PC++));
         return 8;
+      case 0xD7:
+        this.call8_(0x0010);
+        return 16;
       case 0xD8:
         if(this.FlagC) {
           this.ret_();
@@ -808,6 +861,10 @@ export class CPU {
         } else {
           return 8;
         }
+      case 0xD9:
+        this.FlagIME = true;
+        this.ret_();
+        return 16;
       case 0xDA:
         if(this.FlagC) {
           let addr = this.GB.M.get(this.PC, 2);
@@ -820,7 +877,7 @@ export class CPU {
         }
       case 0xDC:
         if(this.FlagC) {
-          this.call_();
+          this.call16_();
           return 24;
         } else {
           this.PC += 2;
@@ -829,6 +886,9 @@ export class CPU {
       case 0xDE:
         this.sbcv_(this.GB.M.get(this.PC++));
         return 8;
+      case 0xDF:
+        this.call8_(0x0018);
+        return 16;
       case 0xE0:
         this.lda_(0xFF00 + this.GB.M.get(this.PC++), this.A);
         return 12;
@@ -841,6 +901,9 @@ export class CPU {
       case 0xE6:
         this.andv_(this.GB.M.get(this.PC++));
         return 8;
+      case 0xE7:
+        this.call8_(0x0020);
+        return 16;
       case 0xE8:
         this.add16signed8v_(this.GB.M.get(this.PC++));
         return 16;
@@ -854,6 +917,9 @@ export class CPU {
       case 0xEE:
         this.xorv_(this.GB.M.get(this.PC++));
         return 8;
+      case 0xEF:
+        this.call8_(0x0028);
+        return 16;
       case 0xF0:
         this.ldr_(Registers.A, this.GB.M.get(0xFF00 + this.GB.M.get(this.PC++)));
         return 12;
@@ -869,19 +935,40 @@ export class CPU {
       case 0xF6:
         this.orv_(this.GB.M.get(this.PC++));
         return 8;
+      case 0xF7:
+        this.call8_(0x0030);
+        return 16;
+      case 0xF8:
+        this.lda16SPsigned8v_(Registers.HL, this.GB.M.get(this.PC++));
+        return 12;
+      case 0xF9:
+        this.ldr_(Registers.SP, this.HL);
+        return 8;
       case 0xFA:
         this.ldr_(Registers.A, this.GB.M.get(this.GB.M.get(this.PC, 2)));
         this.PC += 2;
         return 16;
+      case 0xFB:
+        this.FlagIME = true;
+        return 4;
       case 0xFE:
         this.cpv_(this.GB.M.get(this.PC++));
         return 8;
+      case 0xFF:
+        this.call8_(0x0038);
+        return 16;
       default:
         throw Error(`Unimplemented opcode 0x${this.GB.M.get(addr).toString(16).toUpperCase().padStart(2, "0")}`);
     }
   }
 
-  call_() {
+  call8_(a8) {
+    this.SP -= 2;
+    this.lda_(this.SP, this.PC, 2);
+    this.PC = a8;
+  }
+
+  call16_() {
     let a16 = this.GB.M.get(this.PC, 2);
     this.PC += 2;
     this.SP -= 2;
@@ -1028,6 +1115,26 @@ export class CPU {
     }
   }
 
+  lda16SPsigned8v_(register, value) {
+    let v0 = this.get(register);
+    let negative = value & 0x80;
+    value = negative ? -~(0xFFFFFF00 + value - 1) : value;
+    value = this.SP + value;
+    this.set(register, value);
+    this.FlagZ = false;
+    this.FlagN = false;
+    if(negative) {
+      this.FlagH = (value & 0xFF) < (v0 & 0xFF);
+    } else {
+      this.FlagH = (value & 0xFF) + (v0 & 0xFF) > 0xFF;
+    }
+    if(negative) {
+      this.FlagC = value + v0 > 0xFFFF;
+    } else {
+      this.FlagC = value > v0;
+    }
+  }
+
   subr_(register) {
     this.cpr_(register);
     this.A -= this.get(register);
@@ -1159,6 +1266,18 @@ export class CPU {
     this.FlagC = !!bot;
   }
 
+  scf_() {
+    this.FlagN = false;
+    this.FlagH = false;
+    this.FlagC = true;
+  }
+
+  ccf_() {
+    this.FlagN = false;
+    this.FlagH = false;
+    this.FlagC ^= true;
+  }
+
   //Very good explanation here:
   //https://forums.nesdev.com/viewtopic.php?f=20&t=15944#p196282
   daa_() {
@@ -1182,7 +1301,7 @@ export class CPU {
     this.FlagH = 0;
   }
 
-  runCBInst(op) {
+  runCBInst_(op) {
     switch(op) {
       case 0x00:
         this.rlcr_(Registers.B);
@@ -2318,14 +2437,6 @@ export class CPU {
     this.set(Registers.PC, val);
   }
 
-  get FlagIME() {
-    return !!(this.get(Registers.IME));
-  }
-
-  set FlagIME(bool) {
-    bool ? this.set(Registers.IME, 1) : this.set(Registers.IME, 0);
-  }
-
   get FlagZ() {
     return !!(this.F & 0x80);
   }
@@ -2356,6 +2467,115 @@ export class CPU {
 
   set FlagC(bool) {
     bool ? this.F |= 0x10 : this.F &= ~0x10;
+  }
+
+  //Interrupt flags
+  get FlagIME() {
+    return !!(this.get(Registers.IME));
+  }
+
+  set FlagIME(bool) {
+    bool ? this.set(Registers.IME, 1) : this.set(Registers.IME, 0);
+  }
+
+  get FlagVBlankEnable() {
+    return !!(this.GB.M.get(0xFFFF) & 0x01);
+  }
+
+  set FlagVBlankEnable(bool) {
+    let og = this.GB.M.get(0xFFFF);
+    bool ? og |= 0x01 : og &= ~0x01;
+    this.GB.M.set(0xFFFF, og);
+  }
+
+  get FlagLCDSTATEnable() {
+    return !!(this.GB.M.get(0xFFFF) & 0x02);
+  }
+
+  set FlagLCDSTATEnable(bool) {
+    let og = this.GB.M.get(0xFFFF);
+    bool ? og |= 0x02 : og &= ~0x02;
+    this.GB.M.set(0xFFFF, og);
+  }
+
+  get FlagTimerEnable() {
+    return !!(this.GB.M.get(0xFFFF) & 0x04);
+  }
+
+  set FlagTimerEnable(bool) {
+    let og = this.GB.M.get(0xFFFF);
+    bool ? og |= 0x04 : og &= ~0x04;
+    this.GB.M.set(0xFFFF, og);
+  }
+
+  get FlagSerialEnable() {
+    return !!(this.GB.M.get(0xFFFF) & 0x08);
+  }
+
+  set FlagSerialEnable(bool) {
+    let og = this.GB.M.get(0xFFFF);
+    bool ? og |= 0x08 : og &= ~0x08;
+    this.GB.M.set(0xFFFF, og);
+  }
+
+  get FlagJoypadEnable() {
+    return !!(this.GB.M.get(0xFFFF) & 0x10);
+  }
+
+  set FlagJoypadEnable(bool) {
+    let og = this.GB.M.get(0xFFFF);
+    bool ? og |= 0x10 : og &= ~0x10;
+    this.GB.M.set(0xFFFF, og);
+  }
+
+  get FlagVBlankRequest() {
+    return !!(this.GB.M.get(0xFF0F) & 0x01);
+  }
+
+  set FlagVBlankRequest(bool) {
+    let og = this.GB.M.get(0xFF0F);
+    bool ? og |= 0x01 : og &= ~0x01;
+    this.GB.M.set(0xFF0F, og);
+  }
+
+  get FlagLCDSTATRequest() {
+    return !!(this.GB.M.get(0xFF0F) & 0x02);
+  }
+
+  set FlagLCDSTATRequest(bool) {
+    let og = this.GB.M.get(0xFF0F);
+    bool ? og |= 0x02 : og &= ~0x02;
+    this.GB.M.set(0xFF0F, og);
+  }
+
+  get FlagTimerRequest() {
+    return !!(this.GB.M.get(0xFF0F) & 0x04);
+  }
+
+  set FlagTimerRequest(bool) {
+    let og = this.GB.M.get(0xFF0F);
+    bool ? og |= 0x04 : og &= ~0x04;
+    this.GB.M.set(0xFF0F, og);
+  }
+
+  get FlagSerialRequest() {
+    return !!(this.GB.M.get(0xFF0F) & 0x08);
+  }
+
+  set FlagSerialRequest(bool) {
+    let og = this.GB.M.get(0xFF0F);
+    bool ? og |= 0x08 : og &= ~0x08;
+    this.GB.M.set(0xFF0F, og);
+  }
+
+  get FlagJoypadRequest() {
+    return !!(this.GB.M.get(0xFF0F) & 0x10);
+  }
+
+  set FlagJoypadRequest(bool) {
+    let og = this.GB.M.get(0xFF0F);
+    bool ? og |= 0x10 : og &= ~0x10;
+    this.GB.M.set(0xFF0F, og);
   }
 }
 
