@@ -892,7 +892,7 @@ export class CPU {
     let v1 = this.get(register);
     this.FlagZ = !v1;
     this.FlagN = false;
-    this.FlagH = (v1 & 0xF) + (v0 & 0xF) > 0xF;
+    this.FlagH = (v0 & 0xF) + 1 > 0xF;
   }
 
   inc8a_(addr) {
@@ -901,7 +901,7 @@ export class CPU {
     let v1 = this.GB.M.get(addr);
     this.FlagZ = !v1;
     this.FlagN = false;
-    this.FlagH = (v1 & 0xF) + (v0 & 0xF) > 0xF;
+    this.FlagH = (v0 & 0xF) + 1 > 0xF;
   }
 
   dec16_(register) {
