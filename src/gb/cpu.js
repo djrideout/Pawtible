@@ -27,6 +27,7 @@ const CYCLES_PER_FRAME = 69905; //approx. 4194304Hz/60fps
 
 export class CPU {
   constructor(gameBoy) {
+    this.halted_ = false;
     this.paused_ = true;
     this.breakpoints_ = new Map();
     this.gameBoy_ = gameBoy;
@@ -107,33 +108,38 @@ export class CPU {
     if(this.FlagIME) {
       //If several interrupts are requested at once, the interrupt of the lowest bit takes priority.
       if(this.FlagVBlankEnable && this.FlagVBlankRequest) {
+        this.halted_ = false;
         this.FlagIME = false;
         this.FlagVBlankRequest = false;
-        this.push_(this.PC);
+        this.push_(Registers.PC);
         this.PC = 0x0040;
         return 5;
       } else if(this.FlagLCDSTATEnable && this.FlagLCDSTATRequest) {
+        this.halted_ = false;
         this.FlagIME = false;
         this.FlagLCDSTATRequest = false;
-        this.push_(this.PC);
+        this.push_(Registers.PC);
         this.PC = 0x0048;
         return 5;
       } else if(this.FlagTimerEnable && this.FlagTimerRequest) {
+        this.halted_ = false;
         this.FlagIME = false;
         this.FlagTimerRequest = false;
-        this.push_(this.PC);
+        this.push_(Registers.PC);
         this.PC = 0x0050;
         return 5;
       } else if(this.FlagSerialEnable && this.FlagSerialRequest) {
+        this.halted_ = false;
         this.FlagIME = false;
         this.FlagSerialRequest = false;
-        this.push_(this.PC);
+        this.push_(Registers.PC);
         this.PC = 0x0058;
         return 5;
       } else if(this.FlagJoypadEnable && this.FlagJoypadRequest) {
+        this.halted_ = false;
         this.FlagIME = false;
         this.FlagJoypadRequest = false;
-        this.push_(this.PC);
+        this.push_(Registers.PC);
         this.PC = 0x0060;
         return 5;
       }
@@ -142,6 +148,9 @@ export class CPU {
   }
 
   runInst_() {
+    if(this.halted_) {
+      return 4;
+    }
     let addr = this.PC++;
     switch(this.GB.M.get(addr)) {
       case 0x00:
@@ -516,9 +525,9 @@ export class CPU {
       case 0x75:
         this.lda_(this.HL, this.L);
         return 8;
-      //case 0x76:
-         //HALT, IMPLEMENT LATER
-        //  return 4;
+      case 0x76:
+        this.halted_ = true;
+        return 4;
       case 0x77:
         this.lda_(this.HL, this.A);
         return 8;
