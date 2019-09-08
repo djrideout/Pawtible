@@ -2,12 +2,14 @@ import { Memory } from "./mem";
 import { CartridgeFactory } from "./mem/block/cart/factory";
 import { CPU } from "./cpu";
 import { PPU } from "./ppu";
+import { Timer } from "./timer";
 
 export class GameBoy {
   constructor() {
     this.memoryMap_ = new Memory(this);
     this.cpu_ = new CPU(this);
     this.ppu_ = new PPU();
+    this.timer_ = new Timer(this);
     this.reset();
   }
 
@@ -23,6 +25,10 @@ export class GameBoy {
     return this.ppu_;
   }
 
+  get Timer() {
+    return this.timer_;
+  }
+
   load(byteArr) {
     this.M.Cart = CartridgeFactory.create(byteArr);
   }
@@ -36,9 +42,7 @@ export class GameBoy {
     this.CPU.PC = 0x0100;
     this.CPU.SP = 0xFFFE;
     this.CPU.FlagIME = false;
-    this.M.IOReg.set(0x0005, 0x00);
-    this.M.IOReg.set(0x0006, 0x00);
-    this.M.IOReg.set(0x0007, 0x00);
+    this.Timer.reset();
     this.M.IOReg.set(0x0010, 0x80);
     this.M.IOReg.set(0x0011, 0xBF);
     this.M.IOReg.set(0x0012, 0xF3);
