@@ -101,6 +101,7 @@ export class CPU {
   step() {
     let cycles = this.runInst_() + this.interrupts_();
     this.GB.PPU.step(cycles);
+    this.GB.Timer.step(cycles);
     return cycles;
   }
 
@@ -1106,42 +1107,26 @@ export class CPU {
   }
 
   add16signed8v_(value) {
-    let v0 = this.SP;
-    let negative = value & 0x80;
-    value = negative ? -~(0xFFFFFF00 + value - 1) : value;
-    this.SP = v0 + value;
+    //JS numbers in bitwise are 32 bit, so make it negative (if 8 bit negative) in JS
+    value = value << 24 >> 24;
+    let ogSP = this.SP;
+    this.SP += value;
+    let test = ogSP ^ value ^ this.SP;
     this.FlagZ = false;
     this.FlagN = false;
-    if(negative) {
-      this.FlagH = (value & 0xFF) < (v0 & 0xFF);
-    } else {
-      this.FlagH = (value & 0xFF) + (v0 & 0xFF) > 0xFF;
-    }
-    if(negative) {
-      this.FlagC = value + v0 > 0xFFFF;
-    } else {
-      this.FlagC = value > v0;
-    }
+    this.FlagH = (test & 0x10) === 0x10;
+    this.FlagC = (test & 0x100) === 0x100;
   }
 
   lda16SPsigned8v_(register, value) {
-    let v0 = this.get(register);
-    let negative = value & 0x80;
-    value = negative ? -~(0xFFFFFF00 + value - 1) : value;
-    value = this.SP + value;
-    this.set(register, value);
+    //JS numbers in bitwise are 32 bit, so make it negative (if 8 bit negative) in JS
+    value = value << 24 >> 24;
+    this.set(register, this.SP + value);
+    let test = this.SP ^ value ^ this.HL;
     this.FlagZ = false;
     this.FlagN = false;
-    if(negative) {
-      this.FlagH = (value & 0xFF) < (v0 & 0xFF);
-    } else {
-      this.FlagH = (value & 0xFF) + (v0 & 0xFF) > 0xFF;
-    }
-    if(negative) {
-      this.FlagC = value + v0 > 0xFFFF;
-    } else {
-      this.FlagC = value > v0;
-    }
+    this.FlagH = (test & 0x10) === 0x10;
+    this.FlagC = (test & 0x100) === 0x100;
   }
 
   subr_(register) {
