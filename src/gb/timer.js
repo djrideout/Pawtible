@@ -1,7 +1,8 @@
 /**
  * Described in Timer section of https://github.com/AntonioND/giibiiadvance/blob/master/docs/TCAGBD.pdf
  */
-export class Timer {
+
+ export class Timer {
   constructor(gameBoy) {
     this.gameBoy_ = gameBoy;
     this.reset();
@@ -16,7 +17,7 @@ export class Timer {
     this.tima_ = 0x00;
     this.tma_ = 0x00;
     this.tac_ = 0x00;
-    this.prevFEDinput_ = null;
+    this.prev_ = null;
     this.interruptDelay_ = false;
   }
 
@@ -54,17 +55,15 @@ export class Timer {
     this.tac_ = (this.tac_ >>> 3 << 3) | (val & 0x07);
   }
 
-  get TimerEnabled() {
-    return !!(this.TAC & 0x04);
-  }
-
   step(cycles) {
     if(this.interruptDelay_) {
       this.interruptDelay_ = false;
       this.doInterrupt_();
     }
-    this.counter_ = (this.counter_ + cycles) & 0xFFFF;
-    this.onCounterChange_();
+    do {
+      this.counter_ = (this.counter_ + 1) & 0xFFFF;
+      this.onCounterChange_();
+    } while(--cycles > 0);
   }
 
   onCounterChange_() {
@@ -85,12 +84,13 @@ export class Timer {
         break;
     }
     //Input to the falling edge detector
-    let input = bit & ((this.TAC >> 2) & 0x01);
+    let enabled = (this.TAC >> 2) & 0x01;
+    let input = bit & enabled;
     //Determine whether timer should increment using falling edge detector
-    if(this.prevFEDinput_ === 1 && input === 0) {
+    if(this.prev_ === 1 && input === 0) {
       this.incTIMA_();
     }
-    this.prevFEDinput_ = input;
+    this.prev_ = input;
   }
 
   incTIMA_() {
@@ -105,8 +105,6 @@ export class Timer {
   }
 
   doInterrupt_() {
-    if(this.GB.CPU.FlagIME && this.GB.CPU.FlagTimerEnable) {
-      this.GB.CPU.FlagTimerRequest = true;
-    }
+    this.GB.CPU.FlagTimerRequest = true;
   }
 }

@@ -26,7 +26,7 @@ export class PPU {
   step(cycles) {
     this.cycles_ += cycles;
     if(this.cycles_ >= ModeCycles[this.mode_]) {
-      this.cycles_ -= ModeCycles[this.mode_]; //why is there no documentation explaining this instead of this.cycles_ = 0?
+      this.cycles_ -= ModeCycles[this.mode_];
       switch(this.mode_) {
         case Modes.HBLANK:
           this.hblank_();
