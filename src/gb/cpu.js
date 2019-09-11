@@ -106,39 +106,42 @@ export class CPU {
   }
 
   interrupts_() {
-    if(this.FlagIME) {
-      //If several interrupts are requested at once, the interrupt of the lowest bit takes priority.
-      if(this.FlagVBlankEnable && this.FlagVBlankRequest) {
-        this.halted_ = false;
-        this.FlagIME = false;
+    //If several interrupts are requested at once, the interrupt of the lowest bit takes priority.
+    if(this.FlagVBlankRequest) {
+      this.halted_ = false;
+      if(this.FlagIME && this.FlagVBlankEnable) {
         this.FlagVBlankRequest = false;
         this.push_(Registers.PC);
         this.PC = 0x0040;
         return 5;
-      } else if(this.FlagLCDSTATEnable && this.FlagLCDSTATRequest) {
-        this.halted_ = false;
-        this.FlagIME = false;
+      }
+    } else if(this.FlagLCDSTATRequest) {
+      this.halted_ = false;
+      if(this.FlagIME && this.FlagLCDSTATEnable) {
         this.FlagLCDSTATRequest = false;
         this.push_(Registers.PC);
         this.PC = 0x0048;
         return 5;
-      } else if(this.FlagTimerEnable && this.FlagTimerRequest) {
-        this.halted_ = false;
-        this.FlagIME = false;
+      }
+    } else if(this.FlagTimerRequest) {
+      this.halted_ = false;
+      if(this.FlagIME && this.FlagTimerEnable) {
         this.FlagTimerRequest = false;
         this.push_(Registers.PC);
         this.PC = 0x0050;
         return 5;
-      } else if(this.FlagSerialEnable && this.FlagSerialRequest) {
-        this.halted_ = false;
-        this.FlagIME = false;
+      }
+    } else if(this.FlagSerialRequest) {
+      this.halted_ = false;
+      if(this.FlagIME && this.FlagSerialEnable) {
         this.FlagSerialRequest = false;
         this.push_(Registers.PC);
         this.PC = 0x0058;
         return 5;
-      } else if(this.FlagJoypadEnable && this.FlagJoypadRequest) {
-        this.halted_ = false;
-        this.FlagIME = false;
+      }
+    } else if(this.FlagJoypadRequest) {
+      this.halted_ = false;
+      if(this.FlagIME && this.FlagJoypadEnable) {
         this.FlagJoypadRequest = false;
         this.push_(Registers.PC);
         this.PC = 0x0060;

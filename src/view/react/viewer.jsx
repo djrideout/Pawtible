@@ -143,7 +143,7 @@ function mem_set_closure(viewer) {
   let cpuPause = CPU.prototype.pause;
   CPU.prototype.pause = function() {
     cpuPause.call(this);
-    viewer.setTopScroll_(this.PC);
+    //viewer.setTopScroll_(this.PC);
     viewer.forceUpdate();
   }
   let cpuUnpause = CPU.prototype.unpause;
@@ -151,11 +151,16 @@ function mem_set_closure(viewer) {
     cpuUnpause.call(this);
     viewer.forceUpdate();
   }
+  let ogRunFrame = CPU.prototype.runFrame;
+  CPU.prototype.runFrame = function() {
+    ogRunFrame.call(this);
+    viewer.forceUpdate();
+  }
   let cpuStep = CPU.prototype.step;
   CPU.prototype.step = function() {
     let cycles = cpuStep.call(this);
     if(this.isPaused()) {
-      viewer.setTopScroll_(this.PC);
+      //viewer.setTopScroll_(this.PC);
       viewer.forceUpdate();
     }
     return cycles;
