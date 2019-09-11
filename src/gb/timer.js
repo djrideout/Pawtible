@@ -60,10 +60,11 @@
       this.interruptDelay_ = false;
       this.doInterrupt_();
     }
-    do {
+    while(cycles > 0) {
       this.counter_ = (this.counter_ + 1) & 0xFFFF;
+      cycles--;
       this.onCounterChange_();
-    } while(--cycles > 0);
+    }
   }
 
   onCounterChange_() {
