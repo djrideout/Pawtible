@@ -181,8 +181,12 @@ export class CPU {
       case 0x07:
         this.rlcakku_();
         return 4;
+      case 0x08:
+        this.lda_(this.GB.M.get(this.PC, 2), this.SP, 2);
+        this.PC += 2;
+        return 20;
       case 0x09:
-        this.add16r_(Registers.BC);
+        this.addHL16r_(Registers.BC);
         return 8;
       case 0x0A:
         this.ldr_(Registers.A, this.GB.M.get(this.BC));
@@ -228,7 +232,7 @@ export class CPU {
         this.jr_(this.GB.M.get(this.PC++));
         return 12;
       case 0x19:
-        this.add16r_(Registers.DE);
+        this.addHL16r_(Registers.DE);
         return 8;
       case 0x1A:
         this.ldr_(Registers.A, this.GB.M.get(this.DE));
@@ -288,7 +292,7 @@ export class CPU {
           return 8;
         }
       case 0x29:
-        this.add16r_(Registers.HL);
+        this.addHL16r_(Registers.HL);
         return 8;
       case 0x2A:
         this.ldr_(Registers.A, this.GB.M.get(this.HL));
@@ -346,7 +350,7 @@ export class CPU {
           return 8;
         }
       case 0x39:
-        this.add16r_(Registers.SP);
+        this.addHL16r_(Registers.SP);
         return 8;
       case 0x3A:
         this.ldr_(Registers.A, this.GB.M.get(this.HL));
@@ -1081,12 +1085,12 @@ export class CPU {
     this.FlagC = false;
   }
 
-  add16r_(register) {
+  addHL16r_(register) {
     let v0 = this.HL;
     let value = this.get(register);
     this.HL = v0 + value;
     this.FlagN = false;
-    this.FlagH = (v0 & 0xFF) + (value & 0xFF) > 0xFF;
+    this.FlagH = (v0 & 0xFFF) + (value & 0xFFF) > 0xFFF; //how is this a HALF carry???
     this.FlagC = v0 + value > 0xFFFF;
   }
 
