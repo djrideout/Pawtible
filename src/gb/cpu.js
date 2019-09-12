@@ -1171,15 +1171,22 @@ export class CPU {
   }
 
   sbcr_(register) {
-    let total = this.get(register) + this.FlagC;
-    this.cpv_(total);
-    this.A -= total;
+    let value = this.get(register);
+    let sum = this.A - value - this.FlagC;
+    this.FlagH = (this.A & 0xF) - (value & 0xF) - this.FlagC < 0
+    this.FlagC = sum < 0;
+    this.A = sum & 0xFF;
+    this.FlagZ = !this.A;
+    this.FlagN = true;
   }
 
   sbcv_(value) {
-    let total = value + this.FlagC;
-    this.cpv_(total);
-    this.A -= total;
+    let sum = this.A - value - this.FlagC;
+    this.FlagH = (this.A & 0xF) - (value & 0xF) - this.FlagC < 0
+    this.FlagC = sum < 0;
+    this.A = sum & 0xFF;
+    this.FlagZ = !this.A;
+    this.FlagN = true;
   }
 
   cpr_(register) {
@@ -2202,9 +2209,9 @@ export class CPU {
 
   swapr_(register) {
     let v = this.get(register);
-    let top = v & 0xFF00;
-    let bot = v & 0x00FF;
-    this.set(register, (bot << 4) | (top >> 4));
+    let top = v & 0xF0;
+    let bot = v & 0x0F;
+    this.set(register, (bot << 4) | (top >>> 4));
     this.FlagZ = !this.get(register);
     this.FlagN = false;
     this.FlagH = false;
@@ -2213,9 +2220,9 @@ export class CPU {
 
   swapa_(addr) {
     let v = this.GB.M.get(addr);
-    let top = v & 0xFF00;
-    let bot = v & 0x00FF;
-    this.GB.M.set(addr, (bot << 4) | (top >> 4));
+    let top = v & 0xF0;
+    let bot = v & 0x0F;
+    this.GB.M.set(addr, (bot << 4) | (top >>> 4));
     this.FlagZ = !this.GB.M.get(addr);
     this.FlagN = false;
     this.FlagH = false;
