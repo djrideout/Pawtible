@@ -917,6 +917,9 @@ export class CPU {
       case 0xE1:
         this.pop_(Registers.HL);
         return 12;
+      case 0xE2:
+        this.lda_(0xFF00 + this.C, this.A);
+        return 8;
       case 0xE5:
         this.push_(Registers.HL);
         return 16;
@@ -948,6 +951,9 @@ export class CPU {
       case 0xF1:
         this.pop_(Registers.AF);
         return 12;
+      case 0xF2:
+        this.ldr_(Registers.A, this.GB.M.get(0xFF00 + this.C));
+        return 8;
       case 0xF3:
         this.FlagIME = false;
         return 4;
