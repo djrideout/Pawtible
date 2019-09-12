@@ -824,7 +824,7 @@ export class CPU {
           return 12;
         }
       case 0xCB:
-        return 4 + this.runCBInst_(this.GB.M.get(this.PC++));
+        return this.runCBInst_(this.GB.M.get(this.PC++));
       case 0xCC:
         if(this.FlagZ) {
           this.call16_();
