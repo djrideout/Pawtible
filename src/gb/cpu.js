@@ -206,6 +206,9 @@ export class CPU {
       case 0x0F:
         this.rrcakku_();
         return 4;
+      case 0x10:
+        //why is cpu_instrs ending up here?
+        return 4;
       case 0x11:
         this.ldr_(Registers.DE, this.GB.M.get(this.PC, 2));
         this.PC += 2;
@@ -587,7 +590,7 @@ export class CPU {
         this.add8r_(Registers.L);
         return 4;
       case 0x86:
-        this.add8v_(this.GB.M.get(this.PC++));
+        this.add8v_(this.GB.M.get(this.HL));
         return 8;
       case 0x87:
         this.add8r_(Registers.A);
@@ -1365,7 +1368,7 @@ export class CPU {
         this.rrcr_(Registers.L);
         return 8;
       case 0x0E:
-        this.rlca_(this.HL);
+        this.rrca_(this.HL);
         return 16;
       case 0x0F:
         this.rrcr_(Registers.A);
