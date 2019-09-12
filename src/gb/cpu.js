@@ -797,7 +797,7 @@ export class CPU {
       case 0xC6:
         this.add8v_(this.GB.M.get(this.PC++));
         return 8;
-      case 0xF7:
+      case 0xC7:
         this.call8_(0x0000);
         return 16;
       case 0xC8:
