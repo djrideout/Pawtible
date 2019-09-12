@@ -310,6 +310,11 @@ export class CPU {
       case 0x2E:
         this.ldr_(Registers.L, this.GB.M.get(this.PC++));
         return 8;
+      case 0x2F:
+        this.FlagN = true;
+        this.FlagH = true;
+        this.A ^= 0xFF;
+        return 4;
       case 0x30:
         if(!this.FlagC) {
           this.jr_(this.GB.M.get(this.PC++));
