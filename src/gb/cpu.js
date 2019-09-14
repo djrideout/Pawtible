@@ -32,6 +32,10 @@ export class CPU {
     this.count_ = 0;
     this.breakpoints_ = new Map();
     this.gameBoy_ = gameBoy;
+    this.reset();
+  }
+
+  reset() {
     this.AF = 0x01B0;
     this.BC = 0x0013;
     this.DE = 0x00D8;
