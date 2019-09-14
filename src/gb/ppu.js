@@ -49,7 +49,7 @@ export class PPU {
   set(register, val) {
     val = val & 0xFF;
     switch(register) {
-      case Registers.STAT:
+      case Registers.LCDC:
       case Registers.SCY:
       case Registers.SCX:
       case Registers.LYC:
@@ -61,7 +61,7 @@ export class PPU {
       case Registers.WX:
         this[register] = val;
         break;
-      case Registers.LCDC:
+      case Registers.STAT:
         //first 3 bits are read only
         this[register] = (val >>> 3 << 3) | (this[register] & 0x07);
         break;
@@ -75,6 +75,9 @@ export class PPU {
     switch(register) {
       case Registers.LCDC:
       case Registers.STAT:
+        //bit 7 always 1, bits 0-2 return 0 when LCD is disabled
+        let val = this[register] | 0x80;
+        return this.LCDEnable ? val : val >>> 3 << 3;
       case Registers.SCY:
       case Registers.SCX:
       case Registers.LY:
@@ -90,22 +93,25 @@ export class PPU {
   }
 
   step(cycles) {
-    this.cycles_ += cycles;
-    if(this.cycles_ >= ModeCycles[this.Mode]) {
-      this.cycles_ -= ModeCycles[this.Mode];
-      switch(this.Mode) {
-        case Modes.HBLANK:
-          this.hblank_();
-          break;
-        case Modes.VBLANK:
-          this.vblank_();
-          break;
-        case Modes.OAM:
-          this.oam_();
-          break;
-        case Modes.VRAM:
-          this.vram_();
-          break;
+    while(cycles > 0) {
+      this.cycles_++;
+      cycles--;
+      if(this.cycles_ === ModeCycles[this.ScreenMode]) {
+        this.cycles_ = 0;
+        switch(this.ScreenMode) {
+          case Modes.HBLANK:
+            this.hblank_();
+            break;
+          case Modes.VBLANK:
+            this.vblank_();
+            break;
+          case Modes.OAM:
+            this.oam_();
+            break;
+          case Modes.VRAM:
+            this.vram_();
+            break;
+        }
       }
     }
   }
@@ -114,6 +120,8 @@ export class PPU {
     this.Line++;
     if(this.Line === 143) {
       this.Mode = Modes.VBLANK;
+      //VBL IRQ is not delayed, it's executed the same clock as PPU enters VBL screen mode
+      this.GB.CPU.FlagVBlankRequest = true;
     } else {
       this.Mode = Modes.OAM;
     }
@@ -242,14 +250,121 @@ export class PPU {
     this[Registers.LY] = val & 0xFF;
   }
 
-  get Mode() {
-    return this.LCDC & 0x03;
+  get LCDEnable() {
+    return !!(this.LCDC & 0x80);
+  }
+
+  set LCDEnable(bool) {
+    bool ? this.LCDC |= 0x80 : this.LCDC &= ~0x80;
+  }
+
+  get WindowTileMap() {
+    return !!(this.LCDC & 0x40);
+  }
+
+  set WindowTileMap(bool) {
+    bool ? this.LCDC |= 0x40 : this.LCDC &= ~0x40;
+  }
+
+  get WindowEnable() {
+    return !!(this.LCDC & 0x20);
+  }
+
+  set WindowEnable(bool) {
+    bool ? this.LCDC |= 0x20 : this.LCDC &= ~0x20;
+  }
+
+  get BGWindowTileSet() {
+    return !!(this.LCDC & 0x10);
+  }
+
+  set BGWindowTileSet(bool) {
+    bool ? this.LCDC |= 0x10 : this.LCDC &= ~0x10;
+  }
+
+  get BGTileMap() {
+    return !!(this.LCDC & 0x08);
+  }
+
+  set BGTileMap(bool) {
+    bool ? this.LCDC |= 0x08 : this.LCDC &= ~0x08;
+  }
+
+  get SpriteSize() {
+    return !!(this.LCDC & 0x04);
+  }
+
+  set SpriteSize(bool) {
+    bool ? this.LCDC |= 0x04 : this.LCDC &= ~0x04;
+  }
+
+  get SpritesEnable() {
+    return !!(this.LCDC & 0x02);
+  }
+
+  set SpritesEnable(bool) {
+    bool ? this.LCDC |= 0x02 : this.LCDC &= ~0x02;
+  }
+
+  get BGEnable() {
+    return !!(this.LCDC & 0x01);
+  }
+
+  set BGEnable(bool) {
+    bool ? this.LCDC |= 0x01 : this.LCDC &= ~0x01;
+  }
+
+  get LYCCheckEnable() {
+    return !!(this.STAT & 0x40);
+  }
+
+  set LYCCheckEnable(bool) {
+    bool ? this.STAT |= 0x40 : this.STAT &= ~0x40;
+  }
+
+  get OAMCheckEnable() {
+    return !!(this.STAT & 0x20);
+  }
+
+  set OAMCheckEnable(bool) {
+    bool ? this.STAT |= 0x20 : this.STAT &= ~0x20;
+  }
+
+  get VBlankCheckEnable() {
+    return !!(this.STAT & 0x10);
+  }
+
+  set VBlankCheckEnable(bool) {
+    bool ? this.STAT |= 0x10 : this.STAT &= ~0x10;
+  }
+
+  get HBlankCheckEnable() {
+    return !!(this.STAT & 0x08);
+  }
+
+  set HBlankCheckEnable(bool) {
+    bool ? this.STAT |= 0x08 : this.STAT &= ~0x08;
+  }
+
+  get LYLYCCompare() {
+    return !!(this.STAT & 0x04);
   }
 
   /**
    * PRIVATE
    */
-  set Mode(val) {
-    this[Registers.LCDC] = (this.LCDC >>> 2 << 2) | (val & 0x03);
+  set LYLYCCompare(bool) {
+    bool ? this[Registers.STAT] |= 0x04 : this[Registers.STAT] &= ~0x04;
+  }
+
+  get ScreenMode() {
+    return this.STAT & 0x03;
+  }
+
+  /**
+   * PRIVATE
+   */
+  set ScreenMode(val) {
+    this[Registers.STAT] = (this.STAT >>> 2 << 2) | (val & 0x03);
   }
 }
