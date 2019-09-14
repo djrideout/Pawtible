@@ -6,7 +6,7 @@ export class Interrupt extends MemoryBlock {
   }
 
   reset() {
-    this.Value = 0x00;
+    this.Value = 0x01;
   }
 
   get Value() {
