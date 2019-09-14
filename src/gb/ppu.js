@@ -31,6 +31,7 @@ export class PPU {
   constructor(gameBoy) {
     this.gameBoy_ = gameBoy;
     this.cycles_ = 0;
+    this.prev_ = null;
     this.reset();
   }
 
@@ -50,6 +51,32 @@ export class PPU {
     this.WY = 0x00;
     this.WX = 0x00;
   }
+
+  get(register) {
+    switch(register) {
+      case Registers.STAT:
+        //bit 7 always 1, bits 0-2 return 0 when LCD is disabled
+        //let val = this[register] | 0x80 | ((this.LYC === this.LY) << 3);
+        let val = this[register];
+        val |= 0x80; //bit 7 always 1;
+        val = this[Registers.LCDC] & 0x80 ? val : val >>> 3 << 3; //bits 0-2 return 0 when LCD is disabled
+        val = (val & ~0x04) | ((this[Registers.LYC] === this[Registers.LY]) << 2);
+        return val;
+      case Registers.LCDC:
+      case Registers.SCY:
+      case Registers.SCX:
+      case Registers.LY:
+      case Registers.LYC:
+      case Registers.DMA:
+      case Registers.BGP:
+      case Registers.OBP0:
+      case Registers.OBP1:
+      case Registers.WY:
+      case Registers.WX:
+        return this[register];
+    }
+  }
+
 
   set(register, val) {
     val = val & 0xFF;
@@ -76,31 +103,6 @@ export class PPU {
     }
   }
 
-  get(register) {
-    switch(register) {
-      case Registers.LCDC:
-      case Registers.STAT:
-        //bit 7 always 1, bits 0-2 return 0 when LCD is disabled
-        //let val = this[register] | 0x80 | ((this.LYC === this.LY) << 3);
-        let val = this[register];
-        val |= 0x80; //bit 7 always 1;
-        val = this[Registers.LCDC] & 0x80 ? val : val >>> 3 << 3; //bits 0-2 return 0 when LCD is disabled
-        val = (val & ~0x04) | ((this[Registers.LYC] === this[Registers.LY]) << 3);
-        return val;
-      case Registers.SCY:
-      case Registers.SCX:
-      case Registers.LY:
-      case Registers.LYC:
-      case Registers.DMA:
-      case Registers.BGP:
-      case Registers.OBP0:
-      case Registers.OBP1:
-      case Registers.WY:
-      case Registers.WX:
-        return this[register];
-    }
-  }
-
   step(cycles) {
     while(cycles > 0) {
       this.cycles_++;
@@ -122,7 +124,30 @@ export class PPU {
             break;
         }
       }
+      this.statIRQ_();
     }
+  }
+
+  //cases documented in The Cycle-Accurate Game Boy Docs by AntonioND
+  statIRQ_() {
+    let bool = null;
+    switch(true) {
+      case !this.LCDEnable:
+      default:
+        bool = false;
+        break;
+      case this.LYCCompare && this.LYCCheckEnable:
+      case this.Mode === Modes.HBLANK && this.HBlankCheckEnable:
+      case this.Mode === Modes.OAM && this.OAMCheckEnable:
+      case this.Mode === Modes.VBLANK && (this.VBlankCheckEnable || this.OAMCheckEnable):
+        bool = true;
+        break;
+    }
+    //STAT IRQ is triggered on rising edge of this internal signal
+    if(this.prev_ === false && bool === true) {
+      this.FlagLCDSTATRequest = true;
+    }
+    this.prev_ = bool;
   }
 
   hblank_() {
@@ -356,7 +381,7 @@ export class PPU {
     bool ? this.STAT |= 0x08 : this.STAT &= ~0x08;
   }
 
-  get LYLYCCompare() {
+  get LYCCompare() {
     return !!(this.STAT & 0x04);
   }
 
