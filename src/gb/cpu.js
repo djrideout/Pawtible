@@ -32,17 +32,13 @@ export class CPU {
     this.count_ = 0;
     this.breakpoints_ = new Map();
     this.gameBoy_ = gameBoy;
-    this[Registers.A] = 0x01;
-    this[Registers.F] = 0x02;
-    this[Registers.B] = 0x03;
-    this[Registers.C] = 0x04;
-    this[Registers.D] = 0x05;
-    this[Registers.E] = 0x06;
-    this[Registers.H] = 0x07;
-    this[Registers.L] = 0x08;
-    this[Registers.SP] = 0x1234;
-    this[Registers.PC] = 0x1234;
-    this[Registers.IME] = 0;
+    this.AF = 0x01B0;
+    this.BC = 0x0013;
+    this.DE = 0x00D8;
+    this.HL = 0x014D;
+    this.PC = 0x0100;
+    this.SP = 0xFFFE;
+    this.FlagIME = false;
   }
 
   get GB() {
