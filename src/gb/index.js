@@ -8,7 +8,7 @@ export class GameBoy {
   constructor() {
     this.memoryMap_ = new Memory(this);
     this.cpu_ = new CPU(this);
-    this.ppu_ = new PPU();
+    this.ppu_ = new PPU(this);
     this.timer_ = new Timer(this);
     this.reset();
   }
