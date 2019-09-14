@@ -28,9 +28,14 @@ const Registers = {
 };
 
 export class PPU {
-  constructor() {
+  constructor(gameBoy) {
+    this.gameBoy_ = gameBoy;
     this.cycles_ = 0;
     this.reset();
+  }
+
+  get GB() {
+    return this.gameBoy_;
   }
 
   reset() {
@@ -76,8 +81,12 @@ export class PPU {
       case Registers.LCDC:
       case Registers.STAT:
         //bit 7 always 1, bits 0-2 return 0 when LCD is disabled
-        let val = this[register] | 0x80;
-        return this.LCDEnable ? val : val >>> 3 << 3;
+        //let val = this[register] | 0x80 | ((this.LYC === this.LY) << 3);
+        let val = this[register];
+        val |= 0x80; //bit 7 always 1;
+        val = this[Registers.LCDC] & 0x80 ? val : val >>> 3 << 3; //bits 0-2 return 0 when LCD is disabled
+        val = (val & ~0x04) | ((this[Registers.LYC] === this[Registers.LY]) << 3);
+        return val;
       case Registers.SCY:
       case Registers.SCX:
       case Registers.LY:
@@ -120,8 +129,6 @@ export class PPU {
     this.Line++;
     if(this.Line === 143) {
       this.Mode = Modes.VBLANK;
-      //VBL IRQ is not delayed, it's executed the same clock as PPU enters VBL screen mode
-      this.GB.CPU.FlagVBlankRequest = true;
     } else {
       this.Mode = Modes.OAM;
     }
@@ -129,6 +136,9 @@ export class PPU {
 
   vblank_() {
     this.Line++;
+    if(this.Line === 144) {
+      this.GB.CPU.FlagVBlankRequest = true;
+    }
     if(this.Line > 153) {
       this.Mode = Modes.OAM;
       this.Line = 0;
@@ -348,13 +358,6 @@ export class PPU {
 
   get LYLYCCompare() {
     return !!(this.STAT & 0x04);
-  }
-
-  /**
-   * PRIVATE
-   */
-  set LYLYCCompare(bool) {
-    bool ? this[Registers.STAT] |= 0x04 : this[Registers.STAT] &= ~0x04;
   }
 
   get ScreenMode() {
