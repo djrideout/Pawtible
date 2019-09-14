@@ -5,6 +5,10 @@ export class Interrupt extends MemoryBlock {
     super(start, 0x0001);
   }
 
+  reset() {
+    this.Value = 0x00;
+  }
+
   get Value() {
     return this.get(0x0000);
   }
