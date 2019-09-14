@@ -189,8 +189,7 @@ export class CPU {
       this.internal_();
       return;
     }
-    this.op = this.read_(this.PC++);
-    switch(this.op) {
+    switch(this.read_(this.PC++)) {
       case 0x00:
         break;
       case 0x01:
