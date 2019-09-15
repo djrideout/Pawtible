@@ -31,7 +31,7 @@ export class CPU {
     this.paused_ = true;
     this.count_ = 0;
     this.breakpoints_ = new Map();
-    this.gameBoy_ = gameBoy;
+    this.GB = gameBoy;
     this.reset();
   }
 
@@ -43,10 +43,6 @@ export class CPU {
     this.PC = 0x0100;
     this.SP = 0xFFFE;
     this.FlagIME = false;
-  }
-
-  get GB() {
-    return this.gameBoy_;
   }
 
   pause() {
@@ -245,7 +241,7 @@ export class CPU {
         break;
       case 0x10:
         //Let's just say stop is halt for now.
-        this.halted_ = true;
+        //this.halted_ = true;
         break;
       case 0x11:
         this.ldr_(Registers.DE, this.read_(this.PC, 2));

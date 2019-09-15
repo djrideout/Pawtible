@@ -128,12 +128,6 @@ function mem_set_closure(viewer) {
   let mbSet = MemoryBlock.prototype.set;
   MemoryBlock.prototype.set = function(addr, val, bytes) {
     mbSet.call(this, addr, val, bytes);
-    //FOR TEST ROM ONLY, WILL REMOVE LATER
-    if(this.start + addr === 0xFF01) {
-      window.testRomString += String.fromCharCode(this.get(addr));
-    } else if(this.start + addr === 0xFF02 && this.get(addr) === 0x81) {
-      console.log(window.testRomString);
-    }
   }
   let mSetBlock = Memory.prototype.setBlock;
   Memory.prototype.setBlock = function(index, block) {

@@ -6,27 +6,11 @@ import { Timer } from "./timer";
 
 export class GameBoy {
   constructor() {
-    this.memoryMap_ = new Memory(this);
-    this.cpu_ = new CPU(this);
-    this.ppu_ = new PPU(this);
-    this.timer_ = new Timer(this);
+    this.M = new Memory(this);
+    this.CPU = new CPU(this);
+    this.PPU = new PPU(this);
+    this.Timer = new Timer(this);
     this.reset();
-  }
-
-  get M() {
-    return this.memoryMap_;
-  }
-
-  get CPU() {
-    return this.cpu_;
-  }
-
-  get PPU() {
-    return this.ppu_;
-  }
-
-  get Timer() {
-    return this.timer_;
   }
 
   load(byteArr) {

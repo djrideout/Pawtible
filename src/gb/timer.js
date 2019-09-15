@@ -4,12 +4,8 @@
 
  export class Timer {
   constructor(gameBoy) {
-    this.gameBoy_ = gameBoy;
+    this.GB = gameBoy;
     this.reset();
-  }
-
-  get GB() {
-    return this.gameBoy_;
   }
     
   reset() {
