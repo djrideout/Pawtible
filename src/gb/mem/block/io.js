@@ -17,8 +17,8 @@ export class IORegisters extends MemoryBlock {
   set(addr, val) {
     switch(addr) {
       case 0x0000:
-        //first 4 bits of joypad are read only
-        super.set(addr, (val & 0xF0) | (this.get(0x0000) & 0x0F));
+        //first 4 bits of joypad are read only, top 2 are unused
+        super.set(addr, (this.get(0x0000) & 0xCF) | (val & ~0xCF));
         break;
       case 0x0004:
         this.GB.Timer.DIV = val;

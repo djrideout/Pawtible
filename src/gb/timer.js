@@ -18,7 +18,7 @@
     this.tma_ = 0x00;
     this.tac_ = 0x00;
     this.prev_ = null;
-    this.interruptDelay_ = false;
+    this.interruptThreshold_ = 0;
   }
 
   get DIV() {
@@ -56,11 +56,11 @@
   }
 
   step(cycles) {
-    if(this.interruptDelay_) {
-      this.interruptDelay_ = false;
-      this.doInterrupt_();
-    }
     while(cycles > 0) {
+      this.interruptThreshold_--;
+      if(this.interruptThreshold_ === 0) {
+        this.GB.CPU.FlagTimerRequest = true;
+      }
       this.counter_ = (this.counter_ + 1) & 0xFFFF;
       cycles--;
       this.onCounterChange_();
@@ -96,16 +96,11 @@
 
   incTIMA_() {
     if(this.TIMA === 0xFF) {
-      //This is only supposed to delay 4 cycles, but I can't check that precisely,
-      //so we'll just do the interrupt on the next step (as soon as possible).
-      this.interruptDelay_ = true;
+      //Delay interrupt 4 cycles
+      this.interruptThreshold_ = 4;
       this.TIMA = this.TMA;
     } else {
       this.TIMA++;
     }
-  }
-
-  doInterrupt_() {
-    this.GB.CPU.FlagTimerRequest = true;
   }
 }
