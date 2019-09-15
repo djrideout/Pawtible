@@ -39,6 +39,7 @@ export class GameBoy {
     this.PPU.reset();
     this.Timer.reset();
     this.M.Interrupt.reset();
+    this.M.IOReg.reset();
     //rest of these are sound
     this.M.IOReg.set(0x0010, 0x80);
     this.M.IOReg.set(0x0011, 0xBF);

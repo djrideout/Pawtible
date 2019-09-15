@@ -10,8 +10,16 @@ export class IORegisters extends MemoryBlock {
     return this.gameBoy_;
   }
 
+  reset() {
+    super.set(0x0000, 0xCF);
+  }
+
   set(addr, val) {
     switch(addr) {
+      case 0x0000:
+        //first 4 bits of joypad are read only
+        super.set(addr, (val & 0xF0) | (this.get(0x0000) & 0x0F));
+        break;
       case 0x0004:
         this.GB.Timer.DIV = val;
         break;
