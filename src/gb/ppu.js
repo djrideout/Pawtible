@@ -116,8 +116,8 @@ export class PPU {
     while(cycles > 0) {
       this.cycles_++;
       cycles--;
-      if(this.cycles_ === ModeCycles[this.ScreenMode]) {
-        this.cycles_ = 0;
+      if(this.cycles_ >= ModeCycles[this.ScreenMode]) {
+        this.cycles_ -= ModeCycles[this.ScreenMode];
         switch(this.ScreenMode) {
           case Modes.HBLANK:
             this.hblank_();
@@ -147,9 +147,9 @@ export class PPU {
         bool = false;
         break;
       case this.LYCCompare && this.LYCCheckEnable:
-      case this.Mode === Modes.HBLANK && this.HBlankCheckEnable:
-      case this.Mode === Modes.OAM && this.OAMCheckEnable:
-      case this.Mode === Modes.VBLANK && (this.VBlankCheckEnable || this.OAMCheckEnable):
+      case this.ScreenMode === Modes.HBLANK && this.HBlankCheckEnable:
+      case this.ScreenMode === Modes.OAM && this.OAMCheckEnable:
+      case this.ScreenMode === Modes.VBLANK && (this.VBlankCheckEnable || this.OAMCheckEnable):
         bool = true;
         break;
     }
@@ -175,9 +175,9 @@ export class PPU {
   hblank_() {
     this.Line++;
     if(this.Line === 143) {
-      this.Mode = Modes.VBLANK;
+      this.ScreenMode = Modes.VBLANK;
     } else {
-      this.Mode = Modes.OAM;
+      this.ScreenMode = Modes.OAM;
     }
   }
 
@@ -187,17 +187,17 @@ export class PPU {
       this.GB.CPU.FlagVBlankRequest = true;
     }
     if(this.Line > 153) {
-      this.Mode = Modes.OAM;
+      this.ScreenMode = Modes.OAM;
       this.Line = 0;
     }
   }
 
   oam_() {
-    this.Mode = Modes.VRAM;
+    this.ScreenMode = Modes.VRAM;
   }
 
   vram_() {
-    this.Mode = Modes.HBLANK;
+    this.ScreenMode = Modes.HBLANK;
   }
 
   get LCDC() {
