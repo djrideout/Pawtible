@@ -3,11 +3,7 @@ import { MemoryBlock } from ".";
 export class IORegisters extends MemoryBlock {
   constructor(gameBoy) {
     super(0xFF00, 0x0080);
-    this.gameBoy_ = gameBoy;
-  }
-
-  get GB() {
-    return this.gameBoy_;
+    this.GB = gameBoy;
   }
 
   reset() {
