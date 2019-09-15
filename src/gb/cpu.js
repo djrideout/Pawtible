@@ -244,7 +244,8 @@ export class CPU {
         this.rrcakku_();
         break;
       case 0x10:
-        //why is cpu_instrs ending up here?
+        //Let's just say stop is halt for now.
+        this.halted_ = true;
         break;
       case 0x11:
         this.ldr_(Registers.DE, this.read_(this.PC, 2));
