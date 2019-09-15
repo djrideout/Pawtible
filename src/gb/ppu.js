@@ -12,6 +12,8 @@ const ModeCycles = [
   172
 ];
 
+const DMA_TOTAL = 644; //cycles
+
 const Registers = {
   LCDC: "regLCDC", //FF40
   STAT: "regSTAT", //FF41
@@ -31,6 +33,9 @@ export class PPU {
   constructor(gameBoy) {
     this.gameBoy_ = gameBoy;
     this.cycles_ = 0;
+    this.dmaStartAddr_ = 0;
+    this.dmaThreshold_ = 0;
+    this.dmaRemain_ = 0;
     this.prev_ = null;
     this.reset();
   }
@@ -85,7 +90,6 @@ export class PPU {
       case Registers.SCY:
       case Registers.SCX:
       case Registers.LYC:
-      case Registers.DMA:
       case Registers.BGP:
       case Registers.OBP0:
       case Registers.OBP1:
@@ -98,7 +102,12 @@ export class PPU {
         this[register] = (val >>> 3 << 3) | (this[register] & 0x07);
         break;
       case Registers.LY:
-        //totally read only
+        this[register] = 0x00; //reset line to 0??
+        break;
+      case Registers.DMA:
+        this[register] = val;
+        this.dmaThreshold_ = 4;
+        this.dmaRemain_ = DMA_TOTAL;
         break;
     }
   }
@@ -125,6 +134,7 @@ export class PPU {
         }
       }
       this.statIRQ_();
+      this.dma_();
     }
   }
 
@@ -148,6 +158,18 @@ export class PPU {
       this.FlagLCDSTATRequest = true;
     }
     this.prev_ = bool;
+  }
+
+  dma_() {
+    if(this.dmaRemain_ > 0) {
+      this.dmaRemain_--;
+      this.dmaThreshold_--;
+      if(this.dmaThreshold_ === -1) {
+        this.dmaThreshold_ = 3;
+        let byte = (DMA_TOTAL - this.dmaRemain_ - 5) / 4;
+        this.GB.M.OAM.set(byte, this.GB.M.get(this.DMASourceAddr + byte));
+      }
+    }
   }
 
   hblank_() {
@@ -394,5 +416,9 @@ export class PPU {
    */
   set ScreenMode(val) {
     this[Registers.STAT] = (this.STAT >>> 2 << 2) | (val & 0x03);
+  }
+
+  get DMASourceAddr() {
+    return this.DMA << 8;
   }
 }
