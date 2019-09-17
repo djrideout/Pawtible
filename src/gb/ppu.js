@@ -498,7 +498,9 @@ export class PPU {
 
     //Get the color for this pixel
     let shift = 8 - tileX - 1;
-    let color = ((lineByte1 & (0x01 << shift)) >>> (shift - 1)) | ((lineByte0 & (0x01 << shift)) >>> shift);
+    let ms = (lineByte1 & (0x01 << shift)) >> shift;
+    let ls = (lineByte0 & (0x01 << shift)) >> shift;
+    let color = (ms << 1) | ls;
 
     return color;
   }
