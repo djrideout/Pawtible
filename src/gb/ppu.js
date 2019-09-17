@@ -14,13 +14,6 @@ const ModeCycles = [
 
 const DMA_TOTAL = 644; //cycles
 
-const Shades = {
-  WHITE: 0,
-  LIGHT_GRAY: 1,
-  DARK_GRAY: 2,
-  BLACK: 3
-};
-
 const Registers = {
   LCDC: "regLCDC", //FF40
   STAT: "regSTAT", //FF41
@@ -44,13 +37,9 @@ export class PPU {
     this.dmaThreshold_ = 0;
     this.dmaRemain_ = 0;
     this.prev_ = null;
-    this.Buffer = [];
-    for(let i = 0; i < 144; i++) {
-      this.Buffer[i] = [];
-      for(let j = 0; j < 160; j++) {
-        this.Buffer[i][j] = "#FFFFFF";
-      }
-    }
+    this.Buffer = [[], [], [], []]; //each index is a shade
+    this.rects_ = [[], [], [], []]; //each index is a shade
+      //format for each shade is [x, y, width, height, x, y, width, height, ...]
     this.reset();
   }
 
@@ -111,7 +100,7 @@ export class PPU {
         this[register] = (val >>> 3 << 3) | (this[register] & 0x07);
         break;
       case Registers.LY:
-        this[register] = 0x00; //reset line to 0??
+        this[register] = 0x00; //reset line to 0?? idk b'y
         break;
       case Registers.DMA:
         this[register] = val;
@@ -183,8 +172,9 @@ export class PPU {
 
   hblank_() {
     this.Line++;
-    if(this.Line === 143) {
+    if(this.Line === 144) {
       this.ScreenMode = Modes.VBLANK;
+      this.GB.CPU.FlagVBlankRequest = true;
     } else {
       this.ScreenMode = Modes.OAM;
     }
@@ -192,12 +182,17 @@ export class PPU {
 
   vblank_() {
     this.Line++;
-    if(this.Line === 144) {
-      this.GB.CPU.FlagVBlankRequest = true;
-    }
-    if(this.Line > 153) {
+    if(this.Line == 154) {
       this.ScreenMode = Modes.OAM;
       this.Line = 0;
+      this.Buffer[0] = this.rects_[0];
+      this.Buffer[1] = this.rects_[1];
+      this.Buffer[2] = this.rects_[2];
+      this.Buffer[3] = this.rects_[3];
+      this.rects_[0] = [];
+      this.rects_[1] = [];
+      this.rects_[2] = [];
+      this.rects_[3] = [];
     }
   }
 
@@ -214,22 +209,20 @@ export class PPU {
   }
 
   renderLine_() {
-    let pixels = this.Buffer[this.Line];
-    for(let i = 0; i < pixels.length; i++) {
-      let color = this.Pixel(this.SCX + i, this.SCY + this.Line);
-      switch(this.ColorShade(color)) {
-        case Shades.WHITE:
-          pixels[i] = "#FFFFFF";
-          break;
-        case Shades.LIGHT_GRAY:
-          pixels[i] = "#C7C7C7";
-          break;
-        case Shades.DARK_GRAY:
-          pixels[i] = "#6E6E6E";
-          break;
-        case Shades.BLACK:
-          pixels[i] = "#000000";
-          break;
+    let shades = [this.ColorShade(0), this.ColorShade(1), this.ColorShade(2), this.ColorShade(3)];
+    for(let i = 0; i < 160; i++) {
+      let shade = shades[this.Pixel(this.SCX + i, this.SCY + this.Line)];
+      if(shade === 0) {
+        //Not creating a buffer for white because it's not really necessary.
+        //White can just be used as a backdrop for the screen, then the other
+        //shades can be drawn on top of it.
+        continue;
+      }
+      let b = this.rects_[shade];
+      if(b[b.length - 4] + b[b.length - 2] === i) {
+        b[b.length - 2]++;
+      } else {
+        b.push(i, this.Line, 1, 1);
       }
     }
   }
