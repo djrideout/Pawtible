@@ -10,7 +10,7 @@ export class Site extends React.Component {
   render() {
     return (
       <>
-        <div className={"wrapper"}>
+        <div id={"screen-container"} className={"wrapper"}>
           <Canvas gameBoy={this.props.gameBoy} />
         </div>
         <GBViewer gameBoy={this.props.gameBoy} />
