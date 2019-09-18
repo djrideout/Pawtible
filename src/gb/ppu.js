@@ -14,24 +14,31 @@ const ModeCycles = [
 
 const DMA_TOTAL = 644; //cycles
 
-const Registers = {
-  LCDC: "regLCDC", //FF40
-  STAT: "regSTAT", //FF41
-  SCY: "regSCY",   //FF42
-  SCX: "regSCX",   //FF43
-  LY: "regLY",     //FF44
-  LYC: "regLYC",   //FF45
-  DMA: "regDMA",   //FF46
-  BGP: "regBGP",   //FF47
-  OBP0: "regOBP0", //FF48
-  OBP1: "regOBP1", //FF49
-  WY: "regWY",     //FF4A
-  WX: "regWX",     //FF4B
+export const Registers = {
+  LCDC: 0, //FF40
+  STAT: 1, //FF41
+  SCY: 2,  //FF42
+  SCX: 3,  //FF43
+  LY: 4,   //FF44
+  LYC: 5,  //FF45
+  DMA: 6,  //FF46
+  BGP: 7,  //FF47
+  OBP0: 8, //FF48
+  OBP1: 9, //FF49
+  WY: 10,  //FF4A
+  WX: 11,  //FF4B
 };
 
 export class PPU {
   constructor(gameBoy) {
     this.GB = gameBoy;
+    /**
+     * Consider these to be immutable.
+     * Modifying some of these directly will have unintended consequences,
+     * as some have special functionality when written to.
+     * so only use the setters to change them.
+     */
+    this.Reg = new Uint8Array(12);
     this.cycles_ = 0;
     this.dmaStartAddr_ = 0;
     this.dmaThreshold_ = 0;
@@ -64,70 +71,16 @@ export class PPU {
   }
 
   reset() {
-    this.LCDC = 0x91;
-    this.SCY = 0x00;
-    this.SCX = 0x00;
-    this.Line = 0x00;
-    this.LYC = 0x00;
-    this.BGP = 0xFC;
-    this.OBP0 = 0xFF;
-    this.OBP1 = 0xFF;
-    this.WY = 0x00;
-    this.WX = 0x00;
-  }
-
-  get(register) {
-    switch(register) {
-      case Registers.LCDC:
-      case Registers.SCY:
-      case Registers.SCX:
-      case Registers.LY:
-      case Registers.LYC:
-      case Registers.DMA:
-      case Registers.BGP:
-      case Registers.OBP0:
-      case Registers.OBP1:
-      case Registers.WY:
-      case Registers.WX:
-        return this[register];
-      case Registers.STAT:
-        //bit 7 always 1, bits 0-2 return 0 when LCD is disabled
-        let val = this[register];
-        val |= 0x80; //bit 7 always 1;
-        val = this[Registers.LCDC] & 0x80 ? val : val >>> 3 << 3; //bits 0-2 return 0 when LCD is disabled
-        val = (val & ~0x04) | ((this[Registers.LYC] === this[Registers.LY]) << 2);
-        return val;
-    }
-  }
-
-
-  set(register, val) {
-    val = val & 0xFF;
-    switch(register) {
-      case Registers.LCDC:
-      case Registers.SCY:
-      case Registers.SCX:
-      case Registers.LYC:
-      case Registers.BGP:
-      case Registers.OBP0:
-      case Registers.OBP1:
-      case Registers.WY:
-      case Registers.WX:
-        this[register] = val;
-        break;
-      case Registers.STAT:
-        //first 3 bits are read only
-        this[register] = (val >>> 3 << 3) | (this[register] & 0x07);
-        break;
-      case Registers.LY:
-        this[register] = 0x00; //reset line to 0?? idk b'y
-        break;
-      case Registers.DMA:
-        this[register] = val;
-        this.dmaThreshold_ = 4;
-        this.dmaRemain_ = DMA_TOTAL;
-        break;
-    }
+    this.Reg[Registers.LCDC] = 0x91;
+    this.Reg[Registers.SCY] = 0x00;
+    this.Reg[Registers.SCX] = 0x00;
+    this.Reg[Registers.LY] = 0x00;
+    this.Reg[Registers.LYC] = 0x00;
+    this.Reg[Registers.BGP] = 0xFC;
+    this.Reg[Registers.OBP0] = 0xFF;
+    this.Reg[Registers.OBP1] = 0xFF;
+    this.Reg[Registers.WY] = 0x00;
+    this.Reg[Registers.WX] = 0x00;
   }
 
   step(cycles) {
@@ -191,8 +144,8 @@ export class PPU {
   }
 
   hblank_() {
-    this.Line++;
-    if(this.Line === 144) {
+    this.Line = this.Reg[Registers.LY] + 1;
+    if(this.Reg[Registers.LY] === 144) {
       this.ScreenMode = Modes.VBLANK;
       this.GB.CPU.FlagVBlankRequest = true;
     } else {
@@ -201,8 +154,8 @@ export class PPU {
   }
 
   vblank_() {
-    this.Line++;
-    if(this.Line == 154) {
+    this.Line = this.Reg[Registers.LY] + 1;
+    if(this.Reg[Registers.LY] == 154) {
       this.ScreenMode = Modes.OAM;
       this.Line = 0;
       this.Buffer[0] = this.rects_[0];
@@ -223,7 +176,7 @@ export class PPU {
 
   vram_() {
     //TODO: Make this cycle-accurate instead of rendering the entire line at the end of mode 3
-    if(this.Line < 144) {
+    if(this.Reg[Registers.LY] < 144) {
       this.renderLine_();
     }
     this.ScreenMode = Modes.HBLANK;
@@ -233,7 +186,7 @@ export class PPU {
     let shades = [this.ColorShade(0), this.ColorShade(1), this.ColorShade(2), this.ColorShade(3)];
     let prevShade = null;
     for(let i = 0; i < 160; i++) {
-      let shade = shades[this.Pixel(this.SCX + i, this.SCY + this.Line)];
+      let shade = shades[this.Pixel(this.Reg[Registers.SCX] + i, this.Reg[Registers.SCY] + this.Reg[Registers.LY])];
       if(shade === 0) {
         //Not creating a buffer for white because it's not really necessary.
         //White can just be used as a backdrop for the screen, then the other
@@ -247,8 +200,8 @@ export class PPU {
         let pb = this.rects_[prevShade];
         if(pb) {
           //the previous rectangle has ended. see if it can be joined to a potential rectangle above it
-          let oldCacheIndex = (prevShade << 24) | ((pb[pb.length - 4] & 0xFF) << 16) | (((this.Line - 1) & 0xFF) << 8) | (pb[pb.length - 2] & 0xFF);
-          let newCacheIndex = (prevShade << 24) | ((pb[pb.length - 4] & 0xFF) << 16) | (((this.Line) & 0xFF) << 8) | (pb[pb.length - 2] & 0xFF);
+          let oldCacheIndex = (prevShade << 24) | ((pb[pb.length - 4] & 0xFF) << 16) | (((this.Reg[Registers.LY] - 1) & 0xFF) << 8) | (pb[pb.length - 2] & 0xFF);
+          let newCacheIndex = (prevShade << 24) | ((pb[pb.length - 4] & 0xFF) << 16) | (((this.Reg[Registers.LY]) & 0xFF) << 8) | (pb[pb.length - 2] & 0xFF);
           let shadeIndex = this.cache_[oldCacheIndex];
           if(shadeIndex !== null && shadeIndex !== undefined) {
             //we can join it. do that.
@@ -262,236 +215,194 @@ export class PPU {
           }
         }
         //start a new rectangle with the current shade
-        b.push(i, this.Line, 1, 1);
+        b.push(i, this.Reg[Registers.LY], 1, 1);
       }
       prevShade = shade;
     }
   }
 
-  get LCDC() {
-    return this.get(Registers.LCDC);
-  }
-
   set LCDC(val) {
-    this.set(Registers.LCDC, val);
-  }
-
-  get STAT() {
-    return this.get(Registers.STAT);
+    this.Reg[Registers.LCDC] = val;
+    //let's not handle the STAT first 3 bits returning 0 when LCD disabled thing right now
   }
 
   set STAT(val) {
-    this.set(Registers.STAT, val);
-  }
-  
-  get SCY() {
-    return this.get(Registers.SCY);
+    this.Reg[Registers.STAT] = 0x80 | (val >>> 3 << 3) | (this.Reg[Registers.STAT] & 0x07);
   }
 
   set SCY(val) {
-    this.set(Registers.SCY, val);
-  }
-
-  get SCX() {
-    return this.get(Registers.SCX);
+    this.Reg[Registers.SCY] = val;
   }
 
   set SCX(val) {
-    this.set(Registers.SCX, val);
-  }
-
-  get LY() {
-    return this.get(Registers.LY);
+    this.Reg[Registers.SCX] = val;
   }
 
   set LY(val) {
-    this.set(Registers.LY, val);
-  }
-
-  get LYC() {
-    return this.get(Registers.LYC);
+    this.Line = 0;
   }
 
   set LYC(val) {
-    this.set(Registers.LYC, val);
-  }
-
-  get DMA() {
-    return this.get(Registers.DMA);
+    this.Reg[Registers.LYC] = val;
+    //special set case
+    this.Reg[Registers.LYC] === this.Reg[Registers.LY] ? this.Reg[Registers.STAT] = this.Reg[Registers.STAT] | 0x04 : this.Reg[Registers.STAT] = this.Reg[Registers.STAT] & ~0x04;
   }
 
   set DMA(val) {
-    this.set(Registers.DMA, val);
-  }
-
-  get BGP() {
-    return this.get(Registers.BGP);
+    this.Reg[Registers.DMA] = val;
+    this.dmaThreshold_ = 4;
+    this.dmaRemain_ = DMA_TOTAL;
   }
 
   set BGP(val) {
-    this.set(Registers.BGP, val);
-  }
-
-  get OBP0() {
-    return this.get(Registers.OBP0);
+    this.Reg[Registers.BGP] = val;
   }
 
   set OBP0(val) {
-    this.set(Registers.OBP0, val);
-  }
-
-  get OBP1() {
-    return this.get(Registers.OBP1);
+    this.Reg[Registers.OBP0] = val;
   }
 
   set OBP1(val) {
-    this.set(Registers.OBP1, val);
-  }
-
-  get WY() {
-    return this.get(Registers.WY);
+    this.Reg[Registers.OBP1] = val;
   }
 
   set WY(val) {
-    this.set(Registers.WY, val);
-  }
-
-  get WX() {
-    return this.get(Registers.WX);
+    this.Reg[Registers.WY] = val;
   }
 
   set WX(val) {
-    this.set(Registers.WX, val);
-  }
-
-  get Line() {
-    return this.LY;
+    this.Reg[Registers.WX] = val;
   }
 
   /**
-   * PRIVATE
+   * Arbitrary (non-direct register) getters and setters
+   * Mainly to improve readability
    */
+
   set Line(val) {
-    this[Registers.LY] = val & 0xFF;
+    this.Reg[Registers.LY] = val;
+    //special set case
+    this.Reg[Registers.LYC] === this.Reg[Registers.LY] ? this.Reg[Registers.STAT] = this.Reg[Registers.STAT] | 0x04 : this.Reg[Registers.STAT] = this.Reg[Registers.STAT] & ~0x04;
   }
 
   get LCDEnable() {
-    return !!(this.LCDC & 0x80);
+    return !!(this.Reg[Registers.LCDC] & 0x80);
   }
 
   set LCDEnable(bool) {
-    bool ? this.LCDC |= 0x80 : this.LCDC &= ~0x80;
+    bool ? this.LCDC = this.Reg[Registers.LCDC] | 0x80 : this.LCDC = this.Reg[Registers.LCDC] & ~0x80;
   }
 
   get WindowTileMap() {
-    return !!(this.LCDC & 0x40);
+    return !!(this.Reg[Registers.LCDC] & 0x40);
   }
 
   set WindowTileMap(bool) {
-    bool ? this.LCDC |= 0x40 : this.LCDC &= ~0x40;
+    bool ? this.LCDC = this.Reg[Registers.LCDC] | 0x40 : this.LCDC = this.Reg[Registers.LCDC] & ~0x40;
   }
 
   get WindowEnable() {
-    return !!(this.LCDC & 0x20);
+    return !!(this.Reg[Registers.LCDC] & 0x20);
   }
 
   set WindowEnable(bool) {
-    bool ? this.LCDC |= 0x20 : this.LCDC &= ~0x20;
+    bool ? this.LCDC = this.Reg[Registers.LCDC] | 0x20 : this.LCDC = this.Reg[Registers.LCDC] & ~0x20;
   }
 
   get BGWindowTileSet() {
-    return !!(this.LCDC & 0x10);
+    return !!(this.Reg[Registers.LCDC] & 0x10);
   }
 
   set BGWindowTileSet(bool) {
-    bool ? this.LCDC |= 0x10 : this.LCDC &= ~0x10;
+    bool ? this.LCDC = this.Reg[Registers.LCDC] | 0x10 : this.LCDC = this.Reg[Registers.LCDC] & ~0x10;
   }
 
   get BGTileMap() {
-    return !!(this.LCDC & 0x08);
+    return !!(this.Reg[Registers.LCDC] & 0x08);
   }
 
   set BGTileMap(bool) {
-    bool ? this.LCDC |= 0x08 : this.LCDC &= ~0x08;
+    bool ? this.LCDC = this.Reg[Registers.LCDC] | 0x08 : this.LCDC = this.Reg[Registers.LCDC] & ~0x08;
   }
 
   get SpriteSize() {
-    return !!(this.LCDC & 0x04);
+    return !!(this.Reg[Registers.LCDC] & 0x04);
   }
 
   set SpriteSize(bool) {
-    bool ? this.LCDC |= 0x04 : this.LCDC &= ~0x04;
+    bool ? this.LCDC = this.Reg[Registers.LCDC] | 0x04 : this.LCDC = this.Reg[Registers.LCDC] & ~0x04;
   }
 
   get SpritesEnable() {
-    return !!(this.LCDC & 0x02);
+    return !!(this.Reg[Registers.LCDC] & 0x02);
   }
 
   set SpritesEnable(bool) {
-    bool ? this.LCDC |= 0x02 : this.LCDC &= ~0x02;
+    bool ? this.LCDC = this.Reg[Registers.LCDC] | 0x02 : this.LCDC = this.Reg[Registers.LCDC] & ~0x02;
   }
 
   get BGEnable() {
-    return !!(this.LCDC & 0x01);
+    return !!(this.Reg[Registers.LCDC] & 0x01);
   }
 
   set BGEnable(bool) {
-    bool ? this.LCDC |= 0x01 : this.LCDC &= ~0x01;
+    bool ? this.LCDC = this.Reg[Registers.LCDC] | 0x01 : this.LCDC = this.Reg[Registers.LCDC] & ~0x01;
   }
 
   get LYCCheckEnable() {
-    return !!(this.STAT & 0x40);
+    return !!(this.Reg[Registers.STAT] & 0x40);
   }
 
   set LYCCheckEnable(bool) {
-    bool ? this.STAT |= 0x40 : this.STAT &= ~0x40;
+    bool ? this.STAT = this.Reg[Registers.STAT] | 0x40 : this.STAT = this.Reg[Registers.STAT] & ~0x40;
   }
 
   get OAMCheckEnable() {
-    return !!(this.STAT & 0x20);
+    return !!(this.Reg[Registers.STAT] & 0x20);
   }
 
   set OAMCheckEnable(bool) {
-    bool ? this.STAT |= 0x20 : this.STAT &= ~0x20;
+    bool ? this.STAT = this.Reg[Registers.STAT] | 0x20 : this.STAT = this.Reg[Registers.STAT] & ~0x20;
   }
 
   get VBlankCheckEnable() {
-    return !!(this.STAT & 0x10);
+    return !!(this.Reg[Registers.STAT] & 0x10);
   }
 
   set VBlankCheckEnable(bool) {
-    bool ? this.STAT |= 0x10 : this.STAT &= ~0x10;
+    bool ? this.STAT = this.Reg[Registers.STAT] | 0x10 : this.STAT = this.Reg[Registers.STAT] & ~0x10;
   }
 
   get HBlankCheckEnable() {
-    return !!(this.STAT & 0x08);
+    return !!(this.Reg[Registers.STAT] & 0x08);
   }
 
   set HBlankCheckEnable(bool) {
-    bool ? this.STAT |= 0x08 : this.STAT &= ~0x08;
+    bool ? this.STAT = this.Reg[Registers.STAT] | 0x08 : this.STAT = this.Reg[Registers.STAT] & ~0x08;
   }
 
   get LYCCompare() {
-    return !!(this.STAT & 0x04);
+    return !!(this.Reg[Registers.STAT] & 0x04);
   }
 
   get ScreenMode() {
-    return this.STAT & 0x03;
+    return this.Reg[Registers.STAT] & 0x03;
   }
 
   /**
    * PRIVATE
    */
   set ScreenMode(val) {
-    this[Registers.STAT] = (this.STAT >>> 2 << 2) | (val & 0x03);
+    //special set case, normally first 3 bits are read only but not internally
+    this.Reg[Registers.STAT] = (this.Reg[Registers.STAT] >>> 2 << 2) | (val & 0x03);
   }
 
   get DMASourceAddr() {
-    return this.DMA << 8;
+    return this.Reg[Registers.DMA] << 8;
   }
 
   get BGMapStart() {
-    switch((this.LCDC >>> 3) & 0x01) {
+    switch((this.Reg[Registers.LCDC] >>> 3) & 0x01) {
       case 0:
         return 0x1800;
       case 1:
@@ -502,7 +413,7 @@ export class PPU {
   TileStart(num) {
     let offset = null;
     //all addresses are relative to the start of VRAM
-    switch((this.LCDC >>> 4) & 0x01) {
+    switch((this.Reg[Registers.LCDC] >>> 4) & 0x01) {
       case 0:
         offset = (num << 24 >> 24) * 16;
         return 0x1000 + offset;
@@ -549,13 +460,13 @@ export class PPU {
   ColorShade(color) {
     switch(color) {
       case 0:
-        return this.BGP & 0x03;
+        return this.Reg[Registers.BGP] & 0x03;
       case 1:
-        return (this.BGP & 0x0C) >>> 2;
+        return (this.Reg[Registers.BGP] & 0x0C) >>> 2;
       case 2:
-        return (this.BGP & 0x30) >>> 4;
+        return (this.Reg[Registers.BGP] & 0x30) >>> 4;
       case 3:
-        return (this.BGP & 0xC0) >>> 6;
+        return (this.Reg[Registers.BGP] & 0xC0) >>> 6;
     }
   }
 }
