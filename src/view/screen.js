@@ -4,7 +4,7 @@ const HexColors = ["#FFFFFF", "#C7C7C7", "#6E6E6E", "#000000"]; //colours for ea
 export class Screen {
   constructor(canvas, gameBoy) {
     this.canvas_ = canvas;
-    this.context_ = this.canvas_.getContext('2d', { alpha: false });
+    this.context_ = this.canvas_.getContext('2d');
     this.GB = gameBoy;
     this.onUpdate_ = on_update.bind(this);
   }
@@ -21,8 +21,7 @@ export class Screen {
 function on_update(now) {
   this.GB.CPU.runFrame();
   let b = this.GB.PPU.Buffer;
-  this.context_.fillStyle = HexColors[0];
-  this.context_.fillRect(0, 0, this.canvas_.width, this.canvas_.height);
+  this.context_.clearRect(0, 0, this.canvas_.width, this.canvas_.height);
   for(let i = 1; i < b.length; i++) {
     let shade = b[i];
     this.context_.beginPath();
