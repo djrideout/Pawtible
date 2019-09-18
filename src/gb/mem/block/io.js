@@ -1,4 +1,5 @@
 import { MemoryBlock } from ".";
+import { Registers } from "../../ppu";
 
 export class IORegisters extends MemoryBlock {
   constructor(gameBoy) {
@@ -81,29 +82,29 @@ export class IORegisters extends MemoryBlock {
       case 0x0007:
         return this.GB.Timer.TAC;
       case 0x0040:
-        return this.GB.PPU.LCDC;
+        return this.GB.PPU.Reg[Registers.LCDC];
       case 0x0041:
-        return this.GB.PPU.STAT;
+        return this.GB.PPU.Reg[Registers.STAT];
       case 0x0042:
-        return this.GB.PPU.SCY;
+        return this.GB.PPU.Reg[Registers.SCY];
       case 0x0043:
-        return this.GB.PPU.SCX;
+        return this.GB.PPU.Reg[Registers.SCX];
       case 0x0044:
-        return this.GB.PPU.LY;
+        return this.GB.PPU.Reg[Registers.LY];
       case 0x0045:
-        return this.GB.PPU.LYC;
+        return this.GB.PPU.Reg[Registers.LYC];
       case 0x0046:
-        return this.GB.PPU.DMA;
+        return this.GB.PPU.Reg[Registers.DMA];
       case 0x0047:
-        return this.GB.PPU.BGP;
+        return this.GB.PPU.Reg[Registers.BGP];
       case 0x0048:
-        return this.GB.PPU.OBP0;
+        return this.GB.PPU.Reg[Registers.OBP0];
       case 0x0049:
-        return this.GB.PPU.OBP1;
+        return this.GB.PPU.Reg[Registers.OBP1];
       case 0x004A:
-        return this.GB.PPU.WY;
+        return this.GB.PPU.Reg[Registers.WY];
       case 0x004B:
-        return this.GB.PPU.WX;
+        return this.GB.PPU.Reg[Registers.WX];
       default:
         return super.get(addr);
     }
