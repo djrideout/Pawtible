@@ -37,6 +37,8 @@ export class PPU {
      * Modifying some of these directly will have unintended consequences,
      * as some have special functionality when written to.
      * so only use the setters to change them.
+     * Although, there are a few internal cases where setting directly is necessary,
+     * like when STAT is updated on changes to LYC or LY.
      */
     this.Reg = new Uint8Array(12);
     this.cycles_ = 0;
