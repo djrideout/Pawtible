@@ -40,6 +40,26 @@ export class PPU {
     this.Buffer = [[], [], [], []]; //each index is a shade
     this.rects_ = [[], [], [], []]; //each index is a shade
       //format for each shade is [x, y, width, height, x, y, width, height, ...]
+    this.cache_ = [];
+      //each index has 3 slots of 8 bits and one slot of 2 bits that each mean
+      //
+      // 3  2        1        0
+      //|xx|xxxxxxxx|xxxxxxxx|xxxxxxxx|
+      //
+      // 3. shade
+      // 2. left x position
+      // 1. bottom y position
+      // 0. width
+      //
+      //and value is the starting index in the main shade array if an existing rectangle meets that description.
+      //if it doesn't exist, it will either be undefined or null.
+      //
+      //this way, when finishing a new rectangle on the current line,
+      //we can instantly check if there is an existing rectangle above it
+      //with the same shade and width that can be joined to.
+      //
+      //this is only meant for internal use, when generating the frame buffer
+      
     this.reset();
   }
 
@@ -193,6 +213,7 @@ export class PPU {
       this.rects_[1] = [];
       this.rects_[2] = [];
       this.rects_[3] = [];
+      this.cache_ = [];
     }
   }
 
@@ -210,6 +231,7 @@ export class PPU {
 
   renderLine_() {
     let shades = [this.ColorShade(0), this.ColorShade(1), this.ColorShade(2), this.ColorShade(3)];
+    let prevShade = null;
     for(let i = 0; i < 160; i++) {
       let shade = shades[this.Pixel(this.SCX + i, this.SCY + this.Line)];
       if(shade === 0) {
@@ -222,8 +244,27 @@ export class PPU {
       if(b[b.length - 4] + b[b.length - 2] === i) {
         b[b.length - 2]++;
       } else {
+        let pb = this.rects_[prevShade];
+        if(pb) {
+          //the previous rectangle has ended. see if it can be joined to a potential rectangle above it
+          let oldCacheIndex = (prevShade << 24) | ((pb[pb.length - 4] & 0xFF) << 16) | (((this.Line - 1) & 0xFF) << 8) | (pb[pb.length - 2] & 0xFF);
+          let newCacheIndex = (prevShade << 24) | ((pb[pb.length - 4] & 0xFF) << 16) | (((this.Line) & 0xFF) << 8) | (pb[pb.length - 2] & 0xFF);
+          let shadeIndex = this.cache_[oldCacheIndex];
+          if(shadeIndex !== null && shadeIndex !== undefined) {
+            //we can join it. do that.
+            this.rects_[prevShade][shadeIndex + 3]++;
+            this.rects_[prevShade].length -= 4;
+            this.cache_[oldCacheIndex] = null;
+            this.cache_[newCacheIndex] = shadeIndex;
+          } else if(prevShade !== null) {
+            //if we can't join it, cache it so we can potentially join rectangles below to it later
+            this.cache_[newCacheIndex] = this.rects_[prevShade].length - 4;
+          }
+        }
+        //start a new rectangle with the current shade
         b.push(i, this.Line, 1, 1);
       }
+      prevShade = shade;
     }
   }
 
