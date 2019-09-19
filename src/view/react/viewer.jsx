@@ -1,5 +1,3 @@
-import { Memory } from "../../gb/mem";
-import { MemoryBlock } from "../../gb/mem/block";
 import { CPU, Registers, Flags, get_flags_updated } from "../../gb/cpu";
 import * as React from "react";
 
@@ -65,7 +63,7 @@ class MemoryViewer extends React.Component {
       let changed = null;
       let str2 = "";
       for(let j = 0x0; j < this.cols; j++) {
-        let val = `${this.GB.M.get(i + j).toString(16).toUpperCase().padStart(2, "0")} `;
+        let val = `${this.GB.M.get(i + j, 1, false).toString(16).toUpperCase().padStart(2, "0")} `;
         if(this.GB.CPU.isPaused() && i + j === this.GB.CPU.PC) {
           changed = <span className={"program-counter"} key={"changed"}>{val}</span>;
         } else {
@@ -95,12 +93,12 @@ class MemoryViewer extends React.Component {
 
 function set_top(row) {
   this.setState({
-    top: row > ((this.GB.M.length - 1 >> 4) - this.rows) << 4 ? ((this.GB.M.length - 1 >> 4) - this.rows) << 4 : row
+    top: row > ((this.GB.M.mem.length - 1 >> 4) - this.rows) << 4 ? ((this.GB.M.mem.length - 1 >> 4) - this.rows) << 4 : row
   });
 }
 
 function set_top_scroll(addr) {
-  let r = (addr >> 4 << 4) / ((this.GB.M.length - 1) >> 4 << 4);
+  let r = (addr >> 4 << 4) / ((this.GB.M.mem.length - 1) >> 4 << 4);
   let max = this.scrollContainer_.firstChild.offsetHeight - this.scrollContainer_.offsetHeight;
   this.scrollContainer_.scrollTop = r * max;
 }
@@ -108,7 +106,7 @@ function set_top_scroll(addr) {
 function on_mem_key_press(e) {
   if(e.nativeEvent.keyCode === 13) { //enter
     let addr = parseInt(e.target.value, 16);
-    if(Number.isInteger(addr) && addr <= this.GB.M.length - 1) {
+    if(Number.isInteger(addr) && addr <= this.GB.M.mem.length - 1) {
       this.setTopScroll_(addr);
     }
   }
@@ -118,22 +116,13 @@ function on_scroll(e) {
   let el = e.target;
   let max = el.firstChild.offsetHeight - el.offsetHeight;
   let r = el.scrollTop / max;
-  let row = Math.ceil(((this.GB.M.length - 1) >> 4) * r) << 4;
+  let row = Math.ceil(((this.GB.M.mem.length - 1) >> 4) * r) << 4;
   this.setTop_(row);
 }
 
 window.testRomString = "";
 
 function mem_set_closure(viewer) {
-  let mbSet = MemoryBlock.prototype.set;
-  MemoryBlock.prototype.set = function(addr, val, bytes) {
-    mbSet.call(this, addr, val, bytes);
-  }
-  let mSetBlock = Memory.prototype.setBlock;
-  Memory.prototype.setBlock = function(index, block) {
-    mSetBlock.call(this, index, block);
-    viewer.forceUpdate();
-  }
   let cpuPause = CPU.prototype.pause;
   CPU.prototype.pause = function() {
     cpuPause.call(this);
@@ -270,7 +259,7 @@ class BreakpointViewer extends React.Component {
 function on_breakpoint_key_press(e) {
   if(e.nativeEvent.keyCode === 13) { //enter
     let addr = parseInt(e.target.value, 16);
-    if(Number.isInteger(addr) && addr <= this.GB.M.length - 1) {
+    if(Number.isInteger(addr) && addr <= this.GB.M.mem.length - 1) {
       this.GB.CPU.setBreakpoint(addr);
     }
   }
