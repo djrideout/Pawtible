@@ -1,5 +1,3 @@
-import { MemoryBlock } from "..";
-
 const TypesMap = [];
 export const Types = {
   ROM: TypesMap[0x00] ="ROM",
@@ -54,31 +52,35 @@ RAMSizeMap[0x03] = 32 * 1024;
 RAMSizeMap[0x04] = 128 * 1024;
 RAMSizeMap[0x05] = 64 * 1024;
 
-export class Cartridge extends MemoryBlock {
-  constructor(byteArr) {
-    super(0x0000, 0x8000);
-    this.rom_ = byteArr;
+export class Cartridge {
+  constructor(byteArr = new Uint8Array(0x8000)) {
+    this.rom = byteArr;
+    this.romBankNum = 1;
   }
 
   get(addr) {
-    super.get(addr); //only for view hook purposes, this.mem_ should not be used in carts
-    return this.rom_[addr];
+    return this.rom[addr];
   }
 
   set(addr, val) {
-    super.set(addr, val); //only for view hook purposes, this.mem_ should not be used in carts
+    //nah
   }
+
+  /**
+   * Probably going to print these on the view somewhere later.
+   * Other than that they don't serve any technical purpose.
+   */
 
   get title() {
     let title = "";
     for(let i = 0x0134; i <= 0x0143; i++) {
-      title += String.fromCharCode(this.get(i));
+      title += String.fromCharCode(this.rom[i]);
     }
     return title;
   }
 
   get romSize() {
-    return ROMSizeMap[this.get(0x0148)];
+    return ROMSizeMap[this.rom[0x0148]];
   }
 
   get romBanks() {
@@ -86,7 +88,7 @@ export class Cartridge extends MemoryBlock {
   }
 
   get ramSize() {
-    return RAMSizeMap[this.get(0x0149)];
+    return RAMSizeMap[this.rom[0x0149]];
   }
 
   get ramBanks() {
@@ -101,6 +103,6 @@ export class Cartridge extends MemoryBlock {
   }
 
   get type() {
-    return TypesMap[this.get(0x0147)];
+    return TypesMap[this.rom[0x0147]];
   }
 }

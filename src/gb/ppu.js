@@ -140,7 +140,7 @@ export class PPU {
       if(this.dmaThreshold_ === -1) {
         this.dmaThreshold_ = 3;
         let byte = (DMA_TOTAL - this.dmaRemain_ - 5) / 4;
-        this.GB.M.OAM.set(byte, this.GB.M.get(this.DMASourceAddr + byte));
+        this.GB.M.set(0xFE00 + byte, this.GB.M.get(this.DMASourceAddr + byte, 1, false), 1, false);
       }
     }
   }
@@ -439,7 +439,7 @@ export class PPU {
     let mapNum = 32 * mapY + mapX;
 
     //Get the starting address for the tile data using the current addressing mode
-    let tileNum = this.GB.M.VRAM.get(this.BGMapStart + mapNum);
+    let tileNum = this.GB.M.get(0x8000 + this.BGMapStart + mapNum, 1, false);
     let tileStart = this.TileStart(tileNum);
 
     //Get the pixel relative to the start of the tile
@@ -447,8 +447,8 @@ export class PPU {
     let tileY = y - mapY * 8;
 
     //Get the relevant tile data
-    let lineByte0 = this.GB.M.VRAM.get(tileStart + tileY * 2);
-    let lineByte1 = this.GB.M.VRAM.get(tileStart + tileY * 2 + 1);
+    let lineByte0 = this.GB.M.get(0x8000 + tileStart + tileY * 2, 1, false);
+    let lineByte1 = this.GB.M.get(0x8000 + tileStart + tileY * 2 + 1, 1, false);
 
     //Get the color for this pixel
     let shift = 8 - tileX - 1;

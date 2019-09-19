@@ -94,39 +94,14 @@ export class CPU {
     }
   }
 
-  update_(cycles) {
+  update(cycles) {
     this.count_ += cycles;
     this.GB.PPU.step(cycles);
     this.GB.Timer.step(cycles);
   }
 
-  read_(addr, bytes = 1) {
-    let val = 0x00;
-    for(let i = 0; i < bytes; i++) {
-      val += this.readByte_(addr + i) << (8 * i);
-    }
-    return val;
-  }
-
-  readByte_(addr) {
-    let val = this.GB.M.get(addr);
-    this.update_(4);
-    return val;
-  }
-
-  write_(addr, val, bytes = 1) {
-    for(let i = 0; i < bytes; i++) {
-      this.writeByte_(addr + i, val >> (8 * i));
-    }
-  }
-
-  writeByte_(addr, val) {
-    this.GB.M.set(addr, val);
-    this.update_(4);
-  }
-
   internal_() {
-    this.update_(4);
+    this.update(4);
   }
 
   step() {
@@ -189,11 +164,11 @@ export class CPU {
       this.internal_();
       return;
     }
-    switch(this.read_(this.PC++)) {
+    switch(this.GB.M.get(this.PC++)) {
       case 0x00:
         break;
       case 0x01:
-        this.ldr_(Registers.BC, this.read_(this.PC, 2));
+        this.ldr_(Registers.BC, this.GB.M.get(this.PC, 2));
         this.PC += 2;
         break;
       case 0x02:
@@ -209,20 +184,20 @@ export class CPU {
         this.dec8r_(Registers.B);
         break;
       case 0x06:
-        this.ldr_(Registers.B, this.read_(this.PC++));
+        this.ldr_(Registers.B, this.GB.M.get(this.PC++));
         break;
       case 0x07:
         this.rlcakku_();
         break;
       case 0x08:
-        this.lda_(this.read_(this.PC, 2), this.SP, 2);
+        this.lda_(this.GB.M.get(this.PC, 2), this.SP, 2);
         this.PC += 2;
         break;
       case 0x09:
         this.addHL16r_(Registers.BC);
         break;
       case 0x0A:
-        this.ldr_(Registers.A, this.read_(this.BC));
+        this.ldr_(Registers.A, this.GB.M.get(this.BC));
         break;
       case 0x0B:
         this.dec16_(Registers.BC);
@@ -234,7 +209,7 @@ export class CPU {
         this.dec8r_(Registers.C);
         break;
       case 0x0E:
-        this.ldr_(Registers.C, this.read_(this.PC++));
+        this.ldr_(Registers.C, this.GB.M.get(this.PC++));
         break;
       case 0x0F:
         this.rrcakku_();
@@ -244,7 +219,7 @@ export class CPU {
         //this.halted_ = true;
         break;
       case 0x11:
-        this.ldr_(Registers.DE, this.read_(this.PC, 2));
+        this.ldr_(Registers.DE, this.GB.M.get(this.PC, 2));
         this.PC += 2;
         break;
       case 0x12:
@@ -260,19 +235,19 @@ export class CPU {
         this.dec8r_(Registers.D);
         break;
       case 0x16:
-        this.ldr_(Registers.D, this.read_(this.PC++));
+        this.ldr_(Registers.D, this.GB.M.get(this.PC++));
         break;
       case 0x17:
         this.rlakku_();
         break;
       case 0x18:
-        this.jr_(this.read_(this.PC++));
+        this.jr_(this.GB.M.get(this.PC++));
         break;
       case 0x19:
         this.addHL16r_(Registers.DE);
         break;
       case 0x1A:
-        this.ldr_(Registers.A, this.read_(this.DE));
+        this.ldr_(Registers.A, this.GB.M.get(this.DE));
         break;
       case 0x1B:
         this.dec16_(Registers.DE);
@@ -284,21 +259,21 @@ export class CPU {
         this.dec8r_(Registers.E);
         break;
       case 0x1E:
-        this.ldr_(Registers.E, this.read_(this.PC++));
+        this.ldr_(Registers.E, this.GB.M.get(this.PC++));
         break;
       case 0x1F:
         this.rrakku_();
         break;
       case 0x20:
         if(!this.FlagZ) {
-          this.jr_(this.read_(this.PC++));
+          this.jr_(this.GB.M.get(this.PC++));
         } else {
           this.PC++;
           this.internal_();
         }
         break;
       case 0x21:
-        this.ldr_(Registers.HL, this.read_(this.PC, 2));
+        this.ldr_(Registers.HL, this.GB.M.get(this.PC, 2));
         this.PC += 2;
         break;
       case 0x22:
@@ -315,14 +290,14 @@ export class CPU {
         this.dec8r_(Registers.H);
         break;
       case 0x26:
-        this.ldr_(Registers.H, this.read_(this.PC++));
+        this.ldr_(Registers.H, this.GB.M.get(this.PC++));
         break;
       case 0x27:
         this.daa_();
         break;
       case 0x28:
         if(this.FlagZ) {
-          this.jr_(this.read_(this.PC++));
+          this.jr_(this.GB.M.get(this.PC++));
         } else {
           this.PC++;
           this.internal_();
@@ -332,7 +307,7 @@ export class CPU {
         this.addHL16r_(Registers.HL);
         break;
       case 0x2A:
-        this.ldr_(Registers.A, this.read_(this.HL));
+        this.ldr_(Registers.A, this.GB.M.get(this.HL));
         this.inc16_(Registers.HL, false);
         break;
       case 0x2B:
@@ -345,7 +320,7 @@ export class CPU {
         this.dec8r_(Registers.L);
         break;
       case 0x2E:
-        this.ldr_(Registers.L, this.read_(this.PC++));
+        this.ldr_(Registers.L, this.GB.M.get(this.PC++));
         break;
       case 0x2F:
         this.FlagN = true;
@@ -354,14 +329,14 @@ export class CPU {
         break;
       case 0x30:
         if(!this.FlagC) {
-          this.jr_(this.read_(this.PC++));
+          this.jr_(this.GB.M.get(this.PC++));
         } else {
           this.PC++;
           this.internal_();
         }
         break;
       case 0x31:
-        this.ldr_(Registers.SP, this.read_(this.PC, 2));
+        this.ldr_(Registers.SP, this.GB.M.get(this.PC, 2));
         this.PC += 2;
         break;
       case 0x32:
@@ -378,14 +353,14 @@ export class CPU {
         this.dec8a_(this.HL);
         break;
       case 0x36:
-        this.lda_(this.HL, this.read_(this.PC++));
+        this.lda_(this.HL, this.GB.M.get(this.PC++));
         break;
       case 0x37:
         this.scf_();
         break;
       case 0x38:
         if(this.FlagC) {
-          this.jr_(this.read_(this.PC++));
+          this.jr_(this.GB.M.get(this.PC++));
         } else {
           this.PC++;
           this.internal_();
@@ -395,7 +370,7 @@ export class CPU {
         this.addHL16r_(Registers.SP);
         break;
       case 0x3A:
-        this.ldr_(Registers.A, this.read_(this.HL));
+        this.ldr_(Registers.A, this.GB.M.get(this.HL));
         this.dec16_(Registers.HL, false);
         break;
       case 0x3B:
@@ -408,7 +383,7 @@ export class CPU {
         this.dec8r_(Registers.A);
         break;
       case 0x3E:
-        this.ldr_(Registers.A, this.read_(this.PC++));
+        this.ldr_(Registers.A, this.GB.M.get(this.PC++));
         break;
       case 0x3F:
         this.ccf_();
@@ -432,7 +407,7 @@ export class CPU {
         this.ldr_(Registers.B, this.L);
         break;
       case 0x46:
-        this.ldr_(Registers.B, this.read_(this.HL));
+        this.ldr_(Registers.B, this.GB.M.get(this.HL));
         break;
       case 0x47:
         this.ldr_(Registers.B, this.A);
@@ -456,7 +431,7 @@ export class CPU {
         this.ldr_(Registers.C, this.L);
         break;
       case 0x4E:
-        this.ldr_(Registers.C, this.read_(this.HL));
+        this.ldr_(Registers.C, this.GB.M.get(this.HL));
         break;
       case 0x4F:
         this.ldr_(Registers.C, this.A);
@@ -480,7 +455,7 @@ export class CPU {
         this.ldr_(Registers.D, this.L);
         break;
       case 0x56:
-        this.ldr_(Registers.D, this.read_(this.HL));
+        this.ldr_(Registers.D, this.GB.M.get(this.HL));
         break;
       case 0x57:
         this.ldr_(Registers.D, this.A);
@@ -504,7 +479,7 @@ export class CPU {
         this.ldr_(Registers.E, this.L);
         break;
       case 0x5E:
-        this.ldr_(Registers.E, this.read_(this.HL));
+        this.ldr_(Registers.E, this.GB.M.get(this.HL));
         break;
       case 0x5F:
         this.ldr_(Registers.E, this.A);
@@ -528,7 +503,7 @@ export class CPU {
         this.ldr_(Registers.H, this.L);
         break;
       case 0x66:
-        this.ldr_(Registers.H, this.read_(this.HL));
+        this.ldr_(Registers.H, this.GB.M.get(this.HL));
         break;
       case 0x67:
         this.ldr_(Registers.H, this.A);
@@ -552,7 +527,7 @@ export class CPU {
         //this.ldr_(Registers.L, this.L);
         break;
       case 0x6E:
-        this.ldr_(Registers.L, this.read_(this.HL));
+        this.ldr_(Registers.L, this.GB.M.get(this.HL));
         break;
       case 0x6F:
         this.ldr_(Registers.L, this.A);
@@ -600,7 +575,7 @@ export class CPU {
         this.ldr_(Registers.A, this.L);
         break;
       case 0x7E:
-        this.ldr_(Registers.A, this.read_(this.HL));
+        this.ldr_(Registers.A, this.GB.M.get(this.HL));
         break;
       case 0x7F:
         //this.ldr_(Registers.A, this.A);
@@ -624,7 +599,7 @@ export class CPU {
         this.add8r_(Registers.L);
         break;
       case 0x86:
-        this.add8v_(this.read_(this.HL));
+        this.add8v_(this.GB.M.get(this.HL));
         break;
       case 0x87:
         this.add8r_(Registers.A);
@@ -648,7 +623,7 @@ export class CPU {
         this.adcr_(Registers.L);
         break;
       case 0x8E:
-        this.adcv_(this.read_(this.HL));
+        this.adcv_(this.GB.M.get(this.HL));
         break;
       case 0x8F:
         this.adcr_(Registers.A);
@@ -672,7 +647,7 @@ export class CPU {
         this.subr_(Registers.L);
         break;
       case 0x96:
-        this.subv_(this.read_(this.HL));
+        this.subv_(this.GB.M.get(this.HL));
         break;
       case 0x97:
         this.subr_(Registers.A);
@@ -696,7 +671,7 @@ export class CPU {
         this.sbcr_(Registers.L);
         break;
       case 0x9E:
-        this.sbcv_(this.read_(this.HL));
+        this.sbcv_(this.GB.M.get(this.HL));
         break;
       case 0x9F:
         this.sbcr_(Registers.A);
@@ -720,7 +695,7 @@ export class CPU {
         this.andr_(Registers.L);
         break;
       case 0xA6:
-        this.andv_(this.read_(this.HL));
+        this.andv_(this.GB.M.get(this.HL));
         break;
       case 0xA7:
         this.andr_(Registers.A);
@@ -744,7 +719,7 @@ export class CPU {
         this.xorr_(Registers.L);
         break;
       case 0xAE:
-        this.xorv_(this.read_(this.HL));
+        this.xorv_(this.GB.M.get(this.HL));
         break;
       case 0xAF:
         this.xorr_(Registers.A);
@@ -768,7 +743,7 @@ export class CPU {
         this.orr_(Registers.L);
         break;
       case 0xB6:
-        this.orv_(this.read_(this.HL));
+        this.orv_(this.GB.M.get(this.HL));
         break;
       case 0xB7:
         this.orr_(Registers.A);
@@ -792,7 +767,7 @@ export class CPU {
         this.cpr_(Registers.L);
         break;
       case 0xBE:
-        this.cpv_(this.read_(this.HL));
+        this.cpv_(this.GB.M.get(this.HL));
         break;
       case 0xBF:
         this.cpr_(Registers.A);
@@ -809,7 +784,7 @@ export class CPU {
         break;
       case 0xC2:
         if(!this.FlagZ) {
-          let addr = this.read_(this.PC, 2);
+          let addr = this.GB.M.get(this.PC, 2);
           this.PC += 2;
           this.jp_(addr, true);
         } else {
@@ -819,7 +794,7 @@ export class CPU {
         }
         break;
       case 0xC3:
-        this.jp_(this.read_(this.PC, 2), true);
+        this.jp_(this.GB.M.get(this.PC, 2), true);
         break;
       case 0xC4:
         if(!this.FlagZ) {
@@ -834,7 +809,7 @@ export class CPU {
         this.push_(Registers.BC);
         break;
       case 0xC6:
-        this.add8v_(this.read_(this.PC++));
+        this.add8v_(this.GB.M.get(this.PC++));
         break;
       case 0xC7:
         this.call8_(0x0000);
@@ -851,7 +826,7 @@ export class CPU {
         break;
       case 0xCA:
         if(this.FlagZ) {
-          let addr = this.read_(this.PC, 2);
+          let addr = this.GB.M.get(this.PC, 2);
           this.PC += 2;
           this.jp_(addr, true);
         } else {
@@ -861,7 +836,7 @@ export class CPU {
         }
         break;
       case 0xCB:
-        this.runCBInst_(this.read_(this.PC++));
+        this.runCBInst_(this.GB.M.get(this.PC++));
         break;
       case 0xCC:
         if(this.FlagZ) {
@@ -876,7 +851,7 @@ export class CPU {
         this.call16_();
         break;
       case 0xCE:
-        this.adcv_(this.read_(this.PC++));
+        this.adcv_(this.GB.M.get(this.PC++));
         break;
       case 0xCF:
         this.call8_(0x0008);
@@ -893,7 +868,7 @@ export class CPU {
         break;
       case 0xD2:
         if(!this.FlagC) {
-          let addr = this.read_(this.PC, 2);
+          let addr = this.GB.M.get(this.PC, 2);
           this.PC += 2;
           this.jp_(addr, true);
         } else {
@@ -915,7 +890,7 @@ export class CPU {
         this.push_(Registers.DE);
         break;
       case 0xD6:
-        this.subv_(this.read_(this.PC++));
+        this.subv_(this.GB.M.get(this.PC++));
         break;
       case 0xD7:
         this.call8_(0x0010);
@@ -933,7 +908,7 @@ export class CPU {
         break;
       case 0xDA:
         if(this.FlagC) {
-          let addr = this.read_(this.PC, 2);
+          let addr = this.GB.M.get(this.PC, 2);
           this.PC += 2;
           this.jp_(addr, true);
         } else {
@@ -952,13 +927,13 @@ export class CPU {
         }
         break;
       case 0xDE:
-        this.sbcv_(this.read_(this.PC++));
+        this.sbcv_(this.GB.M.get(this.PC++));
         break;
       case 0xDF:
         this.call8_(0x0018);
         break;
       case 0xE0:
-        this.lda_(0xFF00 + this.read_(this.PC++), this.A);
+        this.lda_(0xFF00 + this.GB.M.get(this.PC++), this.A);
         break;
       case 0xE1:
         this.pop_(Registers.HL);
@@ -970,35 +945,35 @@ export class CPU {
         this.push_(Registers.HL);
         break;
       case 0xE6:
-        this.andv_(this.read_(this.PC++));
+        this.andv_(this.GB.M.get(this.PC++));
         break;
       case 0xE7:
         this.call8_(0x0020);
         break;
       case 0xE8:
-        this.add16signed8v_(this.read_(this.PC++));
+        this.add16signed8v_(this.GB.M.get(this.PC++));
         break;
       case 0xE9:
         this.jp_(this.HL);
         break;
       case 0xEA:
-        this.lda_(this.read_(this.PC, 2), this.A);
+        this.lda_(this.GB.M.get(this.PC, 2), this.A);
         this.PC += 2;
         break;
       case 0xEE:
-        this.xorv_(this.read_(this.PC++));
+        this.xorv_(this.GB.M.get(this.PC++));
         break;
       case 0xEF:
         this.call8_(0x0028);
         break;
       case 0xF0:
-        this.ldr_(Registers.A, this.read_(0xFF00 + this.read_(this.PC++)));
+        this.ldr_(Registers.A, this.GB.M.get(0xFF00 + this.GB.M.get(this.PC++)));
         break;
       case 0xF1:
         this.pop_(Registers.AF);
         break;
       case 0xF2:
-        this.ldr_(Registers.A, this.read_(0xFF00 + this.C), false);
+        this.ldr_(Registers.A, this.GB.M.get(0xFF00 + this.C), false);
         break;
       case 0xF3:
         this.FlagIME = false;
@@ -1007,32 +982,32 @@ export class CPU {
         this.push_(Registers.AF);
         break;
       case 0xF6:
-        this.orv_(this.read_(this.PC++));
+        this.orv_(this.GB.M.get(this.PC++));
         break;
       case 0xF7:
         this.call8_(0x0030);
         break;
       case 0xF8:
-        this.lda16SPsigned8v_(Registers.HL, this.read_(this.PC++));
+        this.lda16SPsigned8v_(Registers.HL, this.GB.M.get(this.PC++));
         break;
       case 0xF9:
         this.ldr_(Registers.SP, this.HL, true);
         break;
       case 0xFA:
-        this.ldr_(Registers.A, this.read_(this.read_(this.PC, 2)));
+        this.ldr_(Registers.A, this.GB.M.get(this.GB.M.get(this.PC, 2)));
         this.PC += 2;
         break;
       case 0xFB:
         this.FlagIME = true;
         break;
       case 0xFE:
-        this.cpv_(this.read_(this.PC++));
+        this.cpv_(this.GB.M.get(this.PC++));
         break;
       case 0xFF:
         this.call8_(0x0038);
         break;
       default:
-        throw Error(`Unimplemented opcode 0x${this.GB.M.get(addr).toString(16).toUpperCase().padStart(2, "0")}`);
+        throw Error(`Unimplemented opcode 0x${this.GB.M.get(addr, 1, false).toString(16).toUpperCase().padStart(2, "0")}`);
     }
   }
 
@@ -1044,7 +1019,7 @@ export class CPU {
   }
 
   call16_() {
-    let a16 = this.read_(this.PC, 2);
+    let a16 = this.GB.M.get(this.PC, 2);
     this.PC += 2;
     this.SP -= 2;
     this.internal_();
@@ -1069,9 +1044,9 @@ export class CPU {
   }
 
   inc8a_(addr) {
-    let v0 = this.read_(addr);
-    this.write_(addr, v0 + 1);
-    let v1 = this.GB.M.get(addr);
+    let v0 = this.GB.M.get(addr);
+    this.GB.M.set(addr, v0 + 1);
+    let v1 = this.GB.M.get(addr, 1, false);
     this.FlagZ = !v1;
     this.FlagN = false;
     this.FlagH = (v0 & 0xF) + 1 > 0xF;
@@ -1094,9 +1069,9 @@ export class CPU {
   }
 
   dec8a_(addr) {
-    let v0 = this.read_(addr);
-    this.write_(addr, v0 - 1);
-    let v1 = this.GB.M.get(addr);
+    let v0 = this.GB.M.get(addr);
+    this.GB.M.set(addr, v0 - 1);
+    let v1 = this.GB.M.get(addr, 1, false);
     this.FlagZ = !v1;
     this.FlagN = true;
     this.FlagH = (v1 & 0xF) > (v0 & 0xF);
@@ -1278,17 +1253,17 @@ export class CPU {
   }
 
   lda_(addr, val, bytes = 1) {
-    this.write_(addr, val, bytes);
+    this.GB.M.set(addr, val, bytes);
   }
 
   push_(register) {
     this.SP -= 2;
     this.internal_();
-    this.write_(this.SP, this.get(register), 2);
+    this.GB.M.set(this.SP, this.get(register), 2);
   }
 
   pop_(register) {
-    this.set(register, this.read_(this.SP, 2));
+    this.set(register, this.GB.M.get(this.SP, 2));
     this.SP += 2;
   }
 
@@ -1310,7 +1285,7 @@ export class CPU {
     if(update) {
       this.internal_();
     }
-    this.PC = this.read_(this.SP, 2);
+    this.PC = this.GB.M.get(this.SP, 2);
     this.internal_();
     this.SP += 2;
   }
@@ -2176,10 +2151,10 @@ export class CPU {
   }
 
   rlca_(addr) {
-    let v = this.read_(addr);
+    let v = this.GB.M.get(addr);
     let top = (v & 0x80) >>> 7;
-    this.write_(addr, (v << 1) | top);
-    this.FlagZ = !this.GB.M.get(addr);
+    this.GB.M.set(addr, (v << 1) | top);
+    this.FlagZ = !this.GB.M.get(addr, 1, false);
     this.FlagN = false;
     this.FlagH = false;
     this.FlagC = !!top;
@@ -2196,10 +2171,10 @@ export class CPU {
   }
 
   rrca_(addr) {
-    let v = this.read_(addr);
+    let v = this.GB.M.get(addr);
     let bot = (v & 0x01) << 7;
-    this.write_(addr, (v >>> 1) | bot);
-    this.FlagZ = !this.GB.M.get(addr);
+    this.GB.M.set(addr, (v >>> 1) | bot);
+    this.FlagZ = !this.GB.M.get(addr, 1, false);
     this.FlagN = false;
     this.FlagH = false;
     this.FlagC = !!bot;
@@ -2216,10 +2191,10 @@ export class CPU {
   }
 
   rla_(addr) {
-    let v = this.read_(addr);
+    let v = this.GB.M.get(addr);
     let top = (v & 0x80) >>> 7;
-    this.write_(addr, (v << 1) | (this.FlagC ? 0x01 : 0x00));
-    this.FlagZ = !this.GB.M.get(addr);
+    this.GB.M.set(addr, (v << 1) | (this.FlagC ? 0x01 : 0x00));
+    this.FlagZ = !this.GB.M.get(addr, 1, false);
     this.FlagN = false;
     this.FlagH = false;
     this.FlagC = !!top;
@@ -2236,10 +2211,10 @@ export class CPU {
   }
 
   rra_(addr) {
-    let v = this.read_(addr);
+    let v = this.GB.M.get(addr);
     let bot = v & 0x01;
-    this.write_(addr, (v >>> 1) | (this.FlagC ? 0x80 : 0x00));
-    this.FlagZ = !this.GB.M.get(addr);
+    this.GB.M.set(addr, (v >>> 1) | (this.FlagC ? 0x80 : 0x00));
+    this.FlagZ = !this.GB.M.get(addr, 1, false);
     this.FlagN = false;
     this.FlagH = false;
     this.FlagC = !!bot;
@@ -2255,12 +2230,12 @@ export class CPU {
   }
 
   slaa_(addr) {
-    let v = this.read_(addr);
+    let v = this.GB.M.get(addr);
     this.FlagC = !!(v & 0x80);
-    this.write_(addr, v << 1);
+    this.GB.M.set(addr, v << 1);
     this.FlagN = false;
     this.FlagH = false;
-    this.FlagZ = !this.GB.M.get(addr);
+    this.FlagZ = !this.GB.M.get(addr, 1, false);
   }
 
   srar_(register) {
@@ -2274,13 +2249,13 @@ export class CPU {
   }
 
   sraa_(addr) {
-    let v = this.read_(addr);
+    let v = this.GB.M.get(addr);
     let top = v & 0x80;
     this.FlagC = !!(v & 0x01);
-    this.write_(addr, (v >> 1 | top));
+    this.GB.M.set(addr, (v >> 1 | top));
     this.FlagN = false;
     this.FlagH = false;
-    this.FlagZ = !this.GB.M.get(addr);
+    this.FlagZ = !this.GB.M.get(addr, 1, false);
   }
 
   swapr_(register) {
@@ -2295,11 +2270,11 @@ export class CPU {
   }
 
   swapa_(addr) {
-    let v = this.read_(addr);
+    let v = this.GB.M.get(addr);
     let top = v & 0xF0;
     let bot = v & 0x0F;
-    this.write_(addr, (bot << 4) | (top >>> 4));
-    this.FlagZ = !this.GB.M.get(addr);
+    this.GB.M.set(addr, (bot << 4) | (top >>> 4));
+    this.FlagZ = !this.GB.M.get(addr, 1, false);
     this.FlagN = false;
     this.FlagH = false;
     this.FlagC = false;
@@ -2315,12 +2290,12 @@ export class CPU {
   }
 
   srla_(addr) {
-    let v = this.read_(addr);
+    let v = this.GB.M.get(addr);
     this.FlagC = !!(v & 0x01);
-    this.write_(addr, v >>> 1);
+    this.GB.M.set(addr, v >>> 1);
     this.FlagN = false;
     this.FlagH = false;
-    this.FlagZ = !this.GB.M.get(addr);
+    this.FlagZ = !this.GB.M.get(addr, 1, false);
   }
 
   bitr_(register, bit) {
@@ -2331,7 +2306,7 @@ export class CPU {
   }
 
   bita_(addr, bit) {
-    let v = this.read_(addr);
+    let v = this.GB.M.get(addr);
     this.FlagZ = !(v & (0x01 << bit));
     this.FlagN = false;
     this.FlagH = true;
@@ -2342,7 +2317,7 @@ export class CPU {
   }
 
   resa_(addr, bit) {
-    this.write_(addr, this.read_(addr) & ~(0x01 << bit));
+    this.GB.M.set(addr, this.GB.M.get(addr) & ~(0x01 << bit));
   }
 
   setr_(register, bit) {
@@ -2350,7 +2325,7 @@ export class CPU {
   }
 
   seta_(addr, bit) {
-    this.write_(addr, this.read_(addr) | (0x01 << bit));
+    this.GB.M.set(addr, this.GB.M.get(addr) | (0x01 << bit));
   }
 
   get(register) {
@@ -2526,6 +2501,10 @@ export class CPU {
     this.set(Registers.PC, val);
   }
 
+  /**
+   * Arbitrary (non-direct register) getters/setters
+   */
+
   get FlagZ() {
     return !!(this.F & 0x80);
   }
@@ -2568,103 +2547,103 @@ export class CPU {
   }
 
   get FlagVBlankEnable() {
-    return !!(this.GB.M.get(0xFFFF) & 0x01);
+    return !!(this.GB.M.get(0xFFFF, 1, false) & 0x01);
   }
 
   set FlagVBlankEnable(bool) {
-    let og = this.GB.M.get(0xFFFF);
+    let og = this.GB.M.get(0xFFFF, 1, false);
     bool ? og |= 0x01 : og &= ~0x01;
-    this.GB.M.set(0xFFFF, og);
+    this.GB.M.set(0xFFFF, og, 1, false);
   }
 
   get FlagLCDSTATEnable() {
-    return !!(this.GB.M.get(0xFFFF) & 0x02);
+    return !!(this.GB.M.get(0xFFFF, 1, false) & 0x02);
   }
 
   set FlagLCDSTATEnable(bool) {
-    let og = this.GB.M.get(0xFFFF);
+    let og = this.GB.M.get(0xFFFF, 1, false);
     bool ? og |= 0x02 : og &= ~0x02;
-    this.GB.M.set(0xFFFF, og);
+    this.GB.M.set(0xFFFF, og, 1, false);
   }
 
   get FlagTimerEnable() {
-    return !!(this.GB.M.get(0xFFFF) & 0x04);
+    return !!(this.GB.M.get(0xFFFF, 1, false) & 0x04);
   }
 
   set FlagTimerEnable(bool) {
-    let og = this.GB.M.get(0xFFFF);
+    let og = this.GB.M.get(0xFFFF, 1, false);
     bool ? og |= 0x04 : og &= ~0x04;
-    this.GB.M.set(0xFFFF, og);
+    this.GB.M.set(0xFFFF, og, 1, false);
   }
 
   get FlagSerialEnable() {
-    return !!(this.GB.M.get(0xFFFF) & 0x08);
+    return !!(this.GB.M.get(0xFFFF, 1, false) & 0x08);
   }
 
   set FlagSerialEnable(bool) {
-    let og = this.GB.M.get(0xFFFF);
+    let og = this.GB.M.get(0xFFFF, 1, false);
     bool ? og |= 0x08 : og &= ~0x08;
-    this.GB.M.set(0xFFFF, og);
+    this.GB.M.set(0xFFFF, og, 1, false);
   }
 
   get FlagJoypadEnable() {
-    return !!(this.GB.M.get(0xFFFF) & 0x10);
+    return !!(this.GB.M.get(0xFFFF, 1, false) & 0x10);
   }
 
   set FlagJoypadEnable(bool) {
-    let og = this.GB.M.get(0xFFFF);
+    let og = this.GB.M.get(0xFFFF, 1, false);
     bool ? og |= 0x10 : og &= ~0x10;
-    this.GB.M.set(0xFFFF, og);
+    this.GB.M.set(0xFFFF, og, 1, false);
   }
 
   get FlagVBlankRequest() {
-    return !!(this.GB.M.get(0xFF0F) & 0x01);
+    return !!(this.GB.M.get(0xFF0F, 1, false) & 0x01);
   }
 
   set FlagVBlankRequest(bool) {
-    let og = this.GB.M.get(0xFF0F);
+    let og = this.GB.M.get(0xFF0F, 1, false);
     bool ? og |= 0x01 : og &= ~0x01;
-    this.GB.M.set(0xFF0F, og);
+    this.GB.M.set(0xFF0F, og, 1, false);
   }
 
   get FlagLCDSTATRequest() {
-    return !!(this.GB.M.get(0xFF0F) & 0x02);
+    return !!(this.GB.M.get(0xFF0F, 1, false) & 0x02);
   }
 
   set FlagLCDSTATRequest(bool) {
-    let og = this.GB.M.get(0xFF0F);
+    let og = this.GB.M.get(0xFF0F, 1, false);
     bool ? og |= 0x02 : og &= ~0x02;
-    this.GB.M.set(0xFF0F, og);
+    this.GB.M.set(0xFF0F, og, 1, false);
   }
 
   get FlagTimerRequest() {
-    return !!(this.GB.M.get(0xFF0F) & 0x04);
+    return !!(this.GB.M.get(0xFF0F, 1, false) & 0x04);
   }
 
   set FlagTimerRequest(bool) {
-    let og = this.GB.M.get(0xFF0F);
+    let og = this.GB.M.get(0xFF0F, 1, false);
     bool ? og |= 0x04 : og &= ~0x04;
-    this.GB.M.set(0xFF0F, og);
+    this.GB.M.set(0xFF0F, og, 1, false);
   }
 
   get FlagSerialRequest() {
-    return !!(this.GB.M.get(0xFF0F) & 0x08);
+    return !!(this.GB.M.get(0xFF0F, 1, false) & 0x08);
   }
 
   set FlagSerialRequest(bool) {
-    let og = this.GB.M.get(0xFF0F);
+    let og = this.GB.M.get(0xFF0F, 1, false);
     bool ? og |= 0x08 : og &= ~0x08;
-    this.GB.M.set(0xFF0F, og);
+    this.GB.M.set(0xFF0F, og, 1, false);
   }
 
   get FlagJoypadRequest() {
-    return !!(this.GB.M.get(0xFF0F) & 0x10);
+    return !!(this.GB.M.get(0xFF0F, 1, false) & 0x10);
   }
 
   set FlagJoypadRequest(bool) {
-    let og = this.GB.M.get(0xFF0F);
+    let og = this.GB.M.get(0xFF0F, 1, false);
     bool ? og |= 0x10 : og &= ~0x10;
-    this.GB.M.set(0xFF0F, og);
+    this.GB.M.set(0xFF0F, og, 1, false);
   }
 }
 
