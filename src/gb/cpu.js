@@ -100,10 +100,6 @@ export class CPU {
     this.GB.Timer.step(cycles);
   }
 
-  internal_() {
-    this.update(4);
-  }
-
   step() {
     this.runInst_();
     this.interrupts_();
@@ -114,46 +110,46 @@ export class CPU {
     if(this.FlagVBlankRequest) {
       this.halted_ = false;
       if(this.FlagIME && this.FlagVBlankEnable) {
-        this.internal_();
+        this.update(4);
         this.FlagVBlankRequest = false;
         this.push_(Registers.PC);
-        this.internal_();
+        this.update(4);
         this.PC = 0x0040;
       }
     } else if(this.FlagLCDSTATRequest) {
       this.halted_ = false;
       if(this.FlagIME && this.FlagLCDSTATEnable) {
-        this.internal_();
+        this.update(4);
         this.FlagLCDSTATRequest = false;
         this.push_(Registers.PC);
-        this.internal_();
+        this.update(4);
         this.PC = 0x0048;
       }
     } else if(this.FlagTimerRequest) {
       this.halted_ = false;
       if(this.FlagIME && this.FlagTimerEnable) {
-        this.internal_();
+        this.update(4);
         this.FlagTimerRequest = false;
         this.push_(Registers.PC);
-        this.internal_();
+        this.update(4);
         this.PC = 0x0050;
       }
     } else if(this.FlagSerialRequest) {
       this.halted_ = false;
       if(this.FlagIME && this.FlagSerialEnable) {
-        this.internal_();
+        this.update(4);
         this.FlagSerialRequest = false;
         this.push_(Registers.PC);
-        this.internal_();
+        this.update(4);
         this.PC = 0x0058;
       }
     } else if(this.FlagJoypadRequest) {
       this.halted_ = false;
       if(this.FlagIME && this.FlagJoypadEnable) {
-        this.internal_();
+        this.update(4);
         this.FlagJoypadRequest = false;
         this.push_(Registers.PC);
-        this.internal_();
+        this.update(4);
         this.PC = 0x0060;
       }
     }
@@ -161,7 +157,7 @@ export class CPU {
 
   runInst_() {
     if(this.halted_) {
-      this.internal_();
+      this.update(4);
       return;
     }
     switch(this.GB.M.get(this.PC++)) {
@@ -269,7 +265,7 @@ export class CPU {
           this.jr_(this.GB.M.get(this.PC++));
         } else {
           this.PC++;
-          this.internal_();
+          this.update(4);
         }
         break;
       case 0x21:
@@ -300,7 +296,7 @@ export class CPU {
           this.jr_(this.GB.M.get(this.PC++));
         } else {
           this.PC++;
-          this.internal_();
+          this.update(4);
         }
         break;
       case 0x29:
@@ -332,7 +328,7 @@ export class CPU {
           this.jr_(this.GB.M.get(this.PC++));
         } else {
           this.PC++;
-          this.internal_();
+          this.update(4);
         }
         break;
       case 0x31:
@@ -363,7 +359,7 @@ export class CPU {
           this.jr_(this.GB.M.get(this.PC++));
         } else {
           this.PC++;
-          this.internal_();
+          this.update(4);
         }
         break;
       case 0x39:
@@ -776,7 +772,7 @@ export class CPU {
         if(!this.FlagZ) {
           this.ret_();
         } else {
-          this.internal_();
+          this.update(4);
         }
         break;
       case 0xC1:
@@ -789,8 +785,8 @@ export class CPU {
           this.jp_(addr, true);
         } else {
           this.PC += 2;
-          this.internal_();
-          this.internal_();
+          this.update(4);
+          this.update(4);
         }
         break;
       case 0xC3:
@@ -801,8 +797,8 @@ export class CPU {
           this.call16_();
         } else {
           this.PC += 2;
-          this.internal_();
-          this.internal_();
+          this.update(4);
+          this.update(4);
         }
         break;
       case 0xC5:
@@ -818,7 +814,7 @@ export class CPU {
         if(this.FlagZ) {
           this.ret_();
         } else {
-          this.internal_();
+          this.update(4);
         }
         break;_
       case 0xC9:
@@ -831,8 +827,8 @@ export class CPU {
           this.jp_(addr, true);
         } else {
           this.PC += 2;
-          this.internal_();
-          this.internal_();
+          this.update(4);
+          this.update(4);
         }
         break;
       case 0xCB:
@@ -843,8 +839,8 @@ export class CPU {
           this.call16_();
         } else {
           this.PC += 2;
-          this.internal_();
-          this.internal_();
+          this.update(4);
+          this.update(4);
         }
         break;
       case 0xCD:
@@ -860,7 +856,7 @@ export class CPU {
         if(!this.FlagC) {
           this.ret_();
         } else {
-          this.internal_();
+          this.update(4);
         }
         break;
       case 0xD1:
@@ -873,8 +869,8 @@ export class CPU {
           this.jp_(addr, true);
         } else {
           this.PC += 2;
-          this.internal_();
-          this.internal_();
+          this.update(4);
+          this.update(4);
         }
         break;
       case 0xD4:
@@ -882,8 +878,8 @@ export class CPU {
           this.call16_();
         } else {
           this.PC += 2;
-          this.internal_();
-          this.internal_();
+          this.update(4);
+          this.update(4);
         }
         break;
       case 0xD5:
@@ -899,7 +895,7 @@ export class CPU {
         if(this.FlagC) {
           this.ret_();
         } else {
-          this.internal_();
+          this.update(4);
         }
         break;
       case 0xD9:
@@ -913,8 +909,8 @@ export class CPU {
           this.jp_(addr, true);
         } else {
           this.PC += 2;
-          this.internal_();
-          this.internal_();
+          this.update(4);
+          this.update(4);
         }
         break;
       case 0xDC:
@@ -922,8 +918,8 @@ export class CPU {
           this.call16_();
         } else {
           this.PC += 2;
-          this.internal_();
-          this.internal_();
+          this.update(4);
+          this.update(4);
         }
         break;
       case 0xDE:
@@ -1013,7 +1009,7 @@ export class CPU {
 
   call8_(a8) {
     this.SP -= 2;
-    this.internal_();
+    this.update(4);
     this.lda_(this.SP, this.PC, 2);
     this.PC = a8;
   }
@@ -1022,7 +1018,7 @@ export class CPU {
     let a16 = this.GB.M.get(this.PC, 2);
     this.PC += 2;
     this.SP -= 2;
-    this.internal_();
+    this.update(4);
     this.lda_(this.SP, this.PC, 2);
     this.PC = a16;
   }
@@ -1030,7 +1026,7 @@ export class CPU {
   inc16_(register, update = true) {
     this.set(register, this.get(register) + 1);
     if(update) {
-      this.internal_();
+      this.update(4);
     }
   }
 
@@ -1055,7 +1051,7 @@ export class CPU {
   dec16_(register, update = true) {
     this.set(register, this.get(register) - 1);
     if(update) {
-      this.internal_();
+      this.update(4);
     }
   }
 
@@ -1132,7 +1128,7 @@ export class CPU {
     this.FlagN = false;
     this.FlagH = (v0 & 0xFFF) + (value & 0xFFF) > 0xFFF; //how is this a HALF carry???
     this.FlagC = v0 + value > 0xFFFF;
-    this.internal_();
+    this.update(4);
   }
 
   add8r_(register) {
@@ -1164,8 +1160,8 @@ export class CPU {
     this.FlagN = false;
     this.FlagH = (test & 0x10) === 0x10;
     this.FlagC = (test & 0x100) === 0x100;
-    this.internal_();
-    this.internal_();
+    this.update(4);
+    this.update(4);
   }
 
   lda16SPsigned8v_(register, value) {
@@ -1177,7 +1173,7 @@ export class CPU {
     this.FlagN = false;
     this.FlagH = (test & 0x10) === 0x10;
     this.FlagC = (test & 0x100) === 0x100;
-    this.internal_();
+    this.update(4);
   }
 
   subr_(register) {
@@ -1248,7 +1244,7 @@ export class CPU {
   ldr_(register, val, update = false) {
     this.set(register, val);
     if(update) {
-      this.internal_();
+      this.update(4);
     }
   }
 
@@ -1258,7 +1254,7 @@ export class CPU {
 
   push_(register) {
     this.SP -= 2;
-    this.internal_();
+    this.update(4);
     this.GB.M.set(this.SP, this.get(register), 2);
   }
 
@@ -1271,22 +1267,22 @@ export class CPU {
     //JS numbers are 32-bit when using bitwise operators
     //GB numbers are 8-bit, and so this happens
     this.PC += (offset & 0x80) ? -~(0xFFFFFF00 + offset - 1) : offset;
-    this.internal_();
+    this.update(4);
   }
 
   jp_(addr, update = false) {
     this.PC = addr;
     if(update) {
-      this.internal_();
+      this.update(4);
     }
   }
 
   ret_(update = true) {
     if(update) {
-      this.internal_();
+      this.update(4);
     }
     this.PC = this.GB.M.get(this.SP, 2);
-    this.internal_();
+    this.update(4);
     this.SP += 2;
   }
 
