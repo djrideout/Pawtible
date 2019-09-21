@@ -16,6 +16,26 @@ export const Registers = {
   IME: "regIME" //not actually a register, it's a flag, but i'll say it's a register to have a single entrypoint to modifying cpu
 };
 
+const Registers8 = {
+  A: 0,
+  F: 1,
+  B: 2,
+  C: 3,
+  D: 4,
+  E: 5,
+  H: 6,
+  L: 7
+};
+
+const Registers16 = {
+  AF: 0,
+  BC: 1,
+  DE: 2,
+  HL: 3,
+  SP: 4,
+  PC: 5
+}
+
 export const Flags = {
   Z: "Z",
   N: "N",
@@ -32,6 +52,8 @@ export class CPU {
     this.count_ = 0;
     this.breakpoints_ = new Map();
     this.GB = gameBoy;
+    this.Reg8 = new Uint8Array(8);
+    this.Reg16 = new Uint16Array(6);
     this.reset();
   }
 
@@ -2324,173 +2346,66 @@ export class CPU {
     this.GB.M.set(addr, this.GB.M.get(addr) | (0x01 << bit));
   }
 
-  get(register) {
-    switch(register) {
-      case Registers.A:
-      case Registers.F:
-      case Registers.B:
-      case Registers.C:
-      case Registers.D:
-      case Registers.E:
-      case Registers.H:
-      case Registers.L:
-      case Registers.SP:
-      case Registers.PC:
-      case Registers.IME:
-        return this[register];
-      case Registers.AF:
-      case Registers.BC:
-      case Registers.DE:
-      case Registers.HL:
-        let split = register.split("_");
-        return (this[split[0]] << 8) + this[split[1]];
-    }
-  }
-
-  set(register, val) {
-    //Only the top 4 bits of the F register can be modified.
-    //The bottom 4 are always 0.
-    switch(register) {
-      case Registers.F:
-        val = val & 0xF0;
-        break;
-      case Registers.AF:
-        val = val & 0xFFF0;
-        break;
-    }
-    switch(register) {
-      case Registers.A:
-      case Registers.F:
-      case Registers.B:
-      case Registers.C:
-      case Registers.D:
-      case Registers.E:
-      case Registers.H:
-      case Registers.L:
-      case Registers.IME:
-        this[register] = val & 0xFF;
-        break;
-      case Registers.AF:
-      case Registers.BC:
-      case Registers.DE:
-      case Registers.HL:
-        let split = register.split("_");
-        this[split[0]] = (val >> 8) & 0xFF;
-        this[split[1]] = val & 0xFF;
-        break;
-      case Registers.SP:
-      case Registers.PC:
-        this[register] = val & 0xFFFF;
-        break;
-    }
-  }
-
-  get A() {
-    return this.get(Registers.A);
-  }
-
   set A(val) {
-    this.set(Registers.A, val);
-  }
-
-  get F() {
-    return this.get(Registers.F);
+    this.Reg8[Registers8.A] = val;
+    this.Reg16[Registers16.AF] = (this.Reg16[Registers16.AF] & 0xFF) | (val << 8);
   }
 
   set F(val) {
-    this.set(Registers.F, val);
-  }
-
-  get AF() {
-    return this.get(Registers.AF);
+    val = val & 0xF0;
+    this.Reg8[Registers8.F] = val;
+    this.Reg16[Registers16.AF] = (this.Reg16[Registers16.AF] & 0xFF00) | val;
   }
 
   set AF(val) {
-    this.set(Registers.AF, val);
-  }
-
-  get B() {
-    return this.get(Registers.B);
+    val = val & 0xFFF0;
+    this.Reg8[Registers8.A] = val >>> 8;
+    this.Reg8[Registers8.F] = val;
+    this.Reg16[Registers16.AF] = val;
   }
 
   set B(val) {
-    this.set(Registers.B, val);
-  }
-
-  get C() {
-    return this.get(Registers.C);
+    this.Reg8[Registers8.B] = val;
+    this.Reg16[Registers16.BC] = (this.Reg16[Registers16.BC] & 0xFF) | (val << 8);
   }
 
   set C(val) {
-    this.set(Registers.C, val);
-  }
-
-  get BC() {
-    return this.get(Registers.BC);
+    this.Reg8[Registers8.C] = val;
+    this.Reg16[Registers16.BC] = (this.Reg16[Registers16.BC] & 0xFF00) | val;
   }
 
   set BC(val) {
-    this.set(Registers.BC, val);
-  }
-
-  get D() {
-    return this.get(Registers.D);
+    this.Reg8[Registers8.B] = val >>> 8;
+    this.Reg8[Registers8.C] = val;
+    this.Reg16[Registers16.BC] = val;
   }
 
   set D(val) {
     this.set(Registers.D, val);
   }
 
-  get E() {
-    return this.get(Registers.E);
-  }
-
   set E(val) {
     this.set(Registers.E, val);
-  }
-
-  get DE() {
-    return this.get(Registers.DE);
   }
 
   set DE(val) {
     this.set(Registers.DE, val);
   }
 
-  get H() {
-    return this.get(Registers.H);
-  }
-
   set H(val) {
     this.set(Registers.H, val);
-  }
-
-  get L() {
-    return this.get(Registers.L);
   }
 
   set L(val) {
     this.set(Registers.L, val);
   }
 
-  get HL() {
-    return this.get(Registers.HL);
-  }
-
   set HL(val) {
     this.set(Registers.HL, val);
   }
 
-  get SP() {
-    return this.get(Registers.SP);
-  }
-
   set SP(val) {
     this.set(Registers.SP, val);
-  }
-
-  get PC() {
-    return this.get(Registers.PC);
   }
 
   set PC(val) {
