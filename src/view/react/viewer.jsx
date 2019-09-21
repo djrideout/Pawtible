@@ -1,4 +1,4 @@
-import { CPU, Registers, Flags, get_flags_updated } from "../../gb/cpu";
+import { CPU, Registers8, Registers16 } from "../../gb/cpu";
 import * as React from "react";
 
 export class GBViewer extends React.Component {
@@ -176,24 +176,24 @@ class RegisterViewer extends React.Component {
     let cpu = this.GB.CPU;
     return (
       <div id={"viewer-registers"}>
-        {this.changed === Registers.A || this.changed === Registers.AF ? <span className={"changed-value"}>{"A"}</span> : "A"}{`: ${cpu.A.toString(16).toUpperCase().padStart(2, "0")}  `}
-        {this.changed === Registers.B || this.changed === Registers.BC ? <span className={"changed-value"}>{"B"}</span> : "B"}{`: ${cpu.B.toString(16).toUpperCase().padStart(2, "0")}  `}
-        {this.changed === Registers.D || this.changed === Registers.DE ? <span className={"changed-value"}>{"D"}</span> : "D"}{`: ${cpu.D.toString(16).toUpperCase().padStart(2, "0")}  `}
-        {this.changed === Registers.H || this.changed === Registers.HL ? <span className={"changed-value"}>{"H"}</span> : "H"}{`: ${cpu.H.toString(16).toUpperCase().padStart(2, "0")}`}
+        {"A"}{`: ${cpu.Reg8[Registers8.A].toString(16).toUpperCase().padStart(2, "0")}  `}
+        {"B"}{`: ${cpu.Reg8[Registers8.B].toString(16).toUpperCase().padStart(2, "0")}  `}
+        {"D"}{`: ${cpu.Reg8[Registers8.D].toString(16).toUpperCase().padStart(2, "0")}  `}
+        {"H"}{`: ${cpu.Reg8[Registers8.H].toString(16).toUpperCase().padStart(2, "0")}`}
         <br />
-        {this.changed === Registers.F || this.changed === Registers.AF ? <span className={"changed-value"}>{"F"}</span> : "F"}{`: ${cpu.F.toString(16).toUpperCase().padStart(2, "0")}  `}
-        {this.changed === Registers.C || this.changed === Registers.BC ? <span className={"changed-value"}>{"C"}</span> : "C"}{`: ${cpu.C.toString(16).toUpperCase().padStart(2, "0")}  `}
-        {this.changed === Registers.E || this.changed === Registers.DE ? <span className={"changed-value"}>{"E"}</span> : "E"}{`: ${cpu.E.toString(16).toUpperCase().padStart(2, "0")}  `}
-        {this.changed === Registers.L || this.changed === Registers.HL ? <span className={"changed-value"}>{"L"}</span> : "L"}{`: ${cpu.L.toString(16).toUpperCase().padStart(2, "0")}`}
+        {"F"}{`: ${cpu.Reg8[Registers8.F].toString(16).toUpperCase().padStart(2, "0")}  `}
+        {"C"}{`: ${cpu.Reg8[Registers8.C].toString(16).toUpperCase().padStart(2, "0")}  `}
+        {"E"}{`: ${cpu.Reg8[Registers8.E].toString(16).toUpperCase().padStart(2, "0")}  `}
+        {"L"}{`: ${cpu.Reg8[Registers8.L].toString(16).toUpperCase().padStart(2, "0")}`}
         <br />
-        {this.changed === Registers.SP ? <span className={"changed-value"}>{"SP"}</span> : "SP"}{`: ${cpu.SP.toString(16).toUpperCase().padStart(4, "0")}  `}
-        {this.changed === Registers.PC ? <span className={"changed-value"}>{"PC"}</span> : "PC"}{`: ${cpu.PC.toString(16).toUpperCase().padStart(4, "0")}`}
+        {"SP"}{`: ${cpu.Reg16[Registers16.SP].toString(16).toUpperCase().padStart(4, "0")}  `}
+        {"PC"}{`: ${cpu.Reg16[Registers16.PC].toString(16).toUpperCase().padStart(4, "0")}`}
         <br />
-        {this.changed === Registers.IME ? <span className={"changed-value"}>{"IME"}</span> : "IME"}{`: ${cpu.FlagIME.toString().padEnd(5, " ")}  `}
-        {this.flags[Flags.Z] ? <span className={"changed-value"}>{"Z"}</span> : "Z"}{`: ${cpu.FlagZ.toString().padEnd(5, " ")}  `}
-        {this.flags[Flags.N] ? <span className={"changed-value"}>{"N"}</span> : "N"}{`: ${cpu.FlagN.toString().padEnd(5, " ")}  `}
-        {this.flags[Flags.H] ? <span className={"changed-value"}>{"H"}</span> : "H"}{`: ${cpu.FlagH.toString().padEnd(5, " ")}  `}
-        {this.flags[Flags.C] ? <span className={"changed-value"}>{"C"}</span> : "C"}{`: ${cpu.FlagC.toString().padEnd(5, " ")}`}
+        {"IME"}{`: ${cpu.FlagIME.toString().padEnd(5, " ")}  `}
+        {"Z"}{`: ${cpu.FlagZ.toString().padEnd(5, " ")}  `}
+        {"N"}{`: ${cpu.FlagN.toString().padEnd(5, " ")}  `}
+        {"H"}{`: ${cpu.FlagH.toString().padEnd(5, " ")}  `}
+        {"C"}{`: ${cpu.FlagC.toString().padEnd(5, " ")}`}
       </div>
     )
   }
@@ -209,17 +209,6 @@ function cpu_set_closure(viewer) {
   CPU.prototype.pause = function() {
     ogPause.call(this);
     viewer.forceUpdate();
-  }
-  let ogSet = CPU.prototype.set;
-  CPU.prototype.set = function(register, val) {
-    let ogVal = this.get(register);
-    ogSet.call(this, register, val);
-    if(this.isPaused()) {
-      viewer.setState({
-        changed: register,
-        flags: get_flags_updated(register, ogVal, this.get(register))
-      });
-    }
   }
 }
 
