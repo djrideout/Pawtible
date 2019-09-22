@@ -86,6 +86,9 @@ export class PPU {
   }
 
   step(cycles) {
+    if(!this.LCDEnable) {
+      return;
+    }
     while(cycles > 0) {
       this.cycles_++;
       cycles--;
