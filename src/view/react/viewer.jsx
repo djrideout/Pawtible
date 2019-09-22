@@ -2,6 +2,14 @@ import { CPU, Registers8, Registers16 } from "../../gb/cpu";
 import * as React from "react";
 
 export class GBViewer extends React.Component {
+  constructor(props) {
+    super(props);
+    this.toggleTracking = toggle_tracking.bind(this);
+    this.state = {
+      tracking: true
+    };
+  }
+
   get GB() {
     return this.props.gameBoy;
   }
@@ -10,13 +18,22 @@ export class GBViewer extends React.Component {
     return (
       <>
         <div className={"wrapper"} id={"viewer-left"}>
-          <MemoryViewer gameBoy={this.GB} />
-          <RegisterViewer gameBoy={this.GB} />
+          <MemoryViewer gameBoy={this.GB} tracking={this.state.tracking} />
+          <RegisterViewer gameBoy={this.GB} tracking={this.state.tracking} />
         </div>
         <BreakpointViewer gameBoy={this.GB} />
+        <div id={"check"}>
+          <input type="checkbox" checked={this.state.tracking} onChange={this.toggleTracking} />{"Debugger enabled (may impact performance)"}
+        </div>
       </>
     );
   }
+}
+
+function toggle_tracking() {
+  this.setState({
+    tracking: !this.state.tracking
+  });
 }
 
 class MemoryViewer extends React.Component {
@@ -126,7 +143,6 @@ function mem_set_closure(viewer) {
   let cpuPause = CPU.prototype.pause;
   CPU.prototype.pause = function() {
     cpuPause.call(this);
-    //viewer.setTopScroll_(this.PC);
     viewer.forceUpdate();
   }
   let cpuUnpause = CPU.prototype.unpause;
@@ -137,13 +153,14 @@ function mem_set_closure(viewer) {
   let ogRunFrame = CPU.prototype.runFrame;
   CPU.prototype.runFrame = function() {
     ogRunFrame.call(this);
-    viewer.forceUpdate();
+    if(viewer.props.tracking) {
+      viewer.forceUpdate();
+    }
   }
   let cpuStep = CPU.prototype.step;
   CPU.prototype.step = function() {
     let cycles = cpuStep.call(this);
-    if(this.isPaused()) {
-      //viewer.setTopScroll_(this.PC);
+    if(this.isPaused() && viewer.props.tracking) {
       viewer.forceUpdate();
     }
     return cycles;
@@ -203,7 +220,9 @@ function cpu_set_closure(viewer) {
   let ogRunFrame = CPU.prototype.runFrame;
   CPU.prototype.runFrame = function() {
     ogRunFrame.call(this);
-    viewer.forceUpdate();
+    if(viewer.props.tracking) {
+      viewer.forceUpdate();
+    }
   }
   let ogPause = CPU.prototype.pause;
   CPU.prototype.pause = function() {
