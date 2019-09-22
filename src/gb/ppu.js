@@ -191,7 +191,7 @@ export class PPU {
     let shades = [this.ColorShade(0), this.ColorShade(1), this.ColorShade(2), this.ColorShade(3)];
     let prevShade = null;
     for(let i = 0; i < 160; i++) {
-      let shade = shades[this.Pixel(this.Reg[Registers.SCX] + i, this.Reg[Registers.SCY] + this.Reg[Registers.LY])];
+      let shade = shades[this.Pixel(i, this.Reg[Registers.LY])];
       if(shade === 0) {
         //Not creating a buffer for white because it's not really necessary.
         //White can just be used as a backdrop for the screen, then the other
@@ -346,11 +346,11 @@ export class PPU {
     bool ? this.LCDC = this.Reg[Registers.LCDC] | 0x02 : this.LCDC = this.Reg[Registers.LCDC] & ~0x02;
   }
 
-  get BGEnable() {
+  get BGWindowEnable() {
     return !!(this.Reg[Registers.LCDC] & 0x01);
   }
 
-  set BGEnable(bool) {
+  set BGWindowEnable(bool) {
     bool ? this.LCDC = this.Reg[Registers.LCDC] | 0x01 : this.LCDC = this.Reg[Registers.LCDC] & ~0x01;
   }
 
@@ -415,6 +415,15 @@ export class PPU {
     }
   }
 
+  get WindowMapStart() {
+    switch((this.Reg[Registers.LCDC] >>> 6) & 0x01) {
+      case 0:
+        return 0x1800;
+      case 1:
+        return 0x1C00;
+    }
+  }
+
   TileStart(num) {
     let offset = null;
     //all addresses are relative to the start of VRAM
@@ -432,9 +441,20 @@ export class PPU {
    * x and y are relative to the background map
    */
   Pixel(x, y) {
-    //Wrap around BG map if positions overflow
-    x = x % 256;
-    y = y % 256;
+    if(!this.BGWindowEnable) {
+      return 0;
+    }
+
+    //Determine which map to use for this pixel
+    let start = null;
+    if(this.WindowEnable && x >= this.Reg[Registers.WX] + 7 && y >= this.Reg[Registers.WY]) {
+      start = this.WindowMapStart;
+    } else {
+      start = this.BGMapStart;
+      //Wrap around BG map if positions overflow
+      x = (x + this.Reg[Registers.SCX]) % 256;
+      y = (y + this.Reg[Registers.SCY]) % 256;
+    }
 
     //Get the tile this pixel is located in relative to the bg map
     let mapX = Math.floor(x / 8);
@@ -442,7 +462,7 @@ export class PPU {
     let mapNum = 32 * mapY + mapX;
 
     //Get the starting address for the tile data using the current addressing mode
-    let tileNum = this.GB.M.get(0x8000 + this.BGMapStart + mapNum, 1, false);
+    let tileNum = this.GB.M.get(0x8000 + start + mapNum, 1, false);
     let tileStart = this.TileStart(tileNum);
 
     //Get the pixel relative to the start of the tile
