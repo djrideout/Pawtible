@@ -128,7 +128,7 @@ export class PPU {
     }
     //STAT IRQ is triggered on rising edge of this internal signal
     if(this.prev_ === false && bool === true) {
-      this.FlagLCDSTATRequest = true;
+      this.GB.CPU.FlagLCDSTATRequest = true;
     }
     this.prev_ = bool;
   }
