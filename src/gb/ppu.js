@@ -196,7 +196,7 @@ export class PPU {
         continue;
       }
       let b = this.rects_[shade];
-      if(b[b.length - 4] + b[b.length - 2] === i) {
+      if(b[b.length - 3] === this.Reg[Registers.LY] && b[b.length - 4] + b[b.length - 2] === i) {
         b[b.length - 2]++;
       } else {
         let pb = this.rects_[prevShade];
