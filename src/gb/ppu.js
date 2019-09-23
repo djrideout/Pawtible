@@ -46,6 +46,7 @@ export class PPU {
     this.dmaThreshold_ = 0;
     this.dmaRemain_ = 0;
     this.prev_ = null;
+    this.sprites_ = [];
     this.Buffer = [[], [], [], []]; //each index is a shade
     this.rects_ = [[], [], [], []]; //each index is a shade
       //format for each shade is [x, y, width, height, x, y, width, height, ...]
@@ -176,6 +177,7 @@ export class PPU {
   }
 
   oam_() {
+    this.getSprites_(); //up to 10 sprites to be displayed on this line
     this.ScreenMode = Modes.VRAM;
   }
 
@@ -188,10 +190,12 @@ export class PPU {
   }
 
   renderLine_() {
-    let shades = [this.ColorShade(0), this.ColorShade(1), this.ColorShade(2), this.ColorShade(3)];
+    let bgShades = [this.BGColorShade(0), this.BGColorShade(1), this.BGColorShade(2), this.BGColorShade(3)];
+    let obp0Shades = [this.OBP0ColorShade(0), this.OBP0ColorShade(1), this.OBP0ColorShade(2), this.OBP0ColorShade(3)];
+    let obp1Shades = [this.OBP1ColorShade(0), this.OBP1ColorShade(1), this.OBP1ColorShade(2), this.OBP1ColorShade(3)];
     let prevShade = null;
     for(let i = 0; i < 160; i++) {
-      let shade = shades[this.Pixel(i, this.Reg[Registers.LY])];
+      let shade = this.PixelShade(i, this.Reg[Registers.LY], bgShades, obp0Shades, obp1Shades);
       if(shade === 0) {
         //Not creating a buffer for white because it's not really necessary.
         //White can just be used as a backdrop for the screen, then the other
@@ -331,18 +335,14 @@ export class PPU {
   }
 
   get SpriteSize() {
-    return !!(this.Reg[Registers.LCDC] & 0x04);
+    return (this.Reg[Registers.LCDC] >>> 2) & 0x01;
   }
 
-  set SpriteSize(bool) {
-    bool ? this.LCDC = this.Reg[Registers.LCDC] | 0x04 : this.LCDC = this.Reg[Registers.LCDC] & ~0x04;
-  }
-
-  get SpritesEnable() {
+  get SpriteEnable() {
     return !!(this.Reg[Registers.LCDC] & 0x02);
   }
 
-  set SpritesEnable(bool) {
+  set SpriteEnable(bool) {
     bool ? this.LCDC = this.Reg[Registers.LCDC] | 0x02 : this.LCDC = this.Reg[Registers.LCDC] & ~0x02;
   }
 
@@ -424,7 +424,7 @@ export class PPU {
     }
   }
 
-  TileStart(num) {
+  BGTileStart(num) {
     let offset = null;
     //all addresses are relative to the start of VRAM
     switch((this.Reg[Registers.LCDC] >>> 4) & 0x01) {
@@ -437,37 +437,156 @@ export class PPU {
     }
   }
 
+  SpriteTileStart(num) {
+    //Sprite tile numbers are all unsigned
+    offset = num * 16;
+    return offset;
+  }
+
+  getSprites_() {
+    this.sprites_ = [];
+    let height = null;
+    switch(this.SpriteSize) {
+      case 0:
+        height = 8;
+        break;
+      case 1:
+        height = 16;
+        break;
+    }
+    for(let i = 0xFE00; i < 0xFE9F; i += 4) {
+      let sprite = this.GB.M.get(i, 4, false);
+      let flags = (sprite >>> (8 * 3)) & 0xFF;
+      let upperNumber = (sprite >>> (8 * 2)) & 0xFE;
+      let lowerNumber = (sprite >>> (8 * 2)) | 0x01;
+      let x = ((sprite >>> 8) & 0xFF) - 8; //0 is -8 on the plane
+      let y = (sprite & 0xFF) - 16; //0 is -16 on the plane
+      if(this.Reg[Registers.LY] >= y && this.Reg[Registers.LY] < y + height) {
+        this.sprites_.push(flags, upperNumber, lowerNumber, x, y);
+      }
+      if(this.sprites_.length === 50) {
+        //Only 10 sprites can be displayed on a line, where each sprite has 4 bytes of data
+        return;
+      }
+    }
+  }
+
   /**
-   * x and y are relative to the background map
+   * Use OAM and the BG/window map to determine the final color to be displayed at this pixel
    */
-  Pixel(x, y) {
+  PixelShade(x, y, bgShades, obp0Shades, obp1Shades) {
+    //Get the background/window color existing at this pixel
+    let bgcolor = this.BGPixelColor(x, y);
+
+    //Get the current height of the sprites
+    let height = null;
+    switch(this.SpriteSize) {
+      case 0:
+        height = 8;
+        break;
+      case 1:
+        height = 16;
+        break;
+    }
+
+    //Get the highest priority sprite at this pixel
+    let sprite = null;
+    for(let i = 0; i < this.sprites_.length; i += 5) {
+      if(x >= this.sprites_[i + 3] && x < this.sprites_[i + 3] + 8) {
+        switch(true) {
+          case sprite === null:
+          case sprite !== null && this.sprites_[i + 3] < this.sprites_[sprite + 3]:
+          case sprite !== null && this.sprites_[i + 3] === this.sprites_[sprite + 3] && this.sprites_[i + 1] < this.sprites_[sprite + 1]:
+            sprite = i;
+            break;
+          default:
+            sprite = null;
+            break;
+        }
+      }
+    }
+
+    if(sprite === null) {
+      //There is no sprite at this pixel
+      return bgShades[bgcolor];
+    }
+
+    //Unpack the flags for the sprite
+    let behindBG = (this.sprites_[sprite] >>> 7) & 0x01;
+    let yFlip = (this.sprites_[sprite] >>> 6) & 0x01;
+    let xFlip = (this.sprites_[sprite] >>> 5) & 0x01;
+    let palette = (this.sprites_[sprite] >>> 4) & 0x01;
+
+    //Get the tile start positions for the sprite
+    //(Tile numbers are always unsigned in sprites)
+    let upperStart = this.sprites_[sprite + 1] * 16;
+    let lowerStart = this.sprites_[sprite + 2] * 16;
+
+    //Using the flipped state of the sprite, find the corresponding pixel in the sprite that will map to this x and y on the screen.
+    let tileX = null;
+    if(xFlip) {
+      tileX = this.sprites_[sprite + 3] + 7 - x;
+    } else {
+      tileX = x - this.sprites_[sprite + 3];
+    }
+    let tileY = null
+    if(yFlip) {
+      tileY = this.sprites_[sprite + 4] + height - 1 - y;
+    } else {
+      tileY = y - this.sprites_[sprite + 4];
+    }
+
+    //Get the tile data for this line
+    let lineByte0 = this.GB.M.get(0x8000 + upperStart + tileY * 2, 1, false);
+    let lineByte1 = this.GB.M.get(0x8000 + upperStart + tileY * 2 + 1, 1, false);
+
+    //Get the color for this pixel
+    let shift = 8 - tileX - 1;
+    let ms = (lineByte1 & (0x01 << shift)) >> shift;
+    let ls = (lineByte0 & (0x01 << shift)) >> shift;
+    let color = (ms << 1) | ls;
+
+    if(color === 0) {
+      return bgShades[bgcolor];
+    } else if(palette === 0) {
+      return obp0Shades[color];
+    } else if(palette === 1) {
+      return obp1Shades[color];
+    }
+  }
+
+  BGPixelColor(x, y) {
     if(!this.BGWindowEnable) {
       return 0;
     }
 
-    //Determine which map to use for this pixel
+    //Determine which map to use for this pixel and calculate the offset from that map
     let start = null;
+    let offsetX = null;
+    let offsetY = null;
     if(this.WindowEnable && x >= this.Reg[Registers.WX] + 7 && y >= this.Reg[Registers.WY]) {
       start = this.WindowMapStart;
+      offsetX = x;
+      offsetY = y;
     } else {
       start = this.BGMapStart;
       //Wrap around BG map if positions overflow
-      x = (x + this.Reg[Registers.SCX]) % 256;
-      y = (y + this.Reg[Registers.SCY]) % 256;
+      offsetX = (x + this.Reg[Registers.SCX]) % 256;
+      offsetY = (y + this.Reg[Registers.SCY]) % 256;
     }
 
-    //Get the tile this pixel is located in relative to the bg map
-    let mapX = Math.floor(x / 8);
-    let mapY = Math.floor(y / 8);
+    //Get the tile this pixel is located in relative to the map
+    let mapX = Math.floor(offsetX / 8);
+    let mapY = Math.floor(offsetY / 8);
     let mapNum = 32 * mapY + mapX;
 
     //Get the starting address for the tile data using the current addressing mode
     let tileNum = this.GB.M.get(0x8000 + start + mapNum, 1, false);
-    let tileStart = this.TileStart(tileNum);
+    let tileStart = this.BGTileStart(tileNum);
 
     //Get the pixel relative to the start of the tile
-    let tileX = x - mapX * 8;
-    let tileY = y - mapY * 8;
+    let tileX = offsetX - mapX * 8;
+    let tileY = offsetY - mapY * 8;
 
     //Get the relevant tile data
     let lineByte0 = this.GB.M.get(0x8000 + tileStart + tileY * 2, 1, false);
@@ -482,7 +601,7 @@ export class PPU {
     return color;
   }
 
-  ColorShade(color) {
+  BGColorShade(color) {
     switch(color) {
       case 0:
         return this.Reg[Registers.BGP] & 0x03;
@@ -492,6 +611,32 @@ export class PPU {
         return (this.Reg[Registers.BGP] & 0x30) >>> 4;
       case 3:
         return (this.Reg[Registers.BGP] & 0xC0) >>> 6;
+    }
+  }
+
+  OBP0ColorShade(color) {
+    switch(color) {
+      case 0:
+        return this.Reg[Registers.OBP0] & 0x03; //unused, 0 is transparent on sprites
+      case 1:
+        return (this.Reg[Registers.OBP0] & 0x0C) >>> 2;
+      case 2:
+        return (this.Reg[Registers.OBP0] & 0x30) >>> 4;
+      case 3:
+        return (this.Reg[Registers.OBP0] & 0xC0) >>> 6;
+    }
+  }
+
+  OBP1ColorShade(color) {
+    switch(color) {
+      case 0:
+        return this.Reg[Registers.OBP1] & 0x03; //unused, 0 is transparent on sprites
+      case 1:
+        return (this.Reg[Registers.OBP1] & 0x0C) >>> 2;
+      case 2:
+        return (this.Reg[Registers.OBP1] & 0x30) >>> 4;
+      case 3:
+        return (this.Reg[Registers.OBP1] & 0xC0) >>> 6;
     }
   }
 }
