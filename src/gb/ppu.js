@@ -457,14 +457,13 @@ export class PPU {
     for(let i = 0xFE00; i < 0xFE9F; i += 4) {
       let sprite = this.GB.M.get(i, 4, false);
       let flags = (sprite >>> (8 * 3)) & 0xFF;
-      let upperNumber = (sprite >>> (8 * 2)) & 0xFE;
-      let lowerNumber = (sprite >>> (8 * 2)) | 0x01;
+      let number = (sprite >>> (8 * 2)) & 0xFF;
       let x = ((sprite >>> 8) & 0xFF) - 8; //0 is -8 on the plane
       let y = (sprite & 0xFF) - 16; //0 is -16 on the plane
       if(this.Reg[Registers.LY] >= y && this.Reg[Registers.LY] < y + height) {
-        this.sprites_.push(flags, upperNumber, lowerNumber, x, y);
+        this.sprites_.push(flags, number, x, y);
       }
-      if(this.sprites_.length === 50) {
+      if(this.sprites_.length === 40) {
         //Only 10 sprites can be displayed on a line, where each sprite has 4 bytes of data
         return;
       }
@@ -491,12 +490,12 @@ export class PPU {
 
     //Get the highest priority sprite at this pixel
     let sprite = null;
-    for(let i = 0; i < this.sprites_.length; i += 5) {
-      if(x >= this.sprites_[i + 3] && x < this.sprites_[i + 3] + 8) {
+    for(let i = 0; i < this.sprites_.length; i += 4) {
+      if(x >= this.sprites_[i + 2] && x < this.sprites_[i + 2] + 8) {
         switch(true) {
           case sprite === null:
-          case sprite !== null && this.sprites_[i + 3] < this.sprites_[sprite + 3]:
-          case sprite !== null && this.sprites_[i + 3] === this.sprites_[sprite + 3] && this.sprites_[i + 1] < this.sprites_[sprite + 1]:
+          case sprite !== null && this.sprites_[i + 2] < this.sprites_[sprite + 2]:
+          case sprite !== null && this.sprites_[i + 2] === this.sprites_[sprite + 2] && this.sprites_[i + 1] < this.sprites_[sprite + 1]:
             sprite = i;
             break;
           default:
@@ -525,15 +524,15 @@ export class PPU {
     //Using the flipped state of the sprite, find the corresponding pixel in the sprite that will map to this x and y on the screen.
     let tileX = null;
     if(xFlip) {
-      tileX = this.sprites_[sprite + 3] + 7 - x;
+      tileX = this.sprites_[sprite + 2] + 7 - x;
     } else {
-      tileX = x - this.sprites_[sprite + 3];
+      tileX = x - this.sprites_[sprite + 2];
     }
     let tileY = null
     if(yFlip) {
-      tileY = this.sprites_[sprite + 4] + height - 1 - y;
+      tileY = this.sprites_[sprite + 3] + height - 1 - y;
     } else {
-      tileY = y - this.sprites_[sprite + 4];
+      tileY = y - this.sprites_[sprite + 3];
     }
 
     //Get the tile data for this line
