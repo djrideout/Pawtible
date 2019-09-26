@@ -233,7 +233,7 @@ export class PPU {
 
   set LCDC(val) {
     this.Reg[Registers.LCDC] = val;
-    switch(val & 0x01) {
+    switch((val >>> 2) & 0x01) {
       case 0:
         this.spriteSize_ = 8;
         break;
