@@ -1,4 +1,4 @@
-import testrompath from "../public/rom/cant_sue_me/tetris.gb";
+import testrompath from "../public/rom/cant_sue_me/mario.gb";
 import { GameBoy } from "./gb";
 import { Site } from "./view/react/site";
 import * as React from "react";
