@@ -46,7 +46,7 @@ export class GameController {
 function on_key_down(e) {
   e.preventDefault();
   e.stopPropagation();
-  let input = Keymap[e.nativeEvent.code];
+  let input = Keymap[e.code];
   if(input !== undefined) {
     this.next_[input] = true;
   }
@@ -55,7 +55,7 @@ function on_key_down(e) {
 function on_key_up(e) {
   e.preventDefault();
   e.stopPropagation();
-  let input = Keymap[e.nativeEvent.code];
+  let input = Keymap[e.code];
   if(input !== undefined) {
     this.next_[input] = false;
   }
