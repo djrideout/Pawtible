@@ -3,6 +3,7 @@ import { CartridgeFactory } from "./mem/block/cart/factory";
 import { CPU } from "./cpu";
 import { PPU } from "./ppu";
 import { Timer } from "./timer";
+import { Joypad } from "./joypad";
 import { Cartridge } from "./mem/block/cart";
 
 export class GameBoy {
@@ -12,6 +13,7 @@ export class GameBoy {
     this.CPU = new CPU(this);
     this.PPU = new PPU(this);
     this.Timer = new Timer(this);
+    this.Joypad = new Joypad(this);
     this.reset();
   }
 

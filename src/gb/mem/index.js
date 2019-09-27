@@ -13,6 +13,8 @@ export class Memory {
         val |= this.GB.Cart.rom[addr + i + 0x4000 * (this.GB.Cart.romBankNum - 1)] << (8 * i);
       } else if(addr + i >= 0xE000 && addr + i <= 0xFDFF) { //echo ram
         val |= this.mem[addr + i - 0x2000] << (8 * i);
+      } else if(addr + i === 0xFF00) {
+        val |= this.GB.Joypad.Regs[this.GB.Joypad.Mode];
       } else if(addr + i === 0xFF04) {
         val |= this.GB.Timer.DIV << (8 * i);
       } else if(addr + i === 0xFF05) {
@@ -40,7 +42,7 @@ export class Memory {
       } else if(addr + i >= 0xE000 && addr + i <= 0xFDFF) { //echo ram
         this.mem[addr + i - 0x2000] = val >> (8 * i);
       } else if(addr + i === 0xFF00) {
-        this.mem[addr + i] = (this.mem[addr + i] & 0xCF) | ((val >> (8 * i)) & ~0xCF);
+        this.GB.Joypad.Reg = val >> (8 * i);
       } else if(addr + i === 0xFF04) {
         this.GB.Timer.DIV = val >> (8 * i);
       } else if(addr + i === 0xFF05) {
