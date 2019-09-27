@@ -2,8 +2,9 @@ const HexColors = ["#FFFFFF", "#C7C7C7", "#6E6E6E", "#000000"]; //colours for ea
   //white, light grey, dark grey, black
 
 export class Screen {
-  constructor(canvas, gameBoy) {
+  constructor(canvas, controller, gameBoy) {
     this.canvas_ = canvas;
+    this.controller_ = controller;
     this.context_ = this.canvas_.getContext('2d');
     this.GB = gameBoy;
     this.onUpdate_ = on_update.bind(this);
@@ -19,6 +20,7 @@ export class Screen {
 }
 
 function on_update(now) {
+  this.controller_.update();
   this.GB.CPU.runFrame();
   let b = this.GB.PPU.Buffer;
   this.context_.clearRect(0, 0, this.canvas_.width, this.canvas_.height);
