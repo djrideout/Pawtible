@@ -1,13 +1,17 @@
+import { GameController } from "./controller";
+
 const HexColors = ["#FFFFFF", "#C7C7C7", "#6E6E6E", "#000000"]; //colours for each shade
   //white, light grey, dark grey, black
 
 export class Screen {
-  constructor(canvas, controller, gameBoy) {
+  constructor(canvas, gameBoy) {
     this.canvas_ = canvas;
-    this.controller_ = controller;
+    this.controller_ = new GameController(gameBoy);
     this.context_ = this.canvas_.getContext('2d');
     this.GB = gameBoy;
     this.onUpdate_ = on_update.bind(this);
+    this.canvas_.addEventListener('keydown', this.controller_.onKeyDown);
+    this.canvas_.addEventListener('keyup', this.controller_.onKeyUp);
   }
 
   run() {
