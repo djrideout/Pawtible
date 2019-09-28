@@ -72,7 +72,7 @@ class MemoryViewer extends React.Component {
 
   render() {
     let output = [];
-    output.push(<span key={"top-row"} className={"mem-label"}>{"        00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f"}</span>, <br key={"top-row-br"} />);
+    output.push(<span key={"top-row"} className={"mem-label"}>{"        00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F"}</span>, <br key={"top-row-br"} />);
     for(let i = this.top; i <= this.top + (this.rows << 4); i += 0x10) {
       let label = <span key={`${i - this.top}-label`} className={"mem-label"}>{`0x${i.toString(16).toUpperCase().padStart(4, "0")}  `}</span>;
       output.push(label);
