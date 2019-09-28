@@ -181,7 +181,10 @@ export class PPU {
   }
 
   oam_() {
-    this.getSprites_(); //up to 10 sprites to be displayed on this line
+    this.sprites_ = [];
+    if(this.SpriteEnable) {
+      this.getSprites_(); //up to 10 sprites to be displayed on this line
+    }
     this.ScreenMode = Modes.VRAM;
   }
 
@@ -452,7 +455,6 @@ export class PPU {
   }
 
   getSprites_() {
-    this.sprites_ = [];
     for(let i = 0xFE00; i < 0xFE9F; i += 4) {
       let sprite = this.GB.M.get(i, 4, false);
       let flags = (sprite >>> (8 * 3)) & 0xFF;
