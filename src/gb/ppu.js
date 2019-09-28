@@ -555,10 +555,10 @@ export class PPU {
     let start = null;
     let offsetX = null;
     let offsetY = null;
-    if(this.WindowEnable && x >= this.Reg[Registers.WX] + 7 && this.Reg[Registers.LY] >= this.Reg[Registers.WY]) {
+    if(this.WindowEnable && x >= this.Reg[Registers.WX] - 7 && this.Reg[Registers.LY] >= this.Reg[Registers.WY]) {
       start = this.WindowMapStart;
-      offsetX = x;
-      offsetY = this.Reg[Registers.LY];
+      offsetX = x - (this.Reg[Registers.WX] - 7);
+      offsetY = this.Reg[Registers.LY] - this.Reg[Registers.WY];
     } else {
       start = this.BGMapStart;
       //Wrap around BG map if positions overflow
