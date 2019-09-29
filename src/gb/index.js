@@ -4,6 +4,7 @@ import { CPU } from "./cpu";
 import { PPU } from "./ppu";
 import { Timer } from "./timer";
 import { Joypad } from "./joypad";
+import { APU } from "./apu";
 import { Cartridge } from "./mem/block/cart";
 
 export class GameBoy {
@@ -14,6 +15,7 @@ export class GameBoy {
     this.PPU = new PPU(this);
     this.Timer = new Timer(this);
     this.Joypad = new Joypad(this);
+    this.APU = new APU(this);
     this.reset();
   }
 
