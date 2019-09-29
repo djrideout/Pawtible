@@ -1,6 +1,6 @@
 import { GameController } from "./controller";
 
-const HexColors = ["#FFFFFF", "#C7C7C7", "#6E6E6E", "#000000"]; //colours for each shade
+const HexColors = ["#FFFFFF", "#ADD8E6", "#D1EAF1", "#389ABA"]; //colours for each shade
   //white, light grey, dark grey, black
 
 export class Screen {
