@@ -1,12 +1,9 @@
 import { Canvas } from "./canvas";
 import { GBViewer } from "./viewer";
+import { ROMSelector } from "./selector";
 import * as React from "react";
 
 export class Site extends React.Component {
-  componentDidMount() {
-    this.props.gameBoy.load(this.props.testROM);
-  }
-
   render() {
     return (
       <>
@@ -14,6 +11,7 @@ export class Site extends React.Component {
           <Canvas gameBoy={this.props.gameBoy} />
         </div>
         <GBViewer gameBoy={this.props.gameBoy} />
+        <ROMSelector gameBoy={this.props.gameBoy} roms={this.props.roms} />
       </>
     );
   }
