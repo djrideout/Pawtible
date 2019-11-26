@@ -3,6 +3,7 @@ import instr_timing from "../public/rom/instr_timing/instr_timing.gb";
 import mem_timing from "../public/rom/mem_timing-2/mem_timing.gb";
 import mona from "../public/rom/homebrew/mona.gb";
 import retroid from "../public/rom/homebrew/retroid.gb";
+import pocket from "../public/rom/homebrew/pocket.gb";
 import { GameBoy } from "./gb";
 import { Site } from "./view/react/site";
 import * as React from "react";
@@ -33,6 +34,11 @@ let romData = [
     name: "retroid",
     path: retroid,
     rom: null
+  },
+  {
+    name: "pocket",
+    path: pocket,
+    rom: null
   }
 ];
 let load = path => {
@@ -60,7 +66,7 @@ Promise.all(proms).then(bins => {
   let mount = document.querySelector("#mount");
   let site = React.createElement(Site, {
     gameBoy,
-    testROM: roms[4].rom
+    roms
   });
   ReactDOM.render(site, mount);
   window.roms = roms;
