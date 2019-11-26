@@ -25,6 +25,10 @@ export const Registers = {
 export class APU {
   constructor(gameBoy) {
     this.GB = gameBoy;
+    this.reset();
+  }
+
+  reset() {
     this.Reg = new Uint8Array(21);
   }
 

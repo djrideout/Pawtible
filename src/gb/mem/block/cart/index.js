@@ -55,6 +55,10 @@ RAMSizeMap[0x05] = 64 * 1024;
 export class Cartridge {
   constructor(byteArr = new Uint8Array(0x8000)) {
     this.rom = byteArr;
+    this.reset();
+  }
+
+  reset() {
     this.romBankNum = 1;
   }
 

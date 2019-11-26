@@ -60,8 +60,9 @@ Promise.all(proms).then(bins => {
   let mount = document.querySelector("#mount");
   let site = React.createElement(Site, {
     gameBoy,
-    testROM: roms[0].rom
+    testROM: roms[4].rom
   });
   ReactDOM.render(site, mount);
+  window.roms = roms;
   window.gb = gameBoy;
 });
