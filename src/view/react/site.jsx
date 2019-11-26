@@ -12,6 +12,17 @@ export class Site extends React.Component {
         </div>
         <GBViewer gameBoy={this.props.gameBoy} />
         <ROMSelector gameBoy={this.props.gameBoy} roms={this.props.roms} />
+        <div id={"controls"}>
+          {"Controls:"}<br />
+          {"Up: W"}<br />
+          {"Left: A"}<br />
+          {"Down: S"}<br />
+          {"Right: D"}<br />
+          {"Select: G"}<br />
+          {"Start: H"}<br />
+          {"B: K"}<br />
+          {"A: L"}<br />
+        </div>
       </>
     );
   }
