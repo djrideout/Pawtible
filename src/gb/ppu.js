@@ -32,7 +32,11 @@ export const Registers = {
 export class PPU {
   constructor(gameBoy) {
     this.GB = gameBoy;
-    /**
+    this.reset();
+  }
+
+  reset() {
+        /**
      * Consider these to be immutable.
      * Modifying some of these directly will have unintended consequences,
      * as some have special functionality when written to.
@@ -73,11 +77,6 @@ export class PPU {
       //with the same shade and width that can be joined to.
       //
       //this is only meant for internal use, when generating the frame buffer
-      
-    this.reset();
-  }
-
-  reset() {
     this.Reg[Registers.LCDC] = 0x91;
     this.Reg[Registers.SCY] = 0x00;
     this.Reg[Registers.SCX] = 0x00;

@@ -29,25 +29,24 @@ const CYCLES_PER_FRAME = 69905; //approx. 4194304Hz/60fps
 
 export class CPU {
   constructor(gameBoy) {
-    this.halted_ = false;
-    this.paused_ = true;
-    this.FlagIME = false;
-    this.count_ = 0;
-    this.breakpoints_ = new Map();
     this.GB = gameBoy;
-    this.Reg8 = new Uint8Array(8);
-    this.Reg16 = new Uint16Array(6);
+    this.paused_ = true;
+    this.breakpoints_ = new Map();
     this.reset();
   }
 
   reset() {
+    this.halted_ = false;
+    this.FlagIME = false;
+    this.count_ = 0;
+    this.Reg8 = new Uint8Array(8);
+    this.Reg16 = new Uint16Array(6);
+    this.Reg16[Registers16.PC] = 0x0100;
+    this.Reg16[Registers16.SP] = 0xFFFE;
     this.AF = 0x01B0;
     this.BC = 0x0013;
     this.DE = 0x00D8;
     this.HL = 0x014D;
-    this.Reg16[Registers16.PC] = 0x0100;
-    this.Reg16[Registers16.SP] = 0xFFFE;
-    this.FlagIME = false;
   }
 
   pause() {

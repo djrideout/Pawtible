@@ -20,6 +20,7 @@ export class GameBoy {
   }
 
   load(byteArr) {
+    this.reset();
     this.Cart = CartridgeFactory.create(byteArr);
   }
 
@@ -27,7 +28,10 @@ export class GameBoy {
   reset() {
     this.CPU.reset();
     this.PPU.reset();
+    this.APU.reset();
     this.Timer.reset();
+    this.Cart.reset();
+    this.M.reset();
     //interrupt
     this.M.set(0xFFFF, 0x00, 1, false);
     //io
