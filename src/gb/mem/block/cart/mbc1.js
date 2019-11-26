@@ -4,10 +4,6 @@ import { Cartridge } from ".";
  * EXTRAM not implemented yet
  */
 export class MBC1 extends Cartridge {
-  constructor(byteArr) {
-    super(byteArr);
-  }
-
   set(addr, val) {
     if(addr >= 0x2000 && addr <= 0x3FFF) {
       if(val === 0x00) {

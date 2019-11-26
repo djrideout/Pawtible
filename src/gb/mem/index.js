@@ -3,6 +3,10 @@ import { Registers as APURegisters } from "../apu";
 export class Memory {
   constructor(gameBoy) {
     this.GB = gameBoy;
+    this.reset();
+  }
+
+  reset() {
     this.mem = new Uint8Array(0x10000);
   }
 
