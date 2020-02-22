@@ -18,10 +18,13 @@
   },
   "homepage": "https://github.com/DJRideout/Pawtible#readme",
   "devDependencies": {
+    "@babel/core": "^7.8.4",
+    "@babel/plugin-transform-runtime": "^7.8.3",
     "less": "^3.10.3",
     "parcel": "^1.12.3"
   },
   "dependencies": {
+    "@babel/runtime": "^7.8.4",
     "react": "^16.9.0",
     "react-dom": "^16.9.0"
   }
