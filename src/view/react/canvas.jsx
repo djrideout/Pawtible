@@ -1,21 +1,14 @@
 import { Screen } from "../screen";
-import * as React from "react";
+import React, { useEffect } from "react";
 
-export class Canvas extends React.Component {
-  constructor(props) {
-    super(props);
-    this.canvas_ = null;
-    this.screen_ = null;
-  }
+export function Canvas(props) {
+  let canvas = null;
 
-  componentDidMount() {
-    this.screen_ = new Screen(this.canvas_, this.props.gameBoy);
-    this.screen_.run();
-  }
+  useEffect(() => {
+    new Screen(canvas, props.gameBoy).run();
+  }, []);
 
-  render() {
-    return (
-      <canvas id={"screen"} width={160} height={144} ref={ref => this.canvas_ = ref} tabIndex={1} />
-    );
-  }
+  return (
+    <canvas id={"screen"} width={160} height={144} ref={ref => canvas = ref} tabIndex={1} />
+  );
 }

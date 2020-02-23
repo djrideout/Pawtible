@@ -1,39 +1,30 @@
-import * as React from "react";
+import React, { useState, useEffect } from "react";
 
-export class ROMSelector extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      index: 0
-    };
-  }
+export function ROMSelector(props) {
+  const [index, setIndex] = useState(0);
 
-  selectROM(index) {
-    this.setState({
-      index
-    });
-  }
+  const selectROM = (e) => {
+    setIndex(parseInt(e.target.value));
+  };
 
-  loadSelected() {
-    this.props.gameBoy.load(this.props.roms[this.state.index].rom);
-  }
+  const loadSelected = () => {
+    props.gameBoy.load(props.roms[index].rom);
+  };
 
-  componentDidMount() {
-    this.loadSelected();
-  }
+  useEffect(() => {
+    loadSelected();
+  }, []);
 
-  render() {
-    let options = [];
-    for(let i = 0; i < this.props.roms.length; i++) {
-      options.push(<option key={this.props.roms[i].name} value={i}>{this.props.roms[i].name}</option>);
-    }
-    return (
-      <div id="selector">
-          <select onChange={e => this.selectROM(parseInt(e.target.value))}>
-            {options}
-          </select>
-          <button onClick={() => this.loadSelected()}>Load</button>
-      </div>
-    );
+  let options = [];
+  for(let i = 0; i < props.roms.length; i++) {
+    options.push(<option key={props.roms[i].name} value={i}>{props.roms[i].name}</option>);
   }
+  return (
+    <div id="selector">
+        <select onChange={selectROM}>
+          {options}
+        </select>
+        <button onClick={loadSelected}>Load</button>
+    </div>
+  );
 }
