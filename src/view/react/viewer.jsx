@@ -44,10 +44,6 @@ class MemoryViewer extends React.Component {
     return this.state.top;
   }
 
-  get changed() {
-    return this.state.changed;
-  }
-
   get rows() {
     return 20;
   }
@@ -154,23 +150,11 @@ function mem_set_closure(viewer) {
 class RegisterViewer extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      changed: null,
-      flags: {}
-    };
     cpu_set_closure(this);
   }
 
   get GB() {
     return this.props.gameBoy;
-  }
-
-  get changed() {
-    return this.state.changed;
-  }
-
-  get flags() {
-    return this.state.flags;
   }
 
   render() {
