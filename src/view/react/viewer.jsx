@@ -1,39 +1,25 @@
 import { CPU, Registers8, Registers16 } from "../../gb/cpu";
-import React from "react";
+import React, { useState } from "react";
 
-export class GBViewer extends React.Component {
-  constructor(props) {
-    super(props);
-    this.toggleTracking = toggle_tracking.bind(this);
-    this.state = {
-      tracking: true
-    };
-  }
+export function GBViewer(props) {
+  const [tracking, setTracking] = useState(true);
 
-  get GB() {
-    return this.props.gameBoy;
-  }
+  const toggleTracking = () => {
+    setTracking(!tracking);
+  };
 
-  render() {
-    return (
-      <>
-        <div className={"wrapper"} id={"viewer-left"}>
-          <MemoryViewer gameBoy={this.GB} tracking={this.state.tracking} />
-          <RegisterViewer gameBoy={this.GB} tracking={this.state.tracking} />
-        </div>
-        <BreakpointViewer gameBoy={this.GB} />
-        <div id={"check"}>
-          <input type="checkbox" checked={this.state.tracking} onChange={this.toggleTracking} />{"Debugger enabled (may impact performance)"}
-        </div>
-      </>
-    );
-  }
-}
-
-function toggle_tracking() {
-  this.setState({
-    tracking: !this.state.tracking
-  });
+  return (
+    <>
+      <div className={"wrapper"} id={"viewer-left"}>
+        <MemoryViewer gameBoy={props.gameBoy} tracking={tracking} />
+        <RegisterViewer gameBoy={props.gameBoy} tracking={tracking} />
+      </div>
+      <BreakpointViewer gameBoy={props.gameBoy} />
+      <div id={"check"}>
+        <input type="checkbox" checked={tracking} onChange={toggleTracking} />{"Debugger enabled (may impact performance)"}
+      </div>
+    </>
+  );
 }
 
 class MemoryViewer extends React.Component {
@@ -136,8 +122,6 @@ function on_scroll(e) {
   let row = Math.ceil(((this.GB.M.mem.length - 1) >> 4) * r) << 4;
   this.setTop_(row);
 }
-
-window.testRomString = "";
 
 function mem_set_closure(viewer) {
   let cpuPause = CPU.prototype.pause;
