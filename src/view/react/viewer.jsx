@@ -1,5 +1,5 @@
 import { CPU, Registers8, Registers16 } from "../../gb/cpu";
-import * as React from "react";
+import React from "react";
 
 export class GBViewer extends React.Component {
   constructor(props) {

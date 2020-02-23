@@ -6,8 +6,8 @@ import retroid from "../public/rom/homebrew/retroid.gb";
 import pocket from "../public/rom/homebrew/pocket.gb";
 import { GameBoy } from "./gb";
 import { Site } from "./view/react/site";
-import * as React from "react";
-import * as ReactDOM from "react-dom";
+import React from "react";
+import ReactDOM from "react-dom";
 
 let roms = [
   {
