@@ -21,7 +21,7 @@
     return this.counter_ >>> 8;
   }
 
-  set DIV() {
+  set DIV(set) {
     this.counter_ = 0x0000;
     this.onCounterChange_();
   }
