@@ -36,7 +36,7 @@ export class PPU {
   }
 
   reset() {
-        /**
+    /**
      * Consider these to be immutable.
      * Modifying some of these directly will have unintended consequences,
      * as some have special functionality when written to.
