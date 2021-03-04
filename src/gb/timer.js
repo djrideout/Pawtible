@@ -21,7 +21,7 @@
     return this.counter_ >>> 8;
   }
 
-  set DIV(val) {
+  set DIV() {
     this.counter_ = 0x0000;
     this.onCounterChange_();
   }
@@ -52,9 +52,9 @@
   }
 
   step(cycles) {
-    while(cycles > 0) {
+    while (cycles > 0) {
       this.interruptThreshold_--;
-      if(this.interruptThreshold_ === 0) {
+      if (this.interruptThreshold_ === 0) {
         this.GB.CPU.FlagTimerRequest = true;
       }
       this.counter_ = (this.counter_ + 1) & 0xFFFF;
@@ -66,7 +66,7 @@
   onCounterChange_() {
     //Multiplexer to select bit from counter using TAC
     let bit = null;
-    switch(this.TAC & 0x03) {
+    switch (this.TAC & 0x03) {
       case 0b00:
         bit = (this.counter_ >>> 9) & 0x01;
         break;
@@ -84,19 +84,15 @@
     let enabled = (this.TAC >> 2) & 0x01;
     let input = bit & enabled;
     //Determine whether timer should increment using falling edge detector
-    if(this.prev_ === 1 && input === 0) {
-      this.incTIMA_();
+    if (this.prev_ === 1 && input === 0) {
+      if (this.TIMA === 0xFF) {
+        //Delay interrupt 4 cycles
+        this.interruptThreshold_ = 4;
+        this.TIMA = this.TMA;
+      } else {
+        this.TIMA++;
+      }
     }
     this.prev_ = input;
-  }
-
-  incTIMA_() {
-    if(this.TIMA === 0xFF) {
-      //Delay interrupt 4 cycles
-      this.interruptThreshold_ = 4;
-      this.TIMA = this.TMA;
-    } else {
-      this.TIMA++;
-    }
   }
 }
