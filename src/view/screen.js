@@ -1,8 +1,5 @@
 import { GameController } from "./controller";
 
-const HexColors = ["#FFFFFF", "#A9A9A9", "#686868", "#000000"]; //colours for each shade
-  //white, light grey, dark grey, black
-
 export class Screen {
   constructor(canvas, gameBoy) {
     this.canvas_ = canvas;
@@ -12,6 +9,11 @@ export class Screen {
     this.onUpdate_ = on_update.bind(this);
     this.canvas_.addEventListener('keydown', this.controller_.onKeyDown);
     this.canvas_.addEventListener('keyup', this.controller_.onKeyUp);
+    this.colors_ = ["#FFFFFF", "#A9A9A9", "#686868", "#000000"].map((b) => {
+      this.context_.fillStyle = b;
+      this.context_.fillRect(0, 0, this.canvas_.width, this.canvas_.height);
+      return this.context_.getImageData(0, 0, 1, 1).data;
+    });
   }
 
   run() {
@@ -23,19 +25,25 @@ export class Screen {
   }
 }
 
-function on_update(now) {
+function on_update() {
   this.controller_.update();
   this.GB.CPU.runFrame();
   let b = this.GB.PPU.Buffer;
-  this.context_.clearRect(0, 0, this.canvas_.width, this.canvas_.height);
-  for(let i = 1; i < b.length; i++) {
-    let shade = b[i];
-    this.context_.beginPath();
-    this.context_.fillStyle = HexColors[i];
-    for(let j = 0; j < shade.length; j += 4) {
-      this.context_.rect(shade[j], shade[j + 1], shade[j + 2], shade[j + 3]);
+  //Fill with basic color
+  this.context_.fillStyle = "black";
+  this.context_.fillRect(0, 0, this.canvas_.width, this.canvas_.height);
+  //Prepare ImageData
+  let frame = new ImageData(this.canvas_.width, this.canvas_.height);
+  for (let i = 0; i < b.length; i++) {
+    let dataPoint = b[i];
+    //Skip base color
+    if (dataPoint == 0) {
+      continue;
     }
-    this.context_.fill();
+    //Set color from palette
+    frame.data.set(this.colors_[dataPoint], i * 4);
   }
+  //Put ImageData on canvas
+  this.context_.putImageData(frame, 0, 0);
   this.update();
 }
