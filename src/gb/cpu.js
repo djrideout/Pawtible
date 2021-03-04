@@ -76,10 +76,6 @@ export class CPU {
     this.breakpoints_.set(addr, enabled);
   }
 
-  isBreakpointEnabled(addr) {
-    return !!this.breakpoints_.get(addr);
-  }
-
   removeBreakpoint(addr) {
     this.breakpoints_.delete(addr);
   }
@@ -91,7 +87,7 @@ export class CPU {
     this.count_ = 0;
     while (this.count_ < CYCLES_PER_FRAME) {
       this.step();
-      if (this.isBreakpointEnabled(this.Reg16[Registers16.PC])) {
+      if (!!this.breakpoints_.get(this.Reg16[Registers16.PC])) {
         this.pause();
         return;
       }
