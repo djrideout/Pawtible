@@ -55,28 +55,8 @@ export class PPU {
     this.obp0Shades_ = [0, 0, 0, 0];
     this.obp1Shades_ = [0, 0, 0, 0];
     this.spriteSize_ = 8;
-    this.Buffer = [[], [], [], []]; //each index is a shade
-    this.rects_ = [[], [], [], []]; //each index is a shade
-      //format for each shade is [x, y, width, height, x, y, width, height, ...]
-    this.cache_ = [];
-      //each index has 3 slots of 8 bits and one slot of 2 bits that each mean
-      //
-      // 3  2        1        0
-      //|xx|xxxxxxxx|xxxxxxxx|xxxxxxxx|
-      //
-      // 3. shade
-      // 2. left x position
-      // 1. bottom y position
-      // 0. width
-      //
-      //and value is the starting index in the main shade array if an existing rectangle meets that description.
-      //if it doesn't exist, it will either be undefined or null.
-      //
-      //this way, when finishing a new rectangle on the current line,
-      //we can instantly check if there is an existing rectangle above it
-      //with the same shade and width that can be joined to.
-      //
-      //this is only meant for internal use, when generating the frame buffer
+    this.Buffer = [];
+    this.pixels_ = [];
     this.Reg[Registers.LCDC] = 0x91;
     this.Reg[Registers.SCY] = 0x00;
     this.Reg[Registers.SCX] = 0x00;
@@ -167,15 +147,8 @@ export class PPU {
     if(this.Reg[Registers.LY] == 154) {
       this.ScreenMode = Modes.OAM;
       this.Line = 0;
-      this.Buffer[0] = this.rects_[0];
-      this.Buffer[1] = this.rects_[1];
-      this.Buffer[2] = this.rects_[2];
-      this.Buffer[3] = this.rects_[3];
-      this.rects_[0] = [];
-      this.rects_[1] = [];
-      this.rects_[2] = [];
-      this.rects_[3] = [];
-      this.cache_ = [];
+      this.Buffer = this.pixels_;
+      this.pixels_ = [];
     }
   }
 
@@ -196,40 +169,9 @@ export class PPU {
   }
 
   renderLine_() {
-    let prevShade = null;
     for(let i = 0; i < 160; i++) {
       let shade = this.PixelShade(i);
-      if(shade === 0) {
-        //Not creating a buffer for white because it's not really necessary.
-        //White can just be used as a backdrop for the screen, then the other
-        //shades can be drawn on top of it.
-        continue;
-      }
-      let b = this.rects_[shade];
-      if(b[b.length - 3] === this.Reg[Registers.LY] && b[b.length - 4] + b[b.length - 2] === i) {
-        b[b.length - 2]++;
-      } else {
-        let pb = this.rects_[prevShade];
-        if(pb) {
-          //the previous rectangle has ended. see if it can be joined to a potential rectangle above it
-          let oldCacheIndex = (prevShade << 24) | ((pb[pb.length - 4] & 0xFF) << 16) | (((this.Reg[Registers.LY] - 1) & 0xFF) << 8) | (pb[pb.length - 2] & 0xFF);
-          let newCacheIndex = (prevShade << 24) | ((pb[pb.length - 4] & 0xFF) << 16) | (((this.Reg[Registers.LY]) & 0xFF) << 8) | (pb[pb.length - 2] & 0xFF);
-          let shadeIndex = this.cache_[oldCacheIndex];
-          if(shadeIndex !== null && shadeIndex !== undefined) {
-            //we can join it. do that.
-            this.rects_[prevShade][shadeIndex + 3]++;
-            this.rects_[prevShade].length -= 4;
-            this.cache_[oldCacheIndex] = null;
-            this.cache_[newCacheIndex] = shadeIndex;
-          } else if(prevShade !== null) {
-            //if we can't join it, cache it so we can potentially join rectangles below to it later
-            this.cache_[newCacheIndex] = this.rects_[prevShade].length - 4;
-          }
-        }
-        //start a new rectangle with the current shade
-        b.push(i, this.Reg[Registers.LY], 1, 1);
-      }
-      prevShade = shade;
+      this.pixels_.push(shade);
     }
   }
 
