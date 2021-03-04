@@ -78,94 +78,72 @@ export class PPU {
       cycles--;
       if(this.cycles_ >= ModeCycles[this.ScreenMode]) {
         this.cycles_ -= ModeCycles[this.ScreenMode];
-        switch(this.ScreenMode) {
-          case Modes.HBLANK:
-            this.hblank_();
-            break;
-          case Modes.VBLANK:
-            this.vblank_();
-            break;
-          case Modes.OAM:
-            this.oam_();
-            break;
-          case Modes.VRAM:
-            this.vram_();
-            break;
+        let mode = this.ScreenMode;
+        if (mode === Modes.HBLANK) {
+          this.Line = this.Reg[Registers.LY] + 1;
+          if(this.Reg[Registers.LY] === 144) {
+            this.ScreenMode = Modes.VBLANK;
+            this.GB.CPU.FlagVBlankRequest = true;
+          } else {
+            this.ScreenMode = Modes.OAM;
+          }
+        } else if (mode === Modes.VBLANK) {
+          this.Line = this.Reg[Registers.LY] + 1;
+          if(this.Reg[Registers.LY] == 154) {
+            this.ScreenMode = Modes.OAM;
+            this.Line = 0;
+            this.Buffer = this.pixels_;
+            this.pixels_ = [];
+          }
+        } else if (mode === Modes.OAM) {
+          this.sprites_ = [];
+          if(this.SpriteEnable) {
+            this.getSprites_(); //up to 10 sprites to be displayed on this line
+          }
+          this.ScreenMode = Modes.VRAM;
+        } else if (mode === Modes.VRAM) {
+          //TODO: Make this cycle-accurate instead of rendering the entire line at the end of mode 3
+          if(this.Reg[Registers.LY] < 144) {
+            this.renderLine_();
+          }
+          this.ScreenMode = Modes.HBLANK;
         }
       }
-      this.statIRQ_();
-      this.dma_();
-    }
-  }
 
-  //cases documented in The Cycle-Accurate Game Boy Docs by AntonioND
-  statIRQ_() {
-    let bool = null;
-    switch(true) {
-      case !this.LCDEnable:
-      default:
-        bool = false;
-        break;
-      case this.LYCCompare && this.LYCCheckEnable:
-      case this.ScreenMode === Modes.HBLANK && this.HBlankCheckEnable:
-      case this.ScreenMode === Modes.OAM && this.OAMCheckEnable:
-      case this.ScreenMode === Modes.VBLANK && (this.VBlankCheckEnable || this.OAMCheckEnable):
-        bool = true;
-        break;
-    }
-    //STAT IRQ is triggered on rising edge of this internal signal
-    if(this.prev_ === false && bool === true) {
-      this.GB.CPU.FlagLCDSTATRequest = true;
-    }
-    this.prev_ = bool;
-  }
-
-  dma_() {
-    if(this.dmaRemain_ > 0) {
-      this.dmaRemain_--;
-      this.dmaThreshold_--;
-      if(this.dmaThreshold_ === -1) {
-        this.dmaThreshold_ = 3;
-        let byte = (DMA_TOTAL - this.dmaRemain_ - 5) / 4;
-        this.GB.M.set(0xFE00 + byte, this.GB.M.get(this.DMASourceAddr + byte, 1, false), 1, false);
+      //STAT IRQ START
+      //cases documented in The Cycle-Accurate Game Boy Docs by AntonioND
+      let bool = null;
+      switch(true) {
+        case !this.LCDEnable:
+        default:
+          bool = false;
+          break;
+        case this.LYCCompare && this.LYCCheckEnable:
+        case this.ScreenMode === Modes.HBLANK && this.HBlankCheckEnable:
+        case this.ScreenMode === Modes.OAM && this.OAMCheckEnable:
+        case this.ScreenMode === Modes.VBLANK && (this.VBlankCheckEnable || this.OAMCheckEnable):
+          bool = true;
+          break;
       }
-    }
-  }
+      //STAT IRQ is triggered on rising edge of this internal signal
+      if(this.prev_ === false && bool === true) {
+        this.GB.CPU.FlagLCDSTATRequest = true;
+      }
+      this.prev_ = bool;
+      //STAT IRQ END
 
-  hblank_() {
-    this.Line = this.Reg[Registers.LY] + 1;
-    if(this.Reg[Registers.LY] === 144) {
-      this.ScreenMode = Modes.VBLANK;
-      this.GB.CPU.FlagVBlankRequest = true;
-    } else {
-      this.ScreenMode = Modes.OAM;
+      //DMA START
+      if(this.dmaRemain_ > 0) {
+        this.dmaRemain_--;
+        this.dmaThreshold_--;
+        if(this.dmaThreshold_ === -1) {
+          this.dmaThreshold_ = 3;
+          let byte = (DMA_TOTAL - this.dmaRemain_ - 5) / 4;
+          this.GB.M.set(0xFE00 + byte, this.GB.M.get(this.DMASourceAddr + byte, 1, false), 1, false);
+        }
+      }
+      //DMA END
     }
-  }
-
-  vblank_() {
-    this.Line = this.Reg[Registers.LY] + 1;
-    if(this.Reg[Registers.LY] == 154) {
-      this.ScreenMode = Modes.OAM;
-      this.Line = 0;
-      this.Buffer = this.pixels_;
-      this.pixels_ = [];
-    }
-  }
-
-  oam_() {
-    this.sprites_ = [];
-    if(this.SpriteEnable) {
-      this.getSprites_(); //up to 10 sprites to be displayed on this line
-    }
-    this.ScreenMode = Modes.VRAM;
-  }
-
-  vram_() {
-    //TODO: Make this cycle-accurate instead of rendering the entire line at the end of mode 3
-    if(this.Reg[Registers.LY] < 144) {
-      this.renderLine_();
-    }
-    this.ScreenMode = Modes.HBLANK;
   }
 
   renderLine_() {
