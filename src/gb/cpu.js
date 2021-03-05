@@ -114,7 +114,7 @@ export class CPU {
           this.Reg16[Registers16.PC] += 2;
           break;
         case 0x02:
-          this.lda_(this.Reg16[Registers16.BC], this.Reg8[Registers8.A]);
+          this.GB.M.set(this.Reg16[Registers16.BC], this.Reg8[Registers8.A]);
           break;
         case 0x03:
           this.inc16_(Registers16.BC);
@@ -132,7 +132,7 @@ export class CPU {
           this.rlcakku_();
           break;
         case 0x08:
-          this.lda_(this.GB.M.get(this.Reg16[Registers16.PC], 2), this.Reg16[Registers16.SP], 2);
+          this.GB.M.set(this.GB.M.get(this.Reg16[Registers16.PC], 2), this.Reg16[Registers16.SP], 2);
           this.Reg16[Registers16.PC] += 2;
           break;
         case 0x09:
@@ -165,7 +165,7 @@ export class CPU {
           this.Reg16[Registers16.PC] += 2;
           break;
         case 0x12:
-          this.lda_(this.Reg16[Registers16.DE], this.Reg8[Registers8.A]);
+          this.GB.M.set(this.Reg16[Registers16.DE], this.Reg8[Registers8.A]);
           break;
         case 0x13:
           this.inc16_(Registers16.DE);
@@ -219,7 +219,7 @@ export class CPU {
           this.Reg16[Registers16.PC] += 2;
           break;
         case 0x22:
-          this.lda_(this.Reg16[Registers16.HL], this.Reg8[Registers8.A]);
+          this.GB.M.set(this.Reg16[Registers16.HL], this.Reg8[Registers8.A]);
           this.inc16_(Registers16.HL, false);
           break;
         case 0x23:
@@ -282,7 +282,7 @@ export class CPU {
           this.Reg16[Registers16.PC] += 2;
           break;
         case 0x32:
-          this.lda_(this.Reg16[Registers16.HL], this.Reg8[Registers8.A]);
+          this.GB.M.set(this.Reg16[Registers16.HL], this.Reg8[Registers8.A]);
           this.dec16_(Registers16.HL, false);
           break;
         case 0x33:
@@ -295,7 +295,7 @@ export class CPU {
           this.dec8a_(this.Reg16[Registers16.HL]);
           break;
         case 0x36:
-          this.lda_(this.Reg16[Registers16.HL], this.GB.M.get(this.Reg16[Registers16.PC]++));
+          this.GB.M.set(this.Reg16[Registers16.HL], this.GB.M.get(this.Reg16[Registers16.PC]++));
           break;
         case 0x37:
           this.scf_();
@@ -475,28 +475,28 @@ export class CPU {
           this.ldr8_(Registers8.L, this.Reg8[Registers8.A]);
           break;
         case 0x70:
-          this.lda_(this.Reg16[Registers16.HL], this.Reg8[Registers8.B]);
+          this.GB.M.set(this.Reg16[Registers16.HL], this.Reg8[Registers8.B]);
           break;
         case 0x71:
-          this.lda_(this.Reg16[Registers16.HL], this.Reg8[Registers8.C]);
+          this.GB.M.set(this.Reg16[Registers16.HL], this.Reg8[Registers8.C]);
           break;
         case 0x72:
-          this.lda_(this.Reg16[Registers16.HL], this.Reg8[Registers8.D]);
+          this.GB.M.set(this.Reg16[Registers16.HL], this.Reg8[Registers8.D]);
           break;
         case 0x73:
-          this.lda_(this.Reg16[Registers16.HL], this.Reg8[Registers8.E]);
+          this.GB.M.set(this.Reg16[Registers16.HL], this.Reg8[Registers8.E]);
           break;
         case 0x74:
-          this.lda_(this.Reg16[Registers16.HL], this.Reg8[Registers8.H]);
+          this.GB.M.set(this.Reg16[Registers16.HL], this.Reg8[Registers8.H]);
           break;
         case 0x75:
-          this.lda_(this.Reg16[Registers16.HL], this.Reg8[Registers8.L]);
+          this.GB.M.set(this.Reg16[Registers16.HL], this.Reg8[Registers8.L]);
           break;
         case 0x76:
           this.halted_ = true;
           break;
         case 0x77:
-          this.lda_(this.Reg16[Registers16.HL], this.Reg8[Registers8.A]);
+          this.GB.M.set(this.Reg16[Registers16.HL], this.Reg8[Registers8.A]);
           break;
         case 0x78:
           this.ldr8_(Registers8.A, this.Reg8[Registers8.B]);
@@ -875,13 +875,13 @@ export class CPU {
           this.call8_(0x0018);
           break;
         case 0xE0:
-          this.lda_(0xFF00 + this.GB.M.get(this.Reg16[Registers16.PC]++), this.Reg8[Registers8.A]);
+          this.GB.M.set(0xFF00 + this.GB.M.get(this.Reg16[Registers16.PC]++), this.Reg8[Registers8.A]);
           break;
         case 0xE1:
           this.pop_(Registers16.HL);
           break;
         case 0xE2:
-          this.lda_(0xFF00 + this.Reg8[Registers8.C], this.Reg8[Registers8.A]);
+          this.GB.M.set(0xFF00 + this.Reg8[Registers8.C], this.Reg8[Registers8.A]);
           break;
         case 0xE5:
           this.push_(Registers16.HL);
@@ -899,7 +899,7 @@ export class CPU {
           this.jp_(this.Reg16[Registers16.HL]);
           break;
         case 0xEA:
-          this.lda_(this.GB.M.get(this.Reg16[Registers16.PC], 2), this.Reg8[Registers8.A]);
+          this.GB.M.set(this.GB.M.get(this.Reg16[Registers16.PC], 2), this.Reg8[Registers8.A]);
           this.Reg16[Registers16.PC] += 2;
           break;
         case 0xEE:
@@ -1782,7 +1782,7 @@ export class CPU {
   call8_(a8) {
     this.Reg16[Registers16.SP] -= 2;
     this.update(4);
-    this.lda_(this.Reg16[Registers16.SP], this.Reg16[Registers16.PC], 2);
+    this.GB.M.set(this.Reg16[Registers16.SP], this.Reg16[Registers16.PC], 2);
     this.Reg16[Registers16.PC] = a8;
   }
 
@@ -1791,7 +1791,7 @@ export class CPU {
     this.Reg16[Registers16.PC] += 2;
     this.Reg16[Registers16.SP] -= 2;
     this.update(4);
-    this.lda_(this.Reg16[Registers16.SP], this.Reg16[Registers16.PC], 2);
+    this.GB.M.set(this.Reg16[Registers16.SP], this.Reg16[Registers16.PC], 2);
     this.Reg16[Registers16.PC] = a16;
   }
 
@@ -2025,10 +2025,6 @@ export class CPU {
     if (update) {
       this.update(4);
     }
-  }
-
-  lda_(addr, val, bytes = 1) {
-    this.GB.M.set(addr, val, bytes);
   }
 
   push_(register) {
