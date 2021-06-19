@@ -953,778 +953,39 @@ export class CPU {
       }
     }
     if (cbInst) {
-      switch (this.GB.M.get(this.Reg16[Registers16.PC]++)) {
-        case 0x00:
-          this.rlcr_(Registers8.B);
-          break;
-        case 0x01:
-          this.rlcr_(Registers8.C);
-          break;
-        case 0x02:
-          this.rlcr_(Registers8.D);
-          break;
-        case 0x03:
-          this.rlcr_(Registers8.E);
-          break;
-        case 0x04:
-          this.rlcr_(Registers8.H);
-          break;
-        case 0x05:
-          this.rlcr_(Registers8.L);
-          break;
-        case 0x06:
-          this.rlca_(this.Reg16[Registers16.HL]);
-          break;
-        case 0x07:
-          this.rlcr_(Registers8.A);
-          break;
-        case 0x08:
-          this.rrcr_(Registers8.B);
-          break;
-        case 0x09:
-          this.rrcr_(Registers8.C);
-          break;
-        case 0x0A:
-          this.rrcr_(Registers8.D);
-          break;
-        case 0x0B:
-          this.rrcr_(Registers8.E);
-          break;
-        case 0x0C:
-          this.rrcr_(Registers8.H);
-          break;
-        case 0x0D:
-          this.rrcr_(Registers8.L);
-          break;
-        case 0x0E:
-          this.rrca_(this.Reg16[Registers16.HL]);
-          break;
-        case 0x0F:
-          this.rrcr_(Registers8.A);
-          break;
-        case 0x10:
-          this.rlr_(Registers8.B);
-          break;
-        case 0x11:
-          this.rlr_(Registers8.C);
-          break;
-        case 0x12:
-          this.rlr_(Registers8.D);
-          break;
-        case 0x13:
-          this.rlr_(Registers8.E);
-          break;
-        case 0x14:
-          this.rlr_(Registers8.H);
-          break;
-        case 0x15:
-          this.rlr_(Registers8.L);
-          break;
-        case 0x16:
-          this.rla_(this.Reg16[Registers16.HL]);
-          break;
-        case 0x17:
-          this.rlr_(Registers8.A);
-          break;
-        case 0x18:
-          this.rrr_(Registers8.B);
-          break;
-        case 0x19:
-          this.rrr_(Registers8.C);
-          break;
-        case 0x1A:
-          this.rrr_(Registers8.D);
-          break;
-        case 0x1B:
-          this.rrr_(Registers8.E);
-          break;
-        case 0x1C:
-          this.rrr_(Registers8.H);
-          break;
-        case 0x1D:
-          this.rrr_(Registers8.L);
-          break;
-        case 0x1E:
-          this.rra_(this.Reg16[Registers16.HL]);
-          break;
-        case 0x1F:
-          this.rrr_(Registers8.A);
-          break;
-        case 0x20:
-          this.slar_(Registers8.B);
-          break;
-        case 0x21:
-          this.slar_(Registers8.C);
-          break;
-        case 0x22:
-          this.slar_(Registers8.D);
-          break;
-        case 0x23:
-          this.slar_(Registers8.E);
-          break;
-        case 0x24:
-          this.slar_(Registers8.H);
-          break;
-        case 0x25:
-          this.slar_(Registers8.L);
-          break;
-        case 0x26:
-          this.slaa_(this.Reg16[Registers16.HL]);
-          break;
-        case 0x27:
-          this.slar_(Registers8.A);
-          break;
-        case 0x28:
-          this.srar_(Registers8.B);
-          break;
-        case 0x29:
-          this.srar_(Registers8.C);
-          break;
-        case 0x2A:
-          this.srar_(Registers8.D);
-          break;
-        case 0x2B:
-          this.srar_(Registers8.E);
-          break;
-        case 0x2C:
-          this.srar_(Registers8.H);
-          break;
-        case 0x2D:
-          this.srar_(Registers8.L);
-          break;
-        case 0x2E:
-          this.sraa_(this.Reg16[Registers16.HL]);
-          break;
-        case 0x2F:
-          this.srar_(Registers8.A);
-          break;
-        case 0x30:
-          this.swapr_(Registers8.B);
-          break;
-        case 0x31:
-          this.swapr_(Registers8.C);
-          break;
-        case 0x32:
-          this.swapr_(Registers8.D);
-          break;
-        case 0x33:
-          this.swapr_(Registers8.E);
-          break;
-        case 0x34:
-          this.swapr_(Registers8.H);
-          break;
-        case 0x35:
-          this.swapr_(Registers8.L);
-          break;
-        case 0x36:
-          this.swapa_(this.Reg16[Registers16.HL]);
-          break;
-        case 0x37:
-          this.swapr_(Registers8.A);
-          break;
-        case 0x38:
-          this.srlr_(Registers8.B);
-          break;
-        case 0x39:
-          this.srlr_(Registers8.C);
-          break;
-        case 0x3A:
-          this.srlr_(Registers8.D);
-          break;
-        case 0x3B:
-          this.srlr_(Registers8.E);
-          break;
-        case 0x3C:
-          this.srlr_(Registers8.H);
-          break;
-        case 0x3D:
-          this.srlr_(Registers8.L);
-          break;
-        case 0x3E:
-          this.srla_(this.Reg16[Registers16.HL]);
-          break;
-        case 0x3F:
-          this.srlr_(Registers8.A);
-          break;
-        case 0x40:
-          this.bitr_(Registers8.B, 0);
-          break;
-        case 0x41:
-          this.bitr_(Registers8.C, 0);
-          break;
-        case 0x42:
-          this.bitr_(Registers8.D, 0);
-          break;
-        case 0x43:
-          this.bitr_(Registers8.E, 0);
-          break;
-        case 0x44:
-          this.bitr_(Registers8.H, 0);
-          break;
-        case 0x45:
-          this.bitr_(Registers8.L, 0);
-          break;
-        case 0x46:
-          this.bita_(this.Reg16[Registers16.HL], 0);
-          break;
-        case 0x47:
-          this.bitr_(Registers8.A, 0);
-          break;
-        case 0x48:
-          this.bitr_(Registers8.B, 1);
-          break;
-        case 0x49:
-          this.bitr_(Registers8.C, 1);
-          break;
-        case 0x4A:
-          this.bitr_(Registers8.D, 1);
-          break;
-        case 0x4B:
-          this.bitr_(Registers8.E, 1);
-          break;
-        case 0x4C:
-          this.bitr_(Registers8.H, 1);
-          break;
-        case 0x4D:
-          this.bitr_(Registers8.L, 1);
-          break;
-        case 0x4E:
-          this.bita_(this.Reg16[Registers16.HL], 1);
-          break;
-        case 0x4F:
-          this.bitr_(Registers8.A, 1);
-          break;
-        case 0x50:
-          this.bitr_(Registers8.B, 2);
-          break;
-        case 0x51:
-          this.bitr_(Registers8.C, 2);
-          break;
-        case 0x52:
-          this.bitr_(Registers8.D, 2);
-          break;
-        case 0x53:
-          this.bitr_(Registers8.E, 2);
-          break;
-        case 0x54:
-          this.bitr_(Registers8.H, 2);
-          break;
-        case 0x55:
-          this.bitr_(Registers8.L, 2);
-          break;
-        case 0x56:
-          this.bita_(this.Reg16[Registers16.HL], 2);
-          break;
-        case 0x57:
-          this.bitr_(Registers8.A, 2);
-          break;
-        case 0x58:
-          this.bitr_(Registers8.B, 3);
-          break;
-        case 0x59:
-          this.bitr_(Registers8.C, 3);
-          break;
-        case 0x5A:
-          this.bitr_(Registers8.D, 3);
-          break;
-        case 0x5B:
-          this.bitr_(Registers8.E, 3);
-          break;
-        case 0x5C:
-          this.bitr_(Registers8.H, 3);
-          break;
-        case 0x5D:
-          this.bitr_(Registers8.L, 3);
-          break;
-        case 0x5E:
-          this.bita_(this.Reg16[Registers16.HL], 3);
-          break;
-        case 0x5F:
-          this.bitr_(Registers8.A, 3);
-          break;
-        case 0x60:
-          this.bitr_(Registers8.B, 4);
-          break;
-        case 0x61:
-          this.bitr_(Registers8.C, 4);
-          break;
-        case 0x62:
-          this.bitr_(Registers8.D, 4);
-          break;
-        case 0x63:
-          this.bitr_(Registers8.E, 4);
-          break;
-        case 0x64:
-          this.bitr_(Registers8.H, 4);
-          break;
-        case 0x65:
-          this.bitr_(Registers8.L, 4);
-          break;
-        case 0x66:
-          this.bita_(this.Reg16[Registers16.HL], 4);
-          break;
-        case 0x67:
-          this.bitr_(Registers8.A, 4);
-          break;
-        case 0x68:
-          this.bitr_(Registers8.B, 5);
-          break;
-        case 0x69:
-          this.bitr_(Registers8.C, 5);
-          break;
-        case 0x6A:
-          this.bitr_(Registers8.D, 5);
-          break;
-        case 0x6B:
-          this.bitr_(Registers8.E, 5);
-          break;
-        case 0x6C:
-          this.bitr_(Registers8.H, 5);
-          break;
-        case 0x6D:
-          this.bitr_(Registers8.L, 5);
-          break;
-        case 0x6E:
-          this.bita_(this.Reg16[Registers16.HL], 5);
-          break;
-        case 0x6F:
-          this.bitr_(Registers8.A, 5);
-          break;
-        case 0x70:
-          this.bitr_(Registers8.B, 6);
-          break;
-        case 0x71:
-          this.bitr_(Registers8.C, 6);
-          break;
-        case 0x72:
-          this.bitr_(Registers8.D, 6);
-          break;
-        case 0x73:
-          this.bitr_(Registers8.E, 6);
-          break;
-        case 0x74:
-          this.bitr_(Registers8.H, 6);
-          break;
-        case 0x75:
-          this.bitr_(Registers8.L, 6);
-          break;
-        case 0x76:
-          this.bita_(this.Reg16[Registers16.HL], 6);
-          break;
-        case 0x77:
-          this.bitr_(Registers8.A, 6);
-          break;
-        case 0x78:
-          this.bitr_(Registers8.B, 7);
-          break;
-        case 0x79:
-          this.bitr_(Registers8.C, 7);
-          break;
-        case 0x7A:
-          this.bitr_(Registers8.D, 7);
-          break;
-        case 0x7B:
-          this.bitr_(Registers8.E, 7);
-          break;
-        case 0x7C:
-          this.bitr_(Registers8.H, 7);
-          break;
-        case 0x7D:
-          this.bitr_(Registers8.L, 7);
-          break;
-        case 0x7E:
-          this.bita_(this.Reg16[Registers16.HL], 7);
-          break;
-        case 0x7F:
-          this.bitr_(Registers8.A, 7);
-          break;
-        case 0x80:
-          this.resr_(Registers8.B, 0);
-          break;
-        case 0x81:
-          this.resr_(Registers8.C, 0);
-          break;
-        case 0x82:
-          this.resr_(Registers8.D, 0);
-          break;
-        case 0x83:
-          this.resr_(Registers8.E, 0);
-          break;
-        case 0x84:
-          this.resr_(Registers8.H, 0);
-          break;
-        case 0x85:
-          this.resr_(Registers8.L, 0);
-          break;
-        case 0x86:
-          this.resa_(this.Reg16[Registers16.HL], 0);
-          break;
-        case 0x87:
-          this.resr_(Registers8.A, 0);
-          break;
-        case 0x88:
-          this.resr_(Registers8.B, 1);
-          break;
-        case 0x89:
-          this.resr_(Registers8.C, 1);
-          break;
-        case 0x8A:
-          this.resr_(Registers8.D, 1);
-          break;
-        case 0x8B:
-          this.resr_(Registers8.E, 1);
-          break;
-        case 0x8C:
-          this.resr_(Registers8.H, 1);
-          break;
-        case 0x8D:
-          this.resr_(Registers8.L, 1);
-          break;
-        case 0x8E:
-          this.resa_(this.Reg16[Registers16.HL], 1);
-          break;
-        case 0x8F:
-          this.resr_(Registers8.A, 1);
-          break;
-        case 0x90:
-          this.resr_(Registers8.B, 2);
-          break;
-        case 0x91:
-          this.resr_(Registers8.C, 2);
-          break;
-        case 0x92:
-          this.resr_(Registers8.D, 2);
-          break;
-        case 0x93:
-          this.resr_(Registers8.E, 2);
-          break;
-        case 0x94:
-          this.resr_(Registers8.H, 2);
-          break;
-        case 0x95:
-          this.resr_(Registers8.L, 2);
-          break;
-        case 0x96:
-          this.resa_(this.Reg16[Registers16.HL], 2);
-          break;
-        case 0x97:
-          this.resr_(Registers8.A, 2);
-          break;
-        case 0x98:
-          this.resr_(Registers8.B, 3);
-          break;
-        case 0x99:
-          this.resr_(Registers8.C, 3);
-          break;
-        case 0x9A:
-          this.resr_(Registers8.D, 3);
-          break;
-        case 0x9B:
-          this.resr_(Registers8.E, 3);
-          break;
-        case 0x9C:
-          this.resr_(Registers8.H, 3);
-          break;
-        case 0x9D:
-          this.resr_(Registers8.L, 3);
-          break;
-        case 0x9E:
-          this.resa_(this.Reg16[Registers16.HL], 3);
-          break;
-        case 0x9F:
-          this.resr_(Registers8.A, 3);
-          break;
-        case 0xA0:
-          this.resr_(Registers8.B, 4);
-          break;
-        case 0xA1:
-          this.resr_(Registers8.C, 4);
-          break;
-        case 0xA2:
-          this.resr_(Registers8.D, 4);
-          break;
-        case 0xA3:
-          this.resr_(Registers8.E, 4);
-          break;
-        case 0xA4:
-          this.resr_(Registers8.H, 4);
-          break;
-        case 0xA5:
-          this.resr_(Registers8.L, 4);
-          break;
-        case 0xA6:
-          this.resa_(this.Reg16[Registers16.HL], 4);
-          break;
-        case 0xA7:
-          this.resr_(Registers8.A, 4);
-          break;
-        case 0xA8:
-          this.resr_(Registers8.B, 5);
-          break;
-        case 0xA9:
-          this.resr_(Registers8.C, 5);
-          break;
-        case 0xAA:
-          this.resr_(Registers8.D, 5);
-          break;
-        case 0xAB:
-          this.resr_(Registers8.E, 5);
-          break;
-        case 0xAC:
-          this.resr_(Registers8.H, 5);
-          break;
-        case 0xAD:
-          this.resr_(Registers8.L, 5);
-          break;
-        case 0xAE:
-          this.resa_(this.Reg16[Registers16.HL], 5);
-          break;
-        case 0xAF:
-          this.resr_(Registers8.A, 5);
-          break;
-        case 0xB0:
-          this.resr_(Registers8.B, 6);
-          break;
-        case 0xB1:
-          this.resr_(Registers8.C, 6);
-          break;
-        case 0xB2:
-          this.resr_(Registers8.D, 6);
-          break;
-        case 0xB3:
-          this.resr_(Registers8.E, 6);
-          break;
-        case 0xB4:
-          this.resr_(Registers8.H, 6);
-          break;
-        case 0xB5:
-          this.resr_(Registers8.L, 6);
-          break;
-        case 0xB6:
-          this.resa_(this.Reg16[Registers16.HL], 6);
-          break;
-        case 0xB7:
-          this.resr_(Registers8.A, 6);
-          break;
-        case 0xB8:
-          this.resr_(Registers8.B, 7);
-          break;
-        case 0xB9:
-          this.resr_(Registers8.C, 7);
-          break;
-        case 0xBA:
-          this.resr_(Registers8.D, 7);
-          break;
-        case 0xBB:
-          this.resr_(Registers8.E, 7);
-          break;
-        case 0xBC:
-          this.resr_(Registers8.H, 7);
-          break;
-        case 0xBD:
-          this.resr_(Registers8.L, 7);
-          break;
-        case 0xBE:
-          this.resa_(this.Reg16[Registers16.HL], 7);
-          break;
-        case 0xBF:
-          this.resr_(Registers8.A, 7);
-          break;
-        case 0xC0:
-          this.setr_(Registers8.B, 0);
-          break;
-        case 0xC1:
-          this.setr_(Registers8.C, 0);
-          break;
-        case 0xC2:
-          this.setr_(Registers8.D, 0);
-          break;
-        case 0xC3:
-          this.setr_(Registers8.E, 0);
-          break;
-        case 0xC4:
-          this.setr_(Registers8.H, 0);
-          break;
-        case 0xC5:
-          this.setr_(Registers8.L, 0);
-          break;
-        case 0xC6:
-          this.seta_(this.Reg16[Registers16.HL], 0);
-          break;
-        case 0xC7:
-          this.setr_(Registers8.A, 0);
-          break;
-        case 0xC8:
-          this.setr_(Registers8.B, 1);
-          break;
-        case 0xC9:
-          this.setr_(Registers8.C, 1);
-          break;
-        case 0xCA:
-          this.setr_(Registers8.D, 1);
-          break;
-        case 0xCB:
-          this.setr_(Registers8.E, 1);
-          break;
-        case 0xCC:
-          this.setr_(Registers8.H, 1);
-          break;
-        case 0xCD:
-          this.setr_(Registers8.L, 1);
-          break;
-        case 0xCE:
-          this.seta_(this.Reg16[Registers16.HL], 1);
-          break;
-        case 0xCF:
-          this.setr_(Registers8.A, 1);
-          break;
-        case 0xD0:
-          this.setr_(Registers8.B, 2);
-          break;
-        case 0xD1:
-          this.setr_(Registers8.C, 2);
-          break;
-        case 0xD2:
-          this.setr_(Registers8.D, 2);
-          break;
-        case 0xD3:
-          this.setr_(Registers8.E, 2);
-          break;
-        case 0xD4:
-          this.setr_(Registers8.H, 2);
-          break;
-        case 0xD5:
-          this.setr_(Registers8.L, 2);
-          break;
-        case 0xD6:
-          this.seta_(this.Reg16[Registers16.HL], 2);
-          break;
-        case 0xD7:
-          this.setr_(Registers8.A, 2);
-          break;
-        case 0xD8:
-          this.setr_(Registers8.B, 3);
-          break;
-        case 0xD9:
-          this.setr_(Registers8.C, 3);
-          break;
-        case 0xDA:
-          this.setr_(Registers8.D, 3);
-          break;
-        case 0xDB:
-          this.setr_(Registers8.E, 3);
-          break;
-        case 0xDC:
-          this.setr_(Registers8.H, 3);
-          break;
-        case 0xDD:
-          this.setr_(Registers8.L, 3);
-          break;
-        case 0xDE:
-          this.seta_(this.Reg16[Registers16.HL], 3);
-          break;
-        case 0xDF:
-          this.setr_(Registers8.A, 3);
-          break;
-        case 0xE0:
-          this.setr_(Registers8.B, 4);
-          break;
-        case 0xE1:
-          this.setr_(Registers8.C, 4);
-          break;
-        case 0xE2:
-          this.setr_(Registers8.D, 4);
-          break;
-        case 0xE3:
-          this.setr_(Registers8.E, 4);
-          break;
-        case 0xE4:
-          this.setr_(Registers8.H, 4);
-          break;
-        case 0xE5:
-          this.setr_(Registers8.L, 4);
-          break;
-        case 0xE6:
-          this.seta_(this.Reg16[Registers16.HL], 4);
-          break;
-        case 0xE7:
-          this.setr_(Registers8.A, 4);
-          break;
-        case 0xE8:
-          this.setr_(Registers8.B, 5);
-          break;
-        case 0xE9:
-          this.setr_(Registers8.C, 5);
-          break;
-        case 0xEA:
-          this.setr_(Registers8.D, 5);
-          break;
-        case 0xEB:
-          this.setr_(Registers8.E, 5);
-          break;
-        case 0xEC:
-          this.setr_(Registers8.H, 5);
-          break;
-        case 0xED:
-          this.setr_(Registers8.L, 5);
-          break;
-        case 0xEE:
-          this.seta_(this.Reg16[Registers16.HL], 5);
-          break;
-        case 0xEF:
-          this.setr_(Registers8.A, 5);
-          break;
-        case 0xF0:
-          this.setr_(Registers8.B, 6);
-          break;
-        case 0xF1:
-          this.setr_(Registers8.C, 6);
-          break;
-        case 0xF2:
-          this.setr_(Registers8.D, 6);
-          break;
-        case 0xF3:
-          this.setr_(Registers8.E, 6);
-          break;
-        case 0xF4:
-          this.setr_(Registers8.H, 6);
-          break;
-        case 0xF5:
-          this.setr_(Registers8.L, 6);
-          break;
-        case 0xF6:
-          this.seta_(this.Reg16[Registers16.HL], 6);
-          break;
-        case 0xF7:
-          this.setr_(Registers8.A, 6);
-          break;
-        case 0xF8:
-          this.setr_(Registers8.B, 7);
-          break;
-        case 0xF9:
-          this.setr_(Registers8.C, 7);
-          break;
-        case 0xFA:
-          this.setr_(Registers8.D, 7);
-          break;
-        case 0xFB:
-          this.setr_(Registers8.E, 7);
-          break;
-        case 0xFC:
-          this.setr_(Registers8.H, 7);
-          break;
-        case 0xFD:
-          this.setr_(Registers8.L, 7);
-          break;
-        case 0xFE:
-          this.seta_(this.Reg16[Registers16.HL], 7);
-          break;
-        case 0xFF:
-          this.setr_(Registers8.A, 7);
-          break;
-        default:
-          throw Error(`Unimplemented CB opcode 0x${op.toString(16).toUpperCase().padStart(2, "0")}`);
-      }
+      // https://gb-archive.github.io/salvage/decoding_gbz80_opcodes/Decoding%20Gamboy%20Z80%20Opcodes.html
+      let op = this.GB.M.get(this.Reg16[Registers16.PC]++);
+      let x = (op >>> 6) & 0b11;
+      let y = (op >>> 3) & 0b111;
+      let z = op & 0b111;
+      let addr = z === 6;
+      let r = [
+        Registers8.B,
+        Registers8.C,
+        Registers8.D,
+        Registers8.E,
+        Registers8.H,
+        Registers8.L,
+        this.Reg16[Registers16.HL],
+        Registers8.A
+      ];
+      let rot_f = [
+        this.rlc_.bind(this, r[z], addr),
+        this.rrc_.bind(this, r[z], addr),
+        this.rl_.bind(this, r[z], addr),
+        this.rr_.bind(this, r[z], addr),
+        this.sla_.bind(this, r[z], addr),
+        this.sra_.bind(this, r[z], addr),
+        this.swap_.bind(this, r[z], addr),
+        this.srl_.bind(this, r[z], addr)
+      ];
+      let f = [
+        rot_f[y],
+        this.bit_.bind(this, r[z], y, addr),
+        this.res_.bind(this, r[z], y, addr),
+        this.set_.bind(this, r[z], y, addr)
+      ];
+      f[x]();
     }
     //RUN INSTRUCTION END
 
@@ -2136,192 +1397,191 @@ export class CPU {
     this.FlagH = 0;
   }
 
-  rlcr_(register) {
-    let v = this.Reg8[register];
+  rlc_(location, addr) {
+    let v = null;
+    if (addr) {
+      v = this.GB.M.get(location);
+    } else {
+      v = this.Reg8[location];
+    }
     let top = (v & 0x80) >>> 7;
-    this.set8(register, (v << 1) | top);
-    this.FlagZ = !this.Reg8[register];
+    if (addr) {
+      this.GB.M.set(location, (v << 1) | top);
+      this.FlagZ = !this.GB.M.get(location, 1, false);
+    } else {
+      this.set8(location, (v << 1) | top);
+      this.FlagZ = !this.Reg8[location];
+    }
     this.FlagN = false;
     this.FlagH = false;
     this.FlagC = !!top;
   }
 
-  rlca_(addr) {
-    let v = this.GB.M.get(addr);
-    let top = (v & 0x80) >>> 7;
-    this.GB.M.set(addr, (v << 1) | top);
-    this.FlagZ = !this.GB.M.get(addr, 1, false);
-    this.FlagN = false;
-    this.FlagH = false;
-    this.FlagC = !!top;
-  }
-
-  rrcr_(register) {
-    let v = this.Reg8[register];
+  rrc_(location, addr) {
+    let v = null;
+    if (addr) {
+      v = this.GB.M.get(location);
+    } else {
+      v = this.Reg8[location];
+    }
     let bot = (v & 0x01) << 7;
-    this.set8(register, (v >>> 1) | bot);
-    this.FlagZ = !this.Reg8[register];
+    if (addr) {
+      this.GB.M.set(location, (v >>> 1) | bot);
+      this.FlagZ = !this.GB.M.get(location, 1, false);
+    } else {
+      this.set8(location, (v >>> 1) | bot);
+      this.FlagZ = !this.Reg8[location];
+    }
     this.FlagN = false;
     this.FlagH = false;
     this.FlagC = !!bot;
   }
 
-  rrca_(addr) {
-    let v = this.GB.M.get(addr);
-    let bot = (v & 0x01) << 7;
-    this.GB.M.set(addr, (v >>> 1) | bot);
-    this.FlagZ = !this.GB.M.get(addr, 1, false);
-    this.FlagN = false;
-    this.FlagH = false;
-    this.FlagC = !!bot;
-  }
-
-  rlr_(register) {
-    let v = this.Reg8[register];
+  rl_(location, addr) {
+    let v = null;
+    if (addr) {
+      v = this.GB.M.get(location);
+    } else {
+      v = this.Reg8[location];
+    }
     let top = (v & 0x80) >>> 7;
-    this.set8(register, (v << 1) | (this.FlagC ? 0x01 : 0x00));
-    this.FlagZ = !this.Reg8[register];
+    if (addr) {
+      this.GB.M.set(location, (v << 1) | (this.FlagC ? 0x01 : 0x00));
+      this.FlagZ = !this.GB.M.get(location, 1, false);
+    } else {
+      this.set8(location, (v << 1) | (this.FlagC ? 0x01 : 0x00));
+      this.FlagZ = !this.Reg8[location];
+    }
     this.FlagN = false;
     this.FlagH = false;
     this.FlagC = !!top;
   }
 
-  rla_(addr) {
-    let v = this.GB.M.get(addr);
-    let top = (v & 0x80) >>> 7;
-    this.GB.M.set(addr, (v << 1) | (this.FlagC ? 0x01 : 0x00));
-    this.FlagZ = !this.GB.M.get(addr, 1, false);
-    this.FlagN = false;
-    this.FlagH = false;
-    this.FlagC = !!top;
-  }
-
-  rrr_(register) {
-    let v = this.Reg8[register];
+  rr_(location, addr) {
+    let v = null;
+    if (addr) {
+      v = this.GB.M.get(location);
+    } else {
+      v = this.Reg8[location];
+    }
     let bot = v & 0x01;
-    this.set8(register, (v >>> 1) | (this.FlagC ? 0x80 : 0x00));
-    this.FlagZ = !this.Reg8[register];
+    if (addr) {
+      this.GB.M.set(location, (v >>> 1) | (this.FlagC ? 0x80 : 0x00));
+      this.FlagZ = !this.GB.M.get(location, 1, false);
+    } else {
+      this.set8(location, (v >>> 1) | (this.FlagC ? 0x80 : 0x00));
+      this.FlagZ = !this.Reg8[location];
+    }
     this.FlagN = false;
     this.FlagH = false;
     this.FlagC = !!bot;
   }
 
-  rra_(addr) {
-    let v = this.GB.M.get(addr);
-    let bot = v & 0x01;
-    this.GB.M.set(addr, (v >>> 1) | (this.FlagC ? 0x80 : 0x00));
-    this.FlagZ = !this.GB.M.get(addr, 1, false);
-    this.FlagN = false;
-    this.FlagH = false;
-    this.FlagC = !!bot;
-  }
-
-  slar_(register) {
-    let v = this.Reg8[register];
+  sla_(location, addr) {
+    let v = null;
+    if (addr) {
+      v = this.GB.M.get(location);
+    } else {
+      v = this.Reg8[location];
+    }
     this.FlagC = !!(v & 0x80);
-    this.set8(register, v << 1);
     this.FlagN = false;
     this.FlagH = false;
-    this.FlagZ = !this.Reg8[register];
+    if (addr) {
+      this.GB.M.set(location, v << 1);
+      this.FlagZ = !this.GB.M.get(location, 1, false);
+    } else {
+      this.set8(location, v << 1);
+      this.FlagZ = !this.Reg8[location];
+    }
   }
 
-  slaa_(addr) {
-    let v = this.GB.M.get(addr);
-    this.FlagC = !!(v & 0x80);
-    this.GB.M.set(addr, v << 1);
-    this.FlagN = false;
-    this.FlagH = false;
-    this.FlagZ = !this.GB.M.get(addr, 1, false);
-  }
-
-  srar_(register) {
-    let v = this.Reg8[register];
+  sra_(location, addr) {
+    let v = null;
+    if (addr) {
+      v = this.GB.M.get(location);
+    } else {
+      v = this.Reg8[location];
+    }
     let top = v & 0x80;
     this.FlagC = !!(v & 0x01);
-    this.set8(register, (v >> 1 | top));
     this.FlagN = false;
     this.FlagH = false;
-    this.FlagZ = !this.Reg8[register];
+    if (addr) {
+      this.GB.M.set(location, (v >> 1 | top));
+      this.FlagZ = !this.GB.M.get(location, 1, false);
+    } else {
+      this.set8(location, (v >> 1 | top));
+      this.FlagZ = !this.Reg8[location];
+    }
   }
 
-  sraa_(addr) {
-    let v = this.GB.M.get(addr);
-    let top = v & 0x80;
-    this.FlagC = !!(v & 0x01);
-    this.GB.M.set(addr, (v >> 1 | top));
-    this.FlagN = false;
-    this.FlagH = false;
-    this.FlagZ = !this.GB.M.get(addr, 1, false);
-  }
-
-  swapr_(register) {
-    let v = this.Reg8[register];
+  swap_(location, addr) {
+    let v = null;
+    if (addr) {
+      v = this.GB.M.get(location);
+    } else {
+      v = this.Reg8[location];
+    }
     let top = v & 0xF0;
     let bot = v & 0x0F;
-    this.set8(register, (bot << 4) | (top >>> 4));
-    this.FlagZ = !this.Reg8[register];
     this.FlagN = false;
     this.FlagH = false;
     this.FlagC = false;
+    if (addr) {
+      this.GB.M.set(location, (bot << 4) | (top >>> 4));
+      this.FlagZ = !this.GB.M.get(location, 1, false);
+    } else {
+      this.set8(location, (bot << 4) | (top >>> 4));
+      this.FlagZ = !this.Reg8[location];
+    }
   }
 
-  swapa_(addr) {
-    let v = this.GB.M.get(addr);
-    let top = v & 0xF0;
-    let bot = v & 0x0F;
-    this.GB.M.set(addr, (bot << 4) | (top >>> 4));
-    this.FlagZ = !this.GB.M.get(addr, 1, false);
-    this.FlagN = false;
-    this.FlagH = false;
-    this.FlagC = false;
-  }
-
-  srlr_(register) {
-    let v = this.Reg8[register];
+  srl_(location, addr) {
+    let v = null;
+    if (addr) {
+      v = this.GB.M.get(location);
+    } else {
+      v = this.Reg8[location];
+    }
     this.FlagC = !!(v & 0x01);
-    this.set8(register, v >>> 1);
     this.FlagN = false;
     this.FlagH = false;
-    this.FlagZ = !this.Reg8[register];
+    if (addr) {
+      this.GB.M.set(location, v >>> 1);
+      this.FlagZ = !this.GB.M.get(location, 1, false);
+    } else {
+      this.set8(location, v >>> 1);
+      this.FlagZ = !this.Reg8[location];
+    }
   }
 
-  srla_(addr) {
-    let v = this.GB.M.get(addr);
-    this.FlagC = !!(v & 0x01);
-    this.GB.M.set(addr, v >>> 1);
-    this.FlagN = false;
-    this.FlagH = false;
-    this.FlagZ = !this.GB.M.get(addr, 1, false);
-  }
-
-  bitr_(register, bit) {
-    let v = this.Reg8[register];
+  bit_(location, bit, addr) {
+    let v = null;
+    if (addr) {
+      v = this.GB.M.get(location);
+    } else {
+      v = this.Reg8[location];
+    }
     this.FlagZ = !(v & (0x01 << bit));
     this.FlagN = false;
     this.FlagH = true;
   }
 
-  bita_(addr, bit) {
-    let v = this.GB.M.get(addr);
-    this.FlagZ = !(v & (0x01 << bit));
-    this.FlagN = false;
-    this.FlagH = true;
+  res_(location, bit, addr) {
+    if (addr) {
+      this.GB.M.set(location, this.GB.M.get(location) & ~(0x01 << bit));
+    } else {
+      this.set8(location, this.Reg8[location] & ~(0x01 << bit));
+    }
   }
 
-  resr_(register, bit) {
-    this.set8(register, this.Reg8[register] & ~(0x01 << bit));
-  }
-
-  resa_(addr, bit) {
-    this.GB.M.set(addr, this.GB.M.get(addr) & ~(0x01 << bit));
-  }
-
-  setr_(register, bit) {
-    this.set8(register, this.Reg8[register] | (0x01 << bit));
-  }
-
-  seta_(addr, bit) {
-    this.GB.M.set(addr, this.GB.M.get(addr) | (0x01 << bit));
+  set_(location, bit, addr) {
+    if (addr) {
+      this.GB.M.set(location, this.GB.M.get(location) | (0x01 << bit));
+    } else {
+      this.set8(location, this.Reg8[location] | (0x01 << bit));
+    }
   }
 
   /**
