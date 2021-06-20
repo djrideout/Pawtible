@@ -29,10 +29,27 @@ const CYCLES_PER_FRAME = 69905; //approx. 4194304Hz/60fps
 
 export class CPU {
   constructor(gameBoy) {
+    this.mapCBs_();
     this.GB = gameBoy;
     this.paused_ = true;
     this.breakpoints_ = new Map();
     this.reset();
+  }
+
+  mapCBs_() {
+    this.rot_f = [
+      this.rlc_.bind(this),
+      this.rrc_.bind(this),
+      this.rl_.bind(this),
+      this.rr_.bind(this),
+      this.sla_.bind(this),
+      this.sra_.bind(this),
+      this.swap_.bind(this),
+      this.srl_.bind(this)
+    ];
+    this.bit_f = [...new Array(8).keys()].map((val) => this.bit_.bind(this, val));
+    this.res_f = [...new Array(8).keys()].map((val) => this.res_.bind(this, val));
+    this.set_f = [...new Array(8).keys()].map((val) => this.set_.bind(this, val));
   }
 
   reset() {
@@ -969,21 +986,11 @@ export class CPU {
         this.Reg16[Registers16.HL],
         Registers8.A
       ];
-      let rot_f = [
-        this.rlc_.bind(this),
-        this.rrc_.bind(this),
-        this.rl_.bind(this),
-        this.rr_.bind(this),
-        this.sla_.bind(this),
-        this.sra_.bind(this),
-        this.swap_.bind(this),
-        this.srl_.bind(this)
-      ];
       let f = [
-        rot_f[y],
-        this.bit_.bind(this, y),
-        this.res_.bind(this, y),
-        this.set_.bind(this, y)
+        this.rot_f[y],
+        this.bit_f[y],
+        this.res_f[y],
+        this.set_f[y]
       ];
       f[x](r[z], addr);
     }
