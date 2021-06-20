@@ -970,22 +970,22 @@ export class CPU {
         Registers8.A
       ];
       let rot_f = [
-        this.rlc_.bind(this, r[z], addr),
-        this.rrc_.bind(this, r[z], addr),
-        this.rl_.bind(this, r[z], addr),
-        this.rr_.bind(this, r[z], addr),
-        this.sla_.bind(this, r[z], addr),
-        this.sra_.bind(this, r[z], addr),
-        this.swap_.bind(this, r[z], addr),
-        this.srl_.bind(this, r[z], addr)
+        this.rlc_.bind(this),
+        this.rrc_.bind(this),
+        this.rl_.bind(this),
+        this.rr_.bind(this),
+        this.sla_.bind(this),
+        this.sra_.bind(this),
+        this.swap_.bind(this),
+        this.srl_.bind(this)
       ];
       let f = [
         rot_f[y],
-        this.bit_.bind(this, r[z], y, addr),
-        this.res_.bind(this, r[z], y, addr),
-        this.set_.bind(this, r[z], y, addr)
+        this.bit_.bind(this, y),
+        this.res_.bind(this, y),
+        this.set_.bind(this, y)
       ];
-      f[x]();
+      f[x](r[z], addr);
     }
     //RUN INSTRUCTION END
 
@@ -1556,7 +1556,7 @@ export class CPU {
     }
   }
 
-  bit_(location, bit, addr) {
+  bit_(bit, location, addr) {
     let v = null;
     if (addr) {
       v = this.GB.M.get(location);
@@ -1568,7 +1568,7 @@ export class CPU {
     this.FlagH = true;
   }
 
-  res_(location, bit, addr) {
+  res_(bit, location, addr) {
     if (addr) {
       this.GB.M.set(location, this.GB.M.get(location) & ~(0x01 << bit));
     } else {
@@ -1576,7 +1576,7 @@ export class CPU {
     }
   }
 
-  set_(location, bit, addr) {
+  set_(bit, location, addr) {
     if (addr) {
       this.GB.M.set(location, this.GB.M.get(location) | (0x01 << bit));
     } else {
