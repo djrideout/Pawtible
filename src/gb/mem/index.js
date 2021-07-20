@@ -19,6 +19,8 @@ export class Memory {
         val |= this.GB.Cart.rom[offsetAddr] << shift;
       } else if(offsetAddr >= 0x4000 && offsetAddr <= 0x7FFF) {
         val |= this.GB.Cart.rom[offsetAddr + 0x4000 * (this.GB.Cart.romBankNum - 1)] << shift;
+      } else if(offsetAddr >= 0xA000 && offsetAddr <= 0xBFFF && this.GB.Cart.ram) {
+        val |= this.GB.Cart.get(offsetAddr) << shift;
       } else if(offsetAddr >= 0xE000 && offsetAddr <= 0xFDFF) { //echo ram
         val |= this.mem[offsetAddr - 0x2000] << shift;
       } else if(offsetAddr === 0xFF00) {
@@ -53,7 +55,7 @@ export class Memory {
     for(let i = 0; i < bytes; i++) {
       let offsetAddr = addr + i;
       let shift = 8 * i;
-      if(offsetAddr <= 0x7FFF) {
+      if(offsetAddr <= 0x7FFF || (offsetAddr >= 0xA000 && offsetAddr <= 0xBFFF && this.GB.Cart.ram)) {
         this.GB.Cart.set(offsetAddr, val >> shift);
       } else if(offsetAddr >= 0xE000 && offsetAddr <= 0xFDFF) { //echo ram
         this.mem[offsetAddr - 0x2000] = val >> shift;
