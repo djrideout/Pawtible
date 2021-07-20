@@ -1006,6 +1006,7 @@ export class CPU {
       if (this.FlagIME && this.FlagVBlankEnable) {
         this.update(4);
         this.FlagVBlankRequest = false;
+        this.FlagIME = false;
         this.push_(Registers16.PC);
         this.update(4);
         this.Reg16[Registers16.PC] = 0x0040;
@@ -1015,6 +1016,7 @@ export class CPU {
       if (this.FlagIME && this.FlagLCDSTATEnable) {
         this.update(4);
         this.FlagLCDSTATRequest = false;
+        this.FlagIME = false;
         this.push_(Registers16.PC);
         this.update(4);
         this.Reg16[Registers16.PC] = 0x0048;
@@ -1024,6 +1026,7 @@ export class CPU {
       if (this.FlagIME && this.FlagTimerEnable) {
         this.update(4);
         this.FlagTimerRequest = false;
+        this.FlagIME = false;
         this.push_(Registers16.PC);
         this.update(4);
         this.Reg16[Registers16.PC] = 0x0050;
@@ -1033,6 +1036,7 @@ export class CPU {
       if (this.FlagIME && this.FlagSerialEnable) {
         this.update(4);
         this.FlagSerialRequest = false;
+        this.FlagIME = false;
         this.push_(Registers16.PC);
         this.update(4);
         this.Reg16[Registers16.PC] = 0x0058;
@@ -1042,6 +1046,7 @@ export class CPU {
       if (this.FlagIME && this.FlagJoypadEnable) {
         this.update(4);
         this.FlagJoypadRequest = false;
+        this.FlagIME = false;
         this.push_(Registers16.PC);
         this.update(4);
         this.Reg16[Registers16.PC] = 0x0060;

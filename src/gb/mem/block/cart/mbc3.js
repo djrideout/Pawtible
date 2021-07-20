@@ -28,7 +28,6 @@ export class MBC3 extends Cartridge {
         if (this.rtcRegMapped) {
           return this.registers[this.rtcRegister];
         } else {
-          console.log('ramread', this.ramBankNum)
           return this.ram[addr - 0xA000 + 0x2000 * this.ramBankNum];
         }
       } else {
@@ -64,7 +63,6 @@ export class MBC3 extends Cartridge {
         if (this.rtcRegMapped) {
           this.registers[this.rtcRegister] = val;
         } else {
-          console.log('ramwrite', this.ramBankNum)
           this.ram[addr - 0xA000 + 0x2000 * this.ramBankNum] = val;
         }
       }
