@@ -113,8 +113,9 @@ export class CPU {
 
   update(cycles) {
     this.count_ += cycles;
-    this.GB.PPU.step(cycles);
     this.GB.Timer.step(cycles);
+    this.GB.PPU.step(cycles);
+    this.GB.APU.step(cycles);
   }
 
   step() {
@@ -123,7 +124,9 @@ export class CPU {
     if (this.halted_) {
       this.update(4);
     } else {
-      switch (this.GB.M.get(this.Reg16[Registers16.PC]++)) {
+      let pc = this.Reg16[Registers16.PC]++;
+      let inst = this.GB.M.get(pc);
+      switch (inst) {
         case 0x00:
           break;
         case 0x01:
@@ -966,7 +969,7 @@ export class CPU {
           this.call8_(0x0038);
           break;
         default:
-          throw Error(`Unimplemented opcode 0x${this.GB.M.get(addr, 1, false).toString(16).toUpperCase().padStart(2, "0")}`);
+          throw Error(`Unimplemented opcode 0x${inst.toString(16).toUpperCase().padStart(2, "0")} at 0x${pc.toString(16).toUpperCase().padStart(4, "0")}`);
       }
     }
     if (cbInst) {

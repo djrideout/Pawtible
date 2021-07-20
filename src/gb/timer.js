@@ -68,23 +68,22 @@
     let bit = null;
     switch (this.TAC & 0x03) {
       case 0b00:
-        bit = (this.counter_ >>> 9) & 0x01;
+        bit = 9;
         break;
       case 0b01:
-        bit = (this.counter_ >>> 3) & 0x01;
+        bit = 3;
         break;
       case 0b10:
-        bit = (this.counter_ >>> 5) & 0x01;
+        bit = 5;
         break;
       case 0b11:
-        bit = (this.counter_ >>> 7) & 0x01;
+        bit = 7;
         break;
     }
     //Input to the falling edge detector
     let enabled = (this.TAC >> 2) & 0x01;
-    let input = bit & enabled;
     //Determine whether timer should increment using falling edge detector
-    if (this.prev_ === 1 && input === 0) {
+    if (((this.prev_ >>> bit) & 0x01 & enabled) === 1 && ((this.counter_ >>> bit) & 0x01 & enabled) === 0) {
       if (this.TIMA === 0xFF) {
         //Delay interrupt 4 cycles
         this.interruptThreshold_ = 4;
@@ -93,6 +92,10 @@
         this.TIMA++;
       }
     }
-    this.prev_ = input;
+    //Determine whether to step the APU Frame Sequencer using DIV.
+    if ((this.prev_ >>> 13) & 0x01 === 1 && ((this.counter_ >>> 13) & 0x01) === 0) {
+      this.GB.APU.stepFrameSequencer();
+    }
+    this.prev_ = this.counter_;
   }
 }
