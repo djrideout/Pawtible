@@ -154,7 +154,7 @@ export class PPU {
                 offsetX = (x + this.Reg[Registers.SCX]) % 256;
                 offsetY = (this.Reg[Registers.LY] + this.Reg[Registers.SCY]) % 256;
               }
-          
+
               //Get the tile this pixel is located in relative to the map
               let mapX = Math.floor(offsetX / 8);
               let mapY = Math.floor(offsetY / 8);
