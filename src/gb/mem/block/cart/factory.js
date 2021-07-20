@@ -9,6 +9,7 @@ export class CartridgeFactory {
     switch(base.type) {
       case Types.MBC1:
         return new MBC1(byteArr);
+      case Types.MBC3RAM:
       case Types.MBC3TIMERRAMBATTERY:
         return new MBC3(byteArr);
       default:

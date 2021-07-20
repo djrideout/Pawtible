@@ -1,9 +1,6 @@
 import cpu_instrs from "../public/rom/cpu_instrs/cpu_instrs.gb";
 import instr_timing from "../public/rom/instr_timing/instr_timing.gb";
 import mem_timing from "../public/rom/mem_timing-2/mem_timing.gb";
-import dma_basic from "../public/rom/oam_dma/basic.gb";
-import dma_reg_read from "../public/rom/oam_dma/reg_read.gb";
-import dma_sources_GS from "../public/rom/oam_dma/sources-GS.gb";
 import mona from "../public/rom/homebrew/mona.gb";
 import retroid from "../public/rom/homebrew/retroid.gb";
 import pocket from "../public/rom/homebrew/pocket.gb";
@@ -27,21 +24,6 @@ let roms = [
   {
     name: "mem_timing",
     path: mem_timing,
-    rom: null
-  },
-  {
-    name: "dma_basic",
-    path: dma_basic,
-    rom: null
-  },
-  {
-    name: "dma_reg_read",
-    path: dma_reg_read,
-    rom: null
-  },
-  {
-    name: "dma_sources_GS",
-    path: dma_sources_GS,
     rom: null
   },
   {
