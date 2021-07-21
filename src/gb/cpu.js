@@ -25,7 +25,8 @@ export const Flags = {
   C: "C"
 };
 
-const CYCLES_PER_FRAME = 69905; //approx. 4194304Hz/60fps
+export const CPU_FREQUENCY = 0x400000;
+const CYCLES_PER_FRAME = Math.floor(CPU_FREQUENCY / 60);
 
 export class CPU {
   constructor(gameBoy) {
@@ -116,6 +117,9 @@ export class CPU {
     this.GB.Timer.step(cycles);
     this.GB.PPU.step(cycles);
     this.GB.APU.step(cycles);
+    if (this.GB.Cart.step) {
+      this.GB.Cart.step(cycles);
+    }
   }
 
   step() {

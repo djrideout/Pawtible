@@ -5,12 +5,17 @@ Game Boy emulator and debugger
 - cpu_instrs
 - instr_timing
 - mem_timing
+- rtc3test
 
 ### Supported ROM types
 - ROM
 - MBC1
+- MBC3
 - MBC3+RAM
+- MBC3+RAM+BATTERY
+- MBC3+TIMER+BATTERY
+- MBC3+TIMER+RAM+BATTERY
 
 ### To do
 - Sound support
-- MBC1+RAM, MBC2+RAM, MBC3+TIMER+RAM+BATTERY, MBC5+RAM support
+- Other MBCs
