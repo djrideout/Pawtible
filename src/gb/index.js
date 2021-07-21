@@ -5,7 +5,7 @@ import { PPU } from "./ppu";
 import { Timer } from "./timer";
 import { Joypad } from "./joypad";
 import { APU } from "./apu";
-import { Cartridge } from "./mem/block/cart";
+import { Cartridge, Types } from "./mem/block/cart";
 
 export class GameBoy {
   constructor() {
@@ -20,8 +20,13 @@ export class GameBoy {
   }
 
   load(byteArr) {
+    let cart = CartridgeFactory.create(byteArr);
+    if (cart.constructor.name === "Cartridge" && cart.type !== Types.ROM) {
+      alert(`Unsupported cartridge type ${cart.type}`);
+      return;
+    }
     this.reset();
-    this.Cart = CartridgeFactory.create(byteArr);
+    this.Cart = cart;
   }
 
   //Initial state from pan docs: http://bgb.bircd.org/pandocs.htm#cpuregistersandflags

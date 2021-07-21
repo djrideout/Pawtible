@@ -1,6 +1,7 @@
 import cpu_instrs from "../public/rom/cpu_instrs/cpu_instrs.gb";
 import instr_timing from "../public/rom/instr_timing/instr_timing.gb";
 import mem_timing from "../public/rom/mem_timing-2/mem_timing.gb";
+import rtc3test from "../public/rom/rtc3test/rtc3test.gb";
 import mona from "../public/rom/homebrew/mona.gb";
 import retroid from "../public/rom/homebrew/retroid.gb";
 import pocket from "../public/rom/homebrew/pocket.gb";
@@ -23,6 +24,11 @@ let roms = [
   {
     name: "mem_timing",
     path: mem_timing,
+    rom: null
+  },
+  {
+    name: "rtc3test",
+    path: rtc3test,
     rom: null
   },
   {
