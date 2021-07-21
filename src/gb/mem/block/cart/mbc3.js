@@ -14,7 +14,9 @@ const Registers = {
 export class MBC3 extends Cartridge {
   reset() {
     super.reset();
-    this.ram = new Uint8Array(0x8000);
+    if (!this.ram) {
+      this.ram = new Uint8Array(0x8000);
+    }
     this.registers = new Uint8Array(5);
     this.ramTimerEnabled = true;
     this.rtcRegMapped = false;
