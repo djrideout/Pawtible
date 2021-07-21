@@ -4,7 +4,6 @@ import mem_timing from "../public/rom/mem_timing-2/mem_timing.gb";
 import mona from "../public/rom/homebrew/mona.gb";
 import retroid from "../public/rom/homebrew/retroid.gb";
 import pocket from "../public/rom/homebrew/pocket.gb";
-import gold from "../public/rom/cant_sue_me/gold.gbc";
 import { GameBoy } from "./gb";
 import { Site } from "./view/react/site";
 import React from "react";
@@ -39,11 +38,6 @@ let roms = [
   {
     name: "pocket",
     path: pocket,
-    rom: null
-  },
-  {
-    name: "gold",
-    path: gold,
     rom: null
   }
 ];
