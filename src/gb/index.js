@@ -39,6 +39,21 @@ export class GameBoy {
     this.Cart = cart;
   }
 
+  loadSRAM(byteArr) {
+    if (this.Cart.loadSRAM) {
+      this.Cart.loadSRAM(byteArr);
+      this.reset();
+    }
+  }
+
+  saveSRAM() {
+    if (this.Cart.saveSRAM) {
+      return this.Cart.saveSRAM();
+    } else {
+      return null;
+    }
+  }
+
   //Initial state from pan docs: http://bgb.bircd.org/pandocs.htm#cpuregistersandflags
   reset() {
     this.CPU.reset();

@@ -32,7 +32,9 @@ export class MBC3 extends Cartridge {
     if (!this.ram) {
       this.ram = new Uint8Array(0x8000);
     }
-    this.lastSecond = Math.round(Date.now() / 1000);
+    if (!this.lastSecond) {
+      this.lastSecond = Math.round(Date.now() / 1000);
+    }
     this.cycles = 0;
     this.registers = new Uint8Array(5);
     this.latchedRegisters = new Uint8Array(5);
@@ -42,6 +44,56 @@ export class MBC3 extends Cartridge {
     this.rtcRegister = 0x00;
     this.ramBankNum = 0;
     this.hasTimer = this.type === Types.MBC3TIMERBATTERY || this.type === Types.MBC3TIMERRAMBATTERY;
+  }
+
+  loadSRAM(arr) {
+    this.ram = arr.subarray(0, this.ram.length);
+    if (this.hasTimer) {
+      let rtcArr = arr.subarray(this.ram.length, this.ram.length + 48);
+      this.registers[Registers.SECONDS] = rtcArr[0];
+      this.registers[Registers.MINUTES] = rtcArr[4];
+      this.registers[Registers.HOURS] = rtcArr[8];
+      this.registers[Registers.DAYS_LOWER] = rtcArr[12];
+      this.registers[Registers.DAYS_UPPER] = rtcArr[16];
+      this.latchedRegisters[Registers.SECONDS] = rtcArr[20];
+      this.latchedRegisters[Registers.MINUTES] = rtcArr[24];
+      this.latchedRegisters[Registers.HOURS] = rtcArr[28];
+      this.latchedRegisters[Registers.DAYS_LOWER] = rtcArr[32];
+      this.latchedRegisters[Registers.DAYS_UPPER] = rtcArr[36];
+      let timestamp = 0;
+      for (let i = 0; i < 4; i++) {
+        timestamp |= rtcArr[40 + i] << (8 * i);
+      }
+      this.lastSecond = timestamp;
+    }
+  }
+
+  saveSRAM() {
+    let arr = new Uint8Array(this.hasTimer ? this.ram.length + 48 : this.ram.length);
+    arr.set(this.ram);
+    if (this.hasTimer) {
+      // http://bgb.bircd.org/rtcsave.html
+      let rtcArr = new Uint8Array(48);
+      rtcArr[0] = this.registers[Registers.SECONDS];
+      rtcArr[4] = this.registers[Registers.MINUTES];
+      rtcArr[8] = this.registers[Registers.HOURS];
+      rtcArr[12] = this.registers[Registers.DAYS_LOWER];
+      rtcArr[16] = this.registers[Registers.DAYS_UPPER];
+      rtcArr[20] = this.latchedRegisters[Registers.SECONDS];
+      rtcArr[24] = this.latchedRegisters[Registers.MINUTES];
+      rtcArr[28] = this.latchedRegisters[Registers.HOURS];
+      rtcArr[32] = this.latchedRegisters[Registers.DAYS_LOWER];
+      rtcArr[36] = this.latchedRegisters[Registers.DAYS_UPPER];
+      // This is supposed to be a 64-bit little endian number, but bitwise in JS is only done on 32 bit numbers.
+      // So it's not technically right, but it works because all timestamps still fit in 32 bits.
+      // JS numbers are also doubles, with 53 bits worth of integer space.
+      // Will leave it like this for now.
+      for (let i = 0; i < 4; i++) {
+        rtcArr[40 + i] = (this.lastSecond & (0xFF << (8 * i))) >>> (8 * i);
+      }
+      arr.set(rtcArr, this.ram.length);
+    }
+    return arr;
   }
 
   step(cycles) {

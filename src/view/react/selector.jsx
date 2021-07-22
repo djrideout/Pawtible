@@ -21,17 +21,18 @@ export function ROMSelector(props) {
   };
 
   const saveSRAM = () => {
-    if (!props.gameBoy.Cart.ram) {
+    let ram = props.gameBoy.saveSRAM();
+    if (!ram) {
       alert("No ExtRAM");
       return;
     }
-    let blob = new Blob([props.gameBoy.Cart.ram], {
+    let blob = new Blob([ram], {
       type: "application/octet-stream"
     });
     let url = window.URL.createObjectURL(blob);
     let a = document.createElement('A');
     a.href = url;
-    a.download = `${props.gameBoy.Cart.title}.srm`;
+    a.download = `${props.gameBoy.Cart.title}.sav`;
     document.body.appendChild(a);
     a.style.display = 'none';
     a.click();
@@ -47,8 +48,7 @@ export function ROMSelector(props) {
     }
     let buffer = await e.target.files[0].arrayBuffer();
     let arr = new Uint8Array(buffer);
-    props.gameBoy.Cart.ram = arr;
-    props.gameBoy.reset();
+    props.gameBoy.loadSRAM(arr);
   };
 
   const setRTCMode = (e) => {
