@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useReducer } from "react";
+import { GameBoy, RTCModes } from "../../gb";
 
 export function ROMSelector(props) {
   const [index, setIndex] = useState(0);
+  const [ignored, forceUpdate] = useReducer(x => x + 1, 0);
 
   const selectROM = (e) => {
     setIndex(parseInt(e.target.value));
@@ -28,7 +30,7 @@ export function ROMSelector(props) {
     });
     let url = window.URL.createObjectURL(blob);
     let a = document.createElement('A');
-    a.href = blob;
+    a.href = url;
     a.download = `${props.gameBoy.Cart.title}.srm`;
     document.body.appendChild(a);
     a.style.display = 'none';
@@ -49,18 +51,19 @@ export function ROMSelector(props) {
     props.gameBoy.reset();
   };
 
+  const setRTCMode = (e) => {
+    props.gameBoy.setRTCMode(e.target.value);
+  };
+
   useEffect(() => {
+    timer_set_closure(forceUpdate);
     loadSelected();
   }, []);
 
-  let options = [];
-  for(let i = 0; i < props.roms.length; i++) {
-    options.push(<option key={props.roms[i].name} value={i}>{props.roms[i].name}</option>);
-  }
   return (
     <div id="selector">
         <select onChange={selectROM}>
-          {options}
+          {props.roms.map((rom, i) => <option key={rom.name} value={i}>{rom.name}</option>)}
         </select>
         <button onClick={loadSelected}>Load</button>
         <input ref={(r) => loadROMRef = r} type={"file"} style={{display: "none"}} onChange={loadROMFromFile} />
@@ -78,6 +81,18 @@ export function ROMSelector(props) {
           loadSRAMRef.value = null;
           loadSRAMRef.click()
         }} />
+        <br />
+        <select onChange={setRTCMode} value={props.gameBoy.rtcMode}>
+          {Object.values(RTCModes).map((mode) => <option key={mode} value={mode}>{mode}</option>)}
+        </select>
     </div>
   );
+}
+
+function timer_set_closure(forceUpdate) {
+  let ogSetRTC = GameBoy.prototype.setRTCMode;
+  GameBoy.prototype.setRTCMode = function(mode) {
+    ogSetRTC.call(this, mode);
+    forceUpdate();
+  }
 }
