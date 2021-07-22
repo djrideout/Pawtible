@@ -1,5 +1,6 @@
 import { Cartridge, Types } from ".";
 import { CPU_FREQUENCY } from "../../../cpu";
+import { RTCModes } from "../../..";
 
 const Registers = {
   SECONDS:    0x00,
@@ -21,6 +22,11 @@ const Masks = {
  * https://gbdev.io/pandocs/MBC3.html
  */
 export class MBC3 extends Cartridge {
+  constructor(byteArr, gameBoy) {
+    super(byteArr);
+    this.GB = gameBoy;
+  }
+
   reset() {
     super.reset();
     if (!this.ram) {
@@ -47,11 +53,12 @@ export class MBC3 extends Cartridge {
       this.cycles -= cycles;
       return;
     }
-    if (this.cycles < CPU_FREQUENCY) {
+    let threshold = this.GB.rtcMode === RTCModes.SYSTEM ? CPU_FREQUENCY / 32 : CPU_FREQUENCY;
+    if (this.cycles < threshold) {
       return;
     }
-    this.cycles -= CPU_FREQUENCY;
-    let time = this.lastSecond + 1;
+    this.cycles -= threshold;
+    let time = this.GB.rtcMode === RTCModes.SYSTEM ? Math.round(Date.now() / 1000) : this.lastSecond + 1;
     if ((this.registers[Registers.DAYS_UPPER] & 0x40) === 0) {
       while (this.lastSecond + 60 * 60 * 24 < time) {
         this.lastSecond += 60 * 60 * 24;

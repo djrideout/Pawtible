@@ -3,7 +3,7 @@ import { MBC1 } from "./mbc1";
 import { MBC3 } from "./mbc3";
 
 export class CartridgeFactory {
-  static create(byteArr) {
+  static create(byteArr, gameBoy) {
     let base = new Cartridge(byteArr);
     //Will do more of these later
     switch(base.type) {
@@ -14,7 +14,7 @@ export class CartridgeFactory {
       case Types.MBC3RAMBATTERY:
       case Types.MBC3TIMERBATTERY:
       case Types.MBC3TIMERRAMBATTERY:
-        return new MBC3(byteArr);
+        return new MBC3(byteArr, gameBoy);
       default:
         return base;
     }

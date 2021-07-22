@@ -7,6 +7,11 @@ import { Joypad } from "./joypad";
 import { APU } from "./apu";
 import { Cartridge, Types } from "./mem/block/cart";
 
+export const RTCModes = {
+  SYSTEM: "Sync RTC to system clock",
+  CYCLE:  "Cycle-accurate RTC"
+};
+
 export class GameBoy {
   constructor() {
     this.Cart = new Cartridge();
@@ -16,11 +21,16 @@ export class GameBoy {
     this.Timer = new Timer(this);
     this.Joypad = new Joypad(this);
     this.APU = new APU(this);
+    this.setRTCMode(RTCModes.SYSTEM);
     this.reset();
   }
 
+  setRTCMode(mode) {
+    this.rtcMode = mode;
+  }
+
   load(byteArr) {
-    let cart = CartridgeFactory.create(byteArr);
+    let cart = CartridgeFactory.create(byteArr, this);
     if (cart.constructor.name === "Cartridge" && cart.type !== Types.ROM) {
       alert(`Unsupported cartridge type ${cart.type}`);
       return;
