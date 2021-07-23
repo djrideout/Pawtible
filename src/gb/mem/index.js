@@ -1,4 +1,4 @@
-import { Registers as APURegisters } from "../apu";
+import { Masks } from "../apu";
 
 export class Memory {
   constructor(gameBoy) {
@@ -34,7 +34,7 @@ export class Memory {
       } else if(offsetAddr === 0xFF07) {
         val |= this.GB.Timer.TAC << shift;
       } else if(offsetAddr >= 0xFF10 && offsetAddr <= 0xFF26) {
-        val |= this.GB.APU.MaskedReg[offsetAddr - 0xFF10] << shift;
+        val |= (this.GB.APU.Reg[offsetAddr - 0xFF10] | Masks[offsetAddr - 0xFF10]) << shift;
       } else if(offsetAddr >= 0xFF27 && offsetAddr <= 0xFF2F) {
         val |= 0xFF; // APU: Unused, always reads 0xFF
       } else if(offsetAddr >= 0xFF40 && offsetAddr <= 0xFF4B) {
