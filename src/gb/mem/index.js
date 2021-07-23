@@ -33,12 +33,10 @@ export class Memory {
         val |= this.GB.Timer.TMA << shift;
       } else if(offsetAddr === 0xFF07) {
         val |= this.GB.Timer.TAC << shift;
-      } else if(offsetAddr >= 0xFF10 && offsetAddr <= 0xFF14) {
-        val |= this.GB.APU.Reg[offsetAddr - 0xFF10] << shift;
-      } else if(offsetAddr >= 0xFF16 && offsetAddr <= 0xFF1E) {
-        val |= this.GB.APU.Reg[offsetAddr - 0xFF10 - 1] << shift;
-      } else if(offsetAddr >= 0xFF20 && offsetAddr <= 0xFF26) {
-        val |= this.GB.APU.Reg[offsetAddr - 0xFF10 - 2] << shift;
+      } else if(offsetAddr >= 0xFF10 && offsetAddr <= 0xFF26) {
+        val |= this.GB.APU.MaskedReg[offsetAddr - 0xFF10] << shift;
+      } else if(offsetAddr >= 0xFF27 && offsetAddr <= 0xFF2F) {
+        val |= 0xFF; // APU: Unused, always reads 0xFF
       } else if(offsetAddr >= 0xFF40 && offsetAddr <= 0xFF4B) {
         val |= this.GB.PPU.Reg[offsetAddr & 0xF] << shift;
       } else {
@@ -69,48 +67,8 @@ export class Memory {
         this.GB.Timer.TMA = val >> shift;
       } else if(offsetAddr === 0xFF07) {
         this.GB.Timer.TAC = val >> shift;
-      } else if(offsetAddr === 0xFF10) {
-        this.GB.APU.NR10 = val >> shift;
-      } else if(offsetAddr === 0xFF11) {
-        this.GB.APU.NR11 = val >> shift;
-      } else if(offsetAddr === 0xFF12) {
-        this.GB.APU.NR12 = val >> shift;
-      } else if(offsetAddr === 0xFF13) {
-        this.GB.APU.NR13 = val >> shift;
-      } else if(offsetAddr === 0xFF14) {
-        this.GB.APU.NR14 = val >> shift;
-      } else if(offsetAddr === 0xFF16) {
-        this.GB.APU.NR21 = val >> shift;
-      } else if(offsetAddr === 0xFF17) {
-        this.GB.APU.NR22 = val >> shift;
-      } else if(offsetAddr === 0xFF18) {
-        this.GB.APU.NR23 = val >> shift;
-      } else if(offsetAddr === 0xFF19) {
-        this.GB.APU.NR24 = val >> shift;
-      } else if(offsetAddr === 0xFF1A) {
-        this.GB.APU.NR30 = val >> shift;
-      } else if(offsetAddr === 0xFF1B) {
-        this.GB.APU.NR31 = val >> shift;
-      } else if(offsetAddr === 0xFF1C) {
-        this.GB.APU.NR32 = val >> shift;
-      } else if(offsetAddr === 0xFF1D) {
-        this.GB.APU.NR33 = val >> shift;
-      } else if(offsetAddr === 0xFF1E) {
-        this.GB.APU.NR34 = val >> shift;
-      } else if(offsetAddr === 0xFF20) {
-        this.GB.APU.NR41 = val >> shift;
-      } else if(offsetAddr === 0xFF21) {
-        this.GB.APU.NR42 = val >> shift;
-      } else if(offsetAddr === 0xFF22) {
-        this.GB.APU.NR43 = val >> shift;
-      } else if(offsetAddr === 0xFF23) {
-        this.GB.APU.NR44 = val >> shift;
-      } else if(offsetAddr === 0xFF24) {
-        this.GB.APU.NR50 = val >> shift;
-      } else if(offsetAddr === 0xFF25) {
-        this.GB.APU.NR51 = val >> shift;
-      } else if(offsetAddr === 0xFF26) {
-        this.GB.APU.NR52 = val >> shift;
+      } else if(offsetAddr >= 0xFF10 && offsetAddr <= 0xFF26) {
+        this.GB.APU.set(offsetAddr - 0xFF10, val >> shift);
       } else if(offsetAddr === 0xFF40) {
         this.GB.PPU.LCDC = val >> shift;
       } else if(offsetAddr === 0xFF41) {

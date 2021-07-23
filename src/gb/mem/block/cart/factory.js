@@ -8,6 +8,7 @@ export class CartridgeFactory {
     //Will do more of these later
     switch(base.type) {
       case Types.MBC1:
+      case Types.MBC1RAMBATTERY: // Not really, for test ROMs only
         return new MBC1(byteArr);
       case Types.MBC3:
       case Types.MBC3RAM:

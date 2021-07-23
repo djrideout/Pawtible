@@ -4,22 +4,40 @@ export const Registers = {
   NR12: 2,  //FF12
   NR13: 3,  //FF13
   NR14: 4,  //FF14
-  NR21: 5,  //FF16
-  NR22: 6,  //FF17
-  NR23: 7,  //FF18
-  NR24: 8,  //FF19
-  NR30: 9,  //FF1A
-  NR31: 10, //FF1B
-  NR32: 11, //FF1C
-  NR33: 12, //FF1D
-  NR34: 13, //FF1E
-  NR41: 14, //FF20
-  NR42: 15, //FF21
-  NR43: 16, //FF22
-  NR44: 17, //FF23
-  NR50: 18, //FF24
-  NR51: 19, //FF25
-  NR52: 20  //FF26
+  NR20: 5,  //FF15, unused
+  NR21: 6,  //FF16
+  NR22: 7,  //FF17
+  NR23: 8,  //FF18
+  NR24: 9,  //FF19
+  NR30: 10, //FF1A
+  NR31: 11, //FF1B
+  NR32: 12, //FF1C
+  NR33: 13, //FF1D
+  NR34: 14, //FF1E
+  NR40: 15, //FF1F, unused
+  NR41: 16, //FF20
+  NR42: 17, //FF21
+  NR43: 18, //FF22
+  NR44: 19, //FF23
+  NR50: 20, //FF24
+  NR51: 21, //FF25
+  NR52: 22  //FF26
+};
+
+const Masks = [
+  0x80, 0x3F, 0x00, 0xFF, 0xBF,
+  0xFF, 0x3F, 0x00, 0xFF, 0xBF,
+  0x7F, 0xFF, 0x9F, 0xFF, 0xBF,
+  0xFF, 0xFF, 0x00, 0x00, 0xBF,
+  0x00, 0x00, 0x70
+];
+
+const EnabledFlags = {
+  GLOBAL: 0x80,
+  CHANNEL_4: 0x08,
+  CHANNEL_3: 0x04,
+  CHANNEL_2: 0x02,
+  CHANNEL_1: 0x01
 };
 
 export class APU {
@@ -37,90 +55,24 @@ export class APU {
   }
 
   reset() {
-    this.Reg = new Uint8Array(21);
+    this.Reg = new Uint8Array(23);
+    this.MaskedReg = new Uint8Array(23);
   }
 
-  set NR10(val) {
-    this.Reg[Registers.NR10] = val;
-  }
-
-  set NR11(val) {
-    this.Reg[Registers.NR11] = val;
-  }
-
-  set NR12(val) {
-    this.Reg[Registers.NR12] = val;
-  }
-
-  set NR13(val) {
-    this.Reg[Registers.NR13] = val;
-  }
-
-  set NR14(val) {
-    this.Reg[Registers.NR14] = val;
-  }
-
-  set NR21(val) {
-    this.Reg[Registers.NR21] = val;
-  }
-
-  set NR22(val) {
-    this.Reg[Registers.NR22] = val;
-  }
-
-  set NR23(val) {
-    this.Reg[Registers.NR23] = val;
-  }
-
-  set NR24(val) {
-    this.Reg[Registers.NR24] = val;
-  }
-
-  set NR30(val) {
-    this.Reg[Registers.NR30] = val;
-  }
-
-  set NR31(val) {
-    this.Reg[Registers.NR31] = val;
-  }
-
-  set NR32(val) {
-    this.Reg[Registers.NR32] = val;
-  }
-
-  set NR33(val) {
-    this.Reg[Registers.NR33] = val;
-  }
-
-  set NR34(val) {
-    this.Reg[Registers.NR34] = val;
-  }
-
-  set NR41(val) {
-    this.Reg[Registers.NR41] = val;
-  }
-
-  set NR42(val) {
-    this.Reg[Registers.NR42] = val;
-  }
-
-  set NR43(val) {
-    this.Reg[Registers.NR43] = val;
-  }
-
-  set NR44(val) {
-    this.Reg[Registers.NR44] = val;
-  }
-
-  set NR50(val) {
-    this.Reg[Registers.NR50] = val;
-  }
-
-  set NR51(val) {
-    this.Reg[Registers.NR51] = val;
-  }
-
-  set NR52(val) {
-    this.Reg[Registers.NR52] = val;
+  set(reg, val) {
+    if (reg !== Registers.NR52 && !(this.Reg[Registers.NR52] & EnabledFlags.GLOBAL)) { //APU off
+      return;
+    }
+    if (reg === Registers.NR52) {
+      val &= ~0x0F;
+      if (!(val & EnabledFlags.GLOBAL)) {
+        for (let i = 0; i < this.Reg.length; i++) {
+          this.Reg[i] = 0;
+          this.MaskedReg[i] = Masks[i];
+        }
+      }
+    }
+    this.Reg[reg] = val;
+    this.MaskedReg[reg] = val | Masks[reg];
   }
 }
