@@ -24,7 +24,7 @@ export const Registers = {
   NR52: 22  //FF26
 };
 
-const Masks = [
+export const Masks = [
   0x80, 0x3F, 0x00, 0xFF, 0xBF,
   0xFF, 0x3F, 0x00, 0xFF, 0xBF,
   0x7F, 0xFF, 0x9F, 0xFF, 0xBF,
@@ -56,7 +56,6 @@ export class APU {
 
   reset() {
     this.Reg = new Uint8Array(23);
-    this.MaskedReg = new Uint8Array(23);
   }
 
   set(reg, val) {
@@ -68,11 +67,9 @@ export class APU {
       if (!(val & EnabledFlags.GLOBAL)) {
         for (let i = 0; i < this.Reg.length; i++) {
           this.Reg[i] = 0;
-          this.MaskedReg[i] = Masks[i];
         }
       }
     }
     this.Reg[reg] = val;
-    this.MaskedReg[reg] = val | Masks[reg];
   }
 }
