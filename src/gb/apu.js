@@ -32,43 +32,201 @@ export const Masks = [
   0x00, 0x00, 0x70
 ];
 
-const EnabledFlags = {
-  GLOBAL: 0x80,
-  CHANNEL_4: 0x08,
-  CHANNEL_3: 0x04,
-  CHANNEL_2: 0x02,
-  CHANNEL_1: 0x01
-};
-
 export class APU {
   constructor(gameBoy) {
     this.GB = gameBoy;
     this.reset();
   }
 
-  step(cycles) {
+  reset() {
+    this.Reg = new Uint8Array(23);
+    this.step = 0;
+    let that = this;
+    this.channels = [
+      {
+        get enabled() {
+          return that.Reg[Registers.NR52] & 0x01;
+        },
+        set enabled(bool) {
+          that.Reg[Registers.NR52] = (that.Reg[Registers.NR52] & ~0x01) | (bool << 0)
+        },
+        get dac_enabled() {
+          return that.Reg[Registers.NR12] & 0xF8;
+        },
+        length: {
+          counter: 0,
+          get enabled() {
+            return that.Reg[Registers.NR14] & 0x40;
+          },
+          set enabled(bool) {
+            that.Reg[Registers.NR14] = (that.Reg[Registers.NR14] & ~0x40) | (bool << 6);
+          },
+          get data() {
+            return that.Reg[Registers.NR11] & 0x3F;
+          },
+          set data(val) {
+            that.Reg[Registers.NR11] = (that.Reg[Registers.NR11] & ~0x3F) | (val & 0x3F);
+          }
+        }
+      },
+      {
+        get enabled() {
+          return that.Reg[Registers.NR52] & 0x02;
+        },
+        set enabled(bool) {
+          that.Reg[Registers.NR52] = (that.Reg[Registers.NR52] & ~0x02) | (bool << 1)
+        },
+        get dac_enabled() {
+          return that.Reg[Registers.NR22] & 0xF8;
+        },
+        length: {
+          counter: 0,
+          get enabled() {
+            return that.Reg[Registers.NR24] & 0x40;
+          },
+          set enabled(bool) {
+            that.Reg[Registers.NR24] = (that.Reg[Registers.NR24] & ~0x40) | (bool << 6);
+          },
+          get data() {
+            return that.Reg[Registers.NR21] & 0x3F;
+          },
+          set data(val) {
+            that.Reg[Registers.NR21] = (that.Reg[Registers.NR21] & ~0x3F) | (val & 0x3F);
+          }
+        }
+      },
+      {
+        get enabled() {
+          return that.Reg[Registers.NR52] & 0x04;
+        },
+        set enabled(bool) {
+          that.Reg[Registers.NR52] = (that.Reg[Registers.NR52] & ~0x04) | (bool << 2)
+        },
+        get dac_enabled() {
+          return that.Reg[Registers.NR30] & 0x80;
+        },
+        length: {
+          counter: 0,
+          get enabled() {
+            return that.Reg[Registers.NR34] & 0x40;
+          },
+          set enabled(bool) {
+            that.Reg[Registers.NR34] = (that.Reg[Registers.NR34] & ~0x40) | (bool << 6);
+          },
+          get data() {
+            return that.Reg[Registers.NR31];
+          },
+          set data(val) {
+            that.Reg[Registers.NR31] = val;
+          }
+        }
+      },
+      {
+        get enabled() {
+          return that.Reg[Registers.NR52] & 0x08;
+        },
+        set enabled(bool) {
+          that.Reg[Registers.NR52] = (that.Reg[Registers.NR52] & ~0x08) | (bool << 3)
+        },
+        get dac_enabled() {
+          return that.Reg[Registers.NR42] & 0xF8;
+        },
+        length: {
+          counter: 0,
+          get enabled() {
+            return that.Reg[Registers.NR44] & 0x40;
+          },
+          set enabled(bool) {
+            that.Reg[Registers.NR44] = (that.Reg[Registers.NR44] & ~0x40) | (bool << 6);
+          },
+          get data() {
+            return that.Reg[Registers.NR41] & 0x3F;
+          },
+          set data(val) {
+            that.Reg[Registers.NR41] = (that.Reg[Registers.NR41] & ~0x3F) | (val & 0x3F);
+          }
+        }
+      }
+    ];
+  }
 
+  get enabled() {
+    return this.Reg[Registers.NR52] & 0x80;
+  }
+
+  set enabled(bool) {
+    this.Reg[Registers.NR52] = (this.Reg[Registers.NR52] & ~0x80) | (bool << 7);
   }
 
   stepFrameSequencer() {
+    this.step = (this.step + 1) % 8;
+    if ((this.step % 2) === 0) {
+      this.stepLength_();
+    }
+    if (this.step === 7) {
+      this.stepEnvelope_();
+    }
+    if (this.step === 2 || this.step === 6) {
+      this.stepSweep_();
+    }
+  }
+
+  stepLength_() {
+    for (let i = 0; i < this.channels.length; i++) {
+      let chan = this.channels[i];
+      if (chan.length.enabled && chan.length.counter > 0) {
+        if (--chan.length.counter === 0) {
+          chan.enabled = false;
+        }
+      }
+    }
+  }
+
+  stepEnvelope_() {
 
   }
 
-  reset() {
-    this.Reg = new Uint8Array(23);
+  stepSweep_() {
+
   }
 
   set(reg, val) {
-    if (reg !== Registers.NR52 && !(this.Reg[Registers.NR52] & EnabledFlags.GLOBAL)) { //APU off
+    if (reg !== Registers.NR52 && !this.enabled) {
       return;
     }
     if (reg === Registers.NR52) {
       val &= ~0x0F;
-      if (!(val & EnabledFlags.GLOBAL)) {
+      if (!(val & 0x80)) {
+        // When disabling sound, all registers are set to 0
         for (let i = 0; i < this.Reg.length; i++) {
           this.Reg[i] = 0;
         }
       }
+    }
+    let chan = (reg - 1) / 5;
+    if (chan % 1 === 0 && chan < 4) {
+      // When writing length data, counter must be set as well
+      let mask = chan === 2 ? 0xFF : 0x3F;
+      this.channels[chan].length.counter = mask + 1 - (val & mask);
+    }
+    chan = (reg - 4) / 5;
+    if (chan % 1 === 0 && chan < 4 && (val & 0x80)) {
+      // Causing trigger event
+      if (this.channels[chan].dac_enabled) {
+        this.channels[chan].enabled = true;
+      }
+      if (this.channels[chan].length.counter === 0) {
+        this.channels[chan].length.counter = chan === 2 ? 256 : 64;
+      }
+    }
+    chan = (reg - 2) / 5;
+    if (chan % 1 === 0 && chan < 4 && chan !== 2 && (val & 0xF8) === 0) {
+      // DAC disabled for channel 1, 2, or 4
+      this.channels[chan].enabled = false;
+    }
+    if (chan % 1 === 0 && chan === 2 && (val & 0x80) === 0) {
+      // DAC disabled for channel 3
+      this.channels[chan].enabled = false;
     }
     this.Reg[reg] = val;
   }
