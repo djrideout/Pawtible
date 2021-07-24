@@ -4,7 +4,7 @@ import { CPU } from "./cpu";
 import { PPU } from "./ppu";
 import { Timer } from "./timer";
 import { Joypad } from "./joypad";
-import { APU } from "./apu";
+import { APU, Registers } from "./apu";
 import { Cartridge, Types } from "./mem/block/cart";
 
 export const RTCModes = {
@@ -67,24 +67,24 @@ export class GameBoy {
     //io
     this.M.mem[0xFF00] = 0xCF; //some of the read only bits needs to be modified here
     //sound
-    this.M.set(0xFF10, 0x80, 1, false);
-    this.M.set(0xFF11, 0xBF, 1, false);
-    this.M.set(0xFF12, 0xF3, 1, false);
-    this.M.set(0xFF14, 0xBF, 1, false);
-    this.M.set(0xFF16, 0x3F, 1, false);
-    this.M.set(0xFF17, 0x00, 1, false);
-    this.M.set(0xFF19, 0xBF, 1, false);
-    this.M.set(0xFF1A, 0x7F, 1, false);
-    this.M.set(0xFF1B, 0xFF, 1, false);
-    this.M.set(0xFF1C, 0x9F, 1, false);
-    this.M.set(0xFF1E, 0xBF, 1, false);
-    this.M.set(0xFF20, 0xFF, 1, false);
-    this.M.set(0xFF21, 0x00, 1, false);
-    this.M.set(0xFF22, 0x00, 1, false);
-    this.M.set(0xFF23, 0xBF, 1, false);
-    this.M.set(0xFF24, 0x77, 1, false);
-    this.M.set(0xFF25, 0xF3, 1, false);
-    this.M.set(0xFF26, 0xF1, 1, false);
+    this.APU.Reg[Registers.NR10] = 0x80;
+    this.APU.Reg[Registers.NR11] = 0xBF;
+    this.APU.Reg[Registers.NR12] = 0xF3;
+    this.APU.Reg[Registers.NR14] = 0xBF;
+    this.APU.Reg[Registers.NR21] = 0x3F;
+    this.APU.Reg[Registers.NR22] = 0x00;
+    this.APU.Reg[Registers.NR24] = 0xBF;
+    this.APU.Reg[Registers.NR30] = 0x7F;
+    this.APU.Reg[Registers.NR31] = 0xFF;
+    this.APU.Reg[Registers.NR32] = 0x9F;
+    this.APU.Reg[Registers.NR34] = 0xBF;
+    this.APU.Reg[Registers.NR41] = 0xFF;
+    this.APU.Reg[Registers.NR42] = 0x00;
+    this.APU.Reg[Registers.NR43] = 0x00;
+    this.APU.Reg[Registers.NR44] = 0xBF;
+    this.APU.Reg[Registers.NR50] = 0x77;
+    this.APU.Reg[Registers.NR51] = 0xF3;
+    this.APU.Reg[Registers.NR52] = 0xF1;
   }
 
   time() {

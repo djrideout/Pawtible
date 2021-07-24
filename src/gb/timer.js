@@ -93,7 +93,7 @@
       }
     }
     //Determine whether to step the APU Frame Sequencer using DIV.
-    if ((this.prev_ >>> 13) & 0x01 === 1 && ((this.counter_ >>> 13) & 0x01) === 0) {
+    if ((this.prev_ >>> 12) & 0x01 === 1 && ((this.counter_ >>> 12) & 0x01) === 0) {
       this.GB.APU.stepFrameSequencer();
     }
     this.prev_ = this.counter_;

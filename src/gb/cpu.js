@@ -116,7 +116,6 @@ export class CPU {
     this.count_ += cycles;
     this.GB.Timer.step(cycles);
     this.GB.PPU.step(cycles);
-    this.GB.APU.step(cycles);
     if (this.GB.Cart.step) {
       this.GB.Cart.step(cycles);
     }
