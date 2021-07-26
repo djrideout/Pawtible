@@ -22,6 +22,7 @@
   }
 
   set DIV(set) {
+    this.prev_ = this.counter_;
     this.counter_ = 0x0000;
     this.onCounterChange_();
   }
@@ -57,6 +58,7 @@
       if (this.interruptThreshold_ === 0) {
         this.GB.CPU.FlagTimerRequest = true;
       }
+      this.prev_ = this.counter_;
       this.counter_ = (this.counter_ + 1) & 0xFFFF;
       cycles--;
       this.onCounterChange_();
@@ -96,6 +98,5 @@
     if ((this.prev_ >>> 12) & 0x01 === 1 && ((this.counter_ >>> 12) & 0x01) === 0) {
       this.GB.APU.stepFrameSequencer();
     }
-    this.prev_ = this.counter_;
   }
 }
