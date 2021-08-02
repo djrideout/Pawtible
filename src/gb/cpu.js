@@ -1,13 +1,30 @@
-export const Registers8 = {
-  A: 0,
-  F: 1,
-  B: 2,
-  C: 3,
-  D: 4,
-  E: 5,
-  H: 6,
-  L: 7
-};
+import { isLittleEndian } from "./utils";
+
+let tempReg8 = {};
+if (isLittleEndian()) {
+  tempReg8 = {
+    A: 1,
+    F: 0,
+    B: 3,
+    C: 2,
+    D: 5,
+    E: 4,
+    H: 7,
+    L: 6
+  };
+} else {
+  tempReg8 = {
+    A: 0,
+    F: 1,
+    B: 2,
+    C: 3,
+    D: 4,
+    E: 5,
+    H: 6,
+    L: 7
+  };
+}
+export const Registers8 = tempReg8;
 
 export const Registers16 = {
   AF: 0,
@@ -16,7 +33,10 @@ export const Registers16 = {
   HL: 3,
   SP: 4,
   PC: 5
-}
+};
+
+const Reg16Masks = new Uint16Array([0xFFF0, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF]);
+const Reg8Masks = new Uint8Array(Reg16Masks.buffer);
 
 export const Flags = {
   Z: "Z",
@@ -57,14 +77,14 @@ export class CPU {
     this.halted_ = false;
     this.FlagIME = false;
     this.count_ = 0;
-    this.Reg8 = new Uint8Array(8);
     this.Reg16 = new Uint16Array(6);
+    this.Reg8 = new Uint8Array(this.Reg16.buffer);
     this.Reg16[Registers16.PC] = 0x0100;
     this.Reg16[Registers16.SP] = 0xFFFE;
-    this.AF = 0x01B0;
-    this.BC = 0x0013;
-    this.DE = 0x00D8;
-    this.HL = 0x014D;
+    this.Reg16[Registers16.AF] = 0x01B0;
+    this.Reg16[Registers16.BC] = 0x0013;
+    this.Reg16[Registers16.DE] = 0x00D8;
+    this.Reg16[Registers16.HL] = 0x014D;
   }
 
   pause() {
@@ -290,7 +310,7 @@ export class CPU {
         case 0x2F:
           this.FlagN = true;
           this.FlagH = true;
-          this.A = this.Reg8[Registers8.A] ^ 0xFF;
+          this.Reg8[Registers8.A] = this.Reg8[Registers8.A] ^ 0xFF;
           break;
         case 0x30:
           if (!this.FlagC) {
@@ -1075,7 +1095,7 @@ export class CPU {
   }
 
   inc16_(register, update = true) {
-    this.set16(register, this.Reg16[register] + 1);
+    this.Reg16[register] = (this.Reg16[register] + 1) & Reg16Masks[register];
     if (update) {
       this.update(4);
     }
@@ -1083,7 +1103,7 @@ export class CPU {
 
   inc8r_(register) {
     let v0 = this.Reg8[register];
-    this.set8(register, v0 + 1);
+    this.Reg8[register] = (v0 + 1) & Reg8Masks[register];
     let v1 = this.Reg8[register];
     this.FlagZ = !v1;
     this.FlagN = false;
@@ -1100,7 +1120,7 @@ export class CPU {
   }
 
   dec16_(register, update = true) {
-    this.set16(register, this.Reg16[register] - 1);
+    this.Reg16[register] = (this.Reg16[register] - 1) & Reg16Masks[register];
     if (update) {
       this.update(4);
     }
@@ -1108,7 +1128,7 @@ export class CPU {
 
   dec8r_(register) {
     let v0 = this.Reg8[register];
-    this.set8(register, v0 - 1);
+    this.Reg8[register] = (v0 - 1) & Reg8Masks[register];
     let v1 = this.Reg8[register];
     this.FlagZ = !v1;
     this.FlagN = true;
@@ -1125,7 +1145,7 @@ export class CPU {
   }
 
   andr_(register) {
-    this.A = this.Reg8[Registers8.A] & this.Reg8[register];
+    this.Reg8[Registers8.A] = this.Reg8[Registers8.A] & this.Reg8[register];
     this.FlagZ = !this.Reg8[Registers8.A];
     this.FlagN = false;
     this.FlagH = true;
@@ -1133,7 +1153,7 @@ export class CPU {
   }
 
   andv_(value) {
-    this.A = this.Reg8[Registers8.A] & value;
+    this.Reg8[Registers8.A] = this.Reg8[Registers8.A] & value;
     this.FlagZ = !this.Reg8[Registers8.A];
     this.FlagN = false;
     this.FlagH = true;
@@ -1141,7 +1161,7 @@ export class CPU {
   }
 
   orr_(register) {
-    this.A = this.Reg8[Registers8.A] | this.Reg8[register];
+    this.Reg8[Registers8.A] = this.Reg8[Registers8.A] | this.Reg8[register];
     this.FlagZ = !this.Reg8[Registers8.A];
     this.FlagN = false;
     this.FlagH = false;
@@ -1149,7 +1169,7 @@ export class CPU {
   }
 
   orv_(value) {
-    this.A = this.Reg8[Registers8.A] | value;
+    this.Reg8[Registers8.A] = this.Reg8[Registers8.A] | value;
     this.FlagZ = !this.Reg8[Registers8.A];
     this.FlagN = false;
     this.FlagH = false;
@@ -1157,7 +1177,7 @@ export class CPU {
   }
 
   xorr_(register) {
-    this.A = this.Reg8[Registers8.A] ^ this.Reg8[register];
+    this.Reg8[Registers8.A] = this.Reg8[Registers8.A] ^ this.Reg8[register];
     this.FlagZ = !this.Reg8[Registers8.A];
     this.FlagN = false;
     this.FlagH = false;
@@ -1165,7 +1185,7 @@ export class CPU {
   }
 
   xorv_(value) {
-    this.A = this.Reg8[Registers8.A] ^ value;
+    this.Reg8[Registers8.A] = this.Reg8[Registers8.A] ^ value;
     this.FlagZ = !this.Reg8[Registers8.A];
     this.FlagN = false;
     this.FlagH = false;
@@ -1175,7 +1195,7 @@ export class CPU {
   addHL16r_(register) {
     let v0 = this.Reg16[Registers16.HL];
     let value = this.Reg16[register];
-    this.HL = v0 + value;
+    this.Reg16[Registers16.HL] = v0 + value;
     this.FlagN = false;
     this.FlagH = (v0 & 0xFFF) + (value & 0xFFF) > 0xFFF; //how is this a HALF carry???
     this.FlagC = v0 + value > 0xFFFF;
@@ -1185,7 +1205,7 @@ export class CPU {
   add8r_(register) {
     let v0 = this.Reg8[Registers8.A];
     let value = this.Reg8[register];
-    this.A = v0 + value;
+    this.Reg8[Registers8.A] = v0 + value;
     this.FlagZ = !this.Reg8[Registers8.A];
     this.FlagN = false;
     this.FlagH = (value & 0xF) + (v0 & 0xF) > 0xF;
@@ -1194,7 +1214,7 @@ export class CPU {
 
   add8v_(value) {
     let v0 = this.Reg8[Registers8.A];
-    this.A = v0 + value;
+    this.Reg8[Registers8.A] = v0 + value;
     this.FlagZ = !this.Reg8[Registers8.A];
     this.FlagN = false;
     this.FlagH = (value & 0xF) + (v0 & 0xF) > 0xF;
@@ -1218,7 +1238,7 @@ export class CPU {
   lda16SPsigned8v_(register, value) {
     //JS numbers in bitwise are 32 bit, so make it negative (if 8 bit negative) in JS
     value = value << 24 >> 24;
-    this.set16(register, this.Reg16[Registers16.SP] + value);
+    this.Reg16[register] = (this.Reg16[Registers16.SP] + value) & Reg16Masks[register];
     let test = this.Reg16[Registers16.SP] ^ value ^ this.Reg16[Registers16.HL];
     this.FlagZ = false;
     this.FlagN = false;
@@ -1229,18 +1249,18 @@ export class CPU {
 
   subr_(register) {
     this.cpr_(register);
-    this.A = this.Reg8[Registers8.A] - this.Reg8[register];
+    this.Reg8[Registers8.A] = this.Reg8[Registers8.A] - this.Reg8[register];
   }
 
   subv_(value) {
     this.cpv_(value);
-    this.A = this.Reg8[Registers8.A] - value;
+    this.Reg8[Registers8.A] = this.Reg8[Registers8.A] - value;
   }
 
   adcr_(register) {
     let v0 = this.Reg8[Registers8.A];
     let value = this.Reg8[register];
-    this.A = v0 + value + this.FlagC;
+    this.Reg8[Registers8.A] = v0 + value + this.FlagC;
     this.FlagZ = !this.Reg8[Registers8.A];
     this.FlagN = false;
     this.FlagH = (value & 0xF) + (v0 & 0xF) + (this.FlagC & 0xF) > 0xF;
@@ -1249,7 +1269,7 @@ export class CPU {
 
   adcv_(value) {
     let v0 = this.Reg8[Registers8.A];
-    this.A = v0 + value + this.FlagC;
+    this.Reg8[Registers8.A] = v0 + value + this.FlagC;
     this.FlagZ = !this.Reg8[Registers8.A];
     this.FlagN = false;
     this.FlagH = (value & 0xF) + (v0 & 0xF) + (this.FlagC & 0xF) > 0xF;
@@ -1261,7 +1281,7 @@ export class CPU {
     let sum = this.Reg8[Registers8.A] - value - this.FlagC;
     this.FlagH = (this.Reg8[Registers8.A] & 0xF) - (value & 0xF) - this.FlagC < 0
     this.FlagC = sum < 0;
-    this.A = sum & 0xFF;
+    this.Reg8[Registers8.A] = sum & 0xFF;
     this.FlagZ = !this.Reg8[Registers8.A];
     this.FlagN = true;
   }
@@ -1270,7 +1290,7 @@ export class CPU {
     let sum = this.Reg8[Registers8.A] - value - this.FlagC;
     this.FlagH = (this.Reg8[Registers8.A] & 0xF) - (value & 0xF) - this.FlagC < 0
     this.FlagC = sum < 0;
-    this.A = sum & 0xFF;
+    this.Reg8[Registers8.A] = sum & 0xFF;
     this.FlagZ = !this.Reg8[Registers8.A];
     this.FlagN = true;
   }
@@ -1293,14 +1313,14 @@ export class CPU {
   }
 
   ldr8_(register, val, update = false) {
-    this.set8(register, val);
+    this.Reg8[register] = val & Reg8Masks[register];
     if (update) {
       this.update(4);
     }
   }
 
   ldr16_(register, val, update = false) {
-    this.set16(register, val);
+    this.Reg16[register] = val & Reg16Masks[register];
     if (update) {
       this.update(4);
     }
@@ -1313,7 +1333,7 @@ export class CPU {
   }
 
   pop_(register) {
-    this.set16(register, this.GB.M.get(this.Reg16[Registers16.SP], 2));
+    this.Reg16[register] = this.GB.M.get(this.Reg16[Registers16.SP], 2) & Reg16Masks[register];
     this.Reg16[Registers16.SP] += 2;
   }
 
@@ -1343,7 +1363,7 @@ export class CPU {
   rlakku_() {
     let v = this.Reg8[Registers8.A];
     let top = (v & 0x80) >>> 7;
-    this.A = (v << 1) | (this.FlagC ? 0x01 : 0x00);
+    this.Reg8[Registers8.A] = (v << 1) | (this.FlagC ? 0x01 : 0x00);
     this.FlagZ = false;
     this.FlagN = false;
     this.FlagH = false;
@@ -1353,7 +1373,7 @@ export class CPU {
   rlcakku_() {
     let v = this.Reg8[Registers8.A];
     let top = (v & 0x80) >>> 7;
-    this.A = (v << 1) | top;
+    this.Reg8[Registers8.A] = (v << 1) | top;
     this.FlagZ = false;
     this.FlagN = false;
     this.FlagH = false;
@@ -1363,7 +1383,7 @@ export class CPU {
   rrakku_() {
     let v = this.Reg8[Registers8.A];
     let bot = v & 0x01;
-    this.A = (v >>> 1) | (this.FlagC ? 0x80 : 0x00)
+    this.Reg8[Registers8.A] = (v >>> 1) | (this.FlagC ? 0x80 : 0x00)
     this.FlagZ = false;
     this.FlagN = false;
     this.FlagH = false;
@@ -1373,7 +1393,7 @@ export class CPU {
   rrcakku_() {
     let v = this.Reg8[Registers8.A];
     let bot = (v & 0x01) << 7;
-    this.A = (v >>> 1) | bot;
+    this.Reg8[Registers8.A] = (v >>> 1) | bot;
     this.FlagZ = false;
     this.FlagN = false;
     this.FlagH = false;
@@ -1397,18 +1417,18 @@ export class CPU {
   daa_() {
     if (!this.FlagN) {
       if (this.FlagC || this.Reg8[Registers8.A] > 0x99) {
-        this.A = this.Reg8[Registers8.A] + 0x60;
+        this.Reg8[Registers8.A] = this.Reg8[Registers8.A] + 0x60;
         this.FlagC = true;
       }
       if (this.FlagH || (this.Reg8[Registers8.A] & 0x0F) > 0x09) {
-        this.A = this.Reg8[Registers8.A] + 0x06;
+        this.Reg8[Registers8.A] = this.Reg8[Registers8.A] + 0x06;
       }
     } else {
       if (this.FlagC) {
-        this.A = this.Reg8[Registers8.A] - 0x60;
+        this.Reg8[Registers8.A] = this.Reg8[Registers8.A] - 0x60;
       }
       if (this.FlagH) {
-        this.A = this.Reg8[Registers8.A] - 0x06;
+        this.Reg8[Registers8.A] = this.Reg8[Registers8.A] - 0x06;
       }
     }
     this.FlagZ = !this.Reg8[Registers8.A];
@@ -1427,7 +1447,7 @@ export class CPU {
       this.GB.M.set(location, (v << 1) | top);
       this.FlagZ = !this.GB.M.get(location, 1, false);
     } else {
-      this.set8(location, (v << 1) | top);
+      this.Reg8[location] = ((v << 1) | top) & Reg8Masks[location];
       this.FlagZ = !this.Reg8[location];
     }
     this.FlagN = false;
@@ -1447,7 +1467,7 @@ export class CPU {
       this.GB.M.set(location, (v >>> 1) | bot);
       this.FlagZ = !this.GB.M.get(location, 1, false);
     } else {
-      this.set8(location, (v >>> 1) | bot);
+      this.Reg8[location] = ((v >>> 1) | bot) & Reg8Masks[location];
       this.FlagZ = !this.Reg8[location];
     }
     this.FlagN = false;
@@ -1467,7 +1487,7 @@ export class CPU {
       this.GB.M.set(location, (v << 1) | (this.FlagC ? 0x01 : 0x00));
       this.FlagZ = !this.GB.M.get(location, 1, false);
     } else {
-      this.set8(location, (v << 1) | (this.FlagC ? 0x01 : 0x00));
+      this.Reg8[location] = ((v << 1) | (this.FlagC ? 0x01 : 0x00)) & Reg8Masks[location];
       this.FlagZ = !this.Reg8[location];
     }
     this.FlagN = false;
@@ -1487,7 +1507,7 @@ export class CPU {
       this.GB.M.set(location, (v >>> 1) | (this.FlagC ? 0x80 : 0x00));
       this.FlagZ = !this.GB.M.get(location, 1, false);
     } else {
-      this.set8(location, (v >>> 1) | (this.FlagC ? 0x80 : 0x00));
+      this.Reg8[location] = ((v >>> 1) | (this.FlagC ? 0x80 : 0x00)) & Reg8Masks[location];
       this.FlagZ = !this.Reg8[location];
     }
     this.FlagN = false;
@@ -1509,7 +1529,7 @@ export class CPU {
       this.GB.M.set(location, v << 1);
       this.FlagZ = !this.GB.M.get(location, 1, false);
     } else {
-      this.set8(location, v << 1);
+      this.Reg8[location] = (v << 1) & Reg8Masks[location];
       this.FlagZ = !this.Reg8[location];
     }
   }
@@ -1529,7 +1549,7 @@ export class CPU {
       this.GB.M.set(location, (v >> 1 | top));
       this.FlagZ = !this.GB.M.get(location, 1, false);
     } else {
-      this.set8(location, (v >> 1 | top));
+      this.Reg8[location] = (v >> 1 | top) & Reg8Masks[location];
       this.FlagZ = !this.Reg8[location];
     }
   }
@@ -1550,7 +1570,7 @@ export class CPU {
       this.GB.M.set(location, (bot << 4) | (top >>> 4));
       this.FlagZ = !this.GB.M.get(location, 1, false);
     } else {
-      this.set8(location, (bot << 4) | (top >>> 4));
+      this.Reg8[location] = ((bot << 4) | (top >>> 4)) & Reg8Masks[location];
       this.FlagZ = !this.Reg8[location];
     }
   }
@@ -1569,7 +1589,7 @@ export class CPU {
       this.GB.M.set(location, v >>> 1);
       this.FlagZ = !this.GB.M.get(location, 1, false);
     } else {
-      this.set8(location, v >>> 1);
+      this.Reg8[location] = (v >>> 1) & Reg8Masks[location];
       this.FlagZ = !this.Reg8[location];
     }
   }
@@ -1590,7 +1610,7 @@ export class CPU {
     if (addr) {
       this.GB.M.set(location, this.GB.M.get(location) & ~(0x01 << bit));
     } else {
-      this.set8(location, this.Reg8[location] & ~(0x01 << bit));
+      this.Reg8[location] = (this.Reg8[location] & ~(0x01 << bit)) & Reg8Masks[location];
     }
   }
 
@@ -1598,164 +1618,8 @@ export class CPU {
     if (addr) {
       this.GB.M.set(location, this.GB.M.get(location) | (0x01 << bit));
     } else {
-      this.set8(location, this.Reg8[location] | (0x01 << bit));
+      this.Reg8[location] = (this.Reg8[location] | (0x01 << bit)) & Reg8Masks[location];
     }
-  }
-
-  /**
-   * 8-bit registers are stored redundantly in both their 8 and 16 bit combo forms
-   * to eliminate all forms of getters and getting functions to increase performance on the common case (getting).
-   * There is also duplicated setting code to reduce the call stack by 1.
-   */
-
-  set8(register, val) {
-    switch (register) {
-      case Registers8.A:
-        this.Reg8[Registers8.A] = val;
-        this.Reg16[Registers16.AF] = (this.Reg16[Registers16.AF] & 0xFF) | (val << 8);
-        break;
-      case Registers8.F:
-        val = val & 0xF0;
-        this.Reg8[Registers8.F] = val;
-        this.Reg16[Registers16.AF] = (this.Reg16[Registers16.AF] & 0xFF00) | val;
-        break;
-      case Registers8.B:
-        this.Reg8[Registers8.B] = val;
-        this.Reg16[Registers16.BC] = (this.Reg16[Registers16.BC] & 0xFF) | (val << 8);
-        break;
-      case Registers8.C:
-        val = val & 0xFF;
-        this.Reg8[Registers8.C] = val;
-        this.Reg16[Registers16.BC] = (this.Reg16[Registers16.BC] & 0xFF00) | val;
-        break;
-      case Registers8.D:
-        this.Reg8[Registers8.D] = val;
-        this.Reg16[Registers16.DE] = (this.Reg16[Registers16.DE] & 0xFF) | (val << 8);
-        break;
-      case Registers8.E:
-        val = val & 0xFF;
-        this.Reg8[Registers8.E] = val;
-        this.Reg16[Registers16.DE] = (this.Reg16[Registers16.DE] & 0xFF00) | val;
-        break;
-      case Registers8.H:
-        this.Reg8[Registers8.H] = val;
-        this.Reg16[Registers16.HL] = (this.Reg16[Registers16.HL] & 0xFF) | (val << 8);
-        break;
-      case Registers8.L:
-        val = val & 0xFF;
-        this.Reg8[Registers8.L] = val;
-        this.Reg16[Registers16.HL] = (this.Reg16[Registers16.HL] & 0xFF00) | val;
-        break;
-    }
-  }
-
-  set16(register, val) {
-    switch (register) {
-      case Registers16.AF:
-        val = val & 0xFFF0;
-        this.Reg8[Registers8.A] = val >>> 8;
-        this.Reg8[Registers8.F] = val;
-        this.Reg16[Registers16.AF] = val;
-        break;
-      case Registers16.BC:
-        this.Reg8[Registers8.B] = val >>> 8;
-        this.Reg8[Registers8.C] = val;
-        this.Reg16[Registers16.BC] = val;
-        break;
-      case Registers16.DE:
-        this.Reg8[Registers8.D] = val >>> 8;
-        this.Reg8[Registers8.E] = val;
-        this.Reg16[Registers16.DE] = val;
-        break;
-      case Registers16.HL:
-        this.Reg8[Registers8.H] = val >>> 8;
-        this.Reg8[Registers8.L] = val;
-        this.Reg16[Registers16.HL] = val;
-        break;
-      case Registers16.PC:
-        this.Reg16[Registers16.PC] = val;
-        break;
-      case Registers16.SP:
-        this.Reg16[Registers16.SP] = val;
-        break;
-    }
-  }
-
-  set A(val) {
-    this.Reg8[Registers8.A] = val;
-    this.Reg16[Registers16.AF] = (this.Reg16[Registers16.AF] & 0xFF) | (val << 8);
-  }
-
-  set F(val) {
-    val = val & 0xF0;
-    this.Reg8[Registers8.F] = val;
-    this.Reg16[Registers16.AF] = (this.Reg16[Registers16.AF] & 0xFF00) | val;
-  }
-
-  set AF(val) {
-    val = val & 0xFFF0;
-    this.Reg8[Registers8.A] = val >>> 8;
-    this.Reg8[Registers8.F] = val;
-    this.Reg16[Registers16.AF] = val;
-  }
-
-  set B(val) {
-    this.Reg8[Registers8.B] = val;
-    this.Reg16[Registers16.BC] = (this.Reg16[Registers16.BC] & 0xFF) | (val << 8);
-  }
-
-  set C(val) {
-    val = val & 0xFF;
-    this.Reg8[Registers8.C] = val;
-    this.Reg16[Registers16.BC] = (this.Reg16[Registers16.BC] & 0xFF00) | val;
-  }
-
-  set BC(val) {
-    this.Reg8[Registers8.B] = val >>> 8;
-    this.Reg8[Registers8.C] = val;
-    this.Reg16[Registers16.BC] = val;
-  }
-
-  set D(val) {
-    this.Reg8[Registers8.D] = val;
-    this.Reg16[Registers16.DE] = (this.Reg16[Registers16.DE] & 0xFF) | (val << 8);
-  }
-
-  set E(val) {
-    val = val & 0xFF;
-    this.Reg8[Registers8.E] = val;
-    this.Reg16[Registers16.DE] = (this.Reg16[Registers16.DE] & 0xFF00) | val;
-  }
-
-  set DE(val) {
-    this.Reg8[Registers8.D] = val >>> 8;
-    this.Reg8[Registers8.E] = val;
-    this.Reg16[Registers16.DE] = val;
-  }
-
-  set H(val) {
-    this.Reg8[Registers8.H] = val;
-    this.Reg16[Registers16.HL] = (this.Reg16[Registers16.HL] & 0xFF) | (val << 8);
-  }
-
-  set L(val) {
-    val = val & 0xFF;
-    this.Reg8[Registers8.L] = val;
-    this.Reg16[Registers16.HL] = (this.Reg16[Registers16.HL] & 0xFF00) | val;
-  }
-
-  set HL(val) {
-    this.Reg8[Registers8.H] = val >>> 8;
-    this.Reg8[Registers8.L] = val;
-    this.Reg16[Registers16.HL] = val;
-  }
-
-  set SP(val) {
-    this.Reg16[Registers16.SP] = val;
-  }
-
-  set PC(val) {
-    this.Reg16[Registers16.PC] = val;
   }
 
   /**
@@ -1767,7 +1631,7 @@ export class CPU {
   }
 
   set FlagZ(bool) {
-    bool ? this.F = this.Reg8[Registers8.F] | 0x80 : this.F = this.Reg8[Registers8.F] & ~0x80;
+    bool ? this.Reg8[Registers8.F] = this.Reg8[Registers8.F] | 0x80 : this.Reg8[Registers8.F] = this.Reg8[Registers8.F] & ~0x80;
   }
 
   get FlagN() {
@@ -1775,7 +1639,7 @@ export class CPU {
   }
 
   set FlagN(bool) {
-    bool ? this.F = this.Reg8[Registers8.F] | 0x40 : this.F = this.Reg8[Registers8.F] & ~0x40;
+    bool ? this.Reg8[Registers8.F] = this.Reg8[Registers8.F] | 0x40 : this.Reg8[Registers8.F] = this.Reg8[Registers8.F] & ~0x40;
   }
 
   get FlagH() {
@@ -1783,7 +1647,7 @@ export class CPU {
   }
 
   set FlagH(bool) {
-    bool ? this.F = this.Reg8[Registers8.F] | 0x20 : this.F = this.Reg8[Registers8.F] & ~0x20;
+    bool ? this.Reg8[Registers8.F] = this.Reg8[Registers8.F] | 0x20 : this.Reg8[Registers8.F] = this.Reg8[Registers8.F] & ~0x20;
   }
 
   get FlagC() {
@@ -1791,7 +1655,7 @@ export class CPU {
   }
 
   set FlagC(bool) {
-    bool ? this.F = this.Reg8[Registers8.F] | 0x10 : this.F = this.Reg8[Registers8.F] & ~0x10;
+    bool ? this.Reg8[Registers8.F] = this.Reg8[Registers8.F] | 0x10 : this.Reg8[Registers8.F] = this.Reg8[Registers8.F] & ~0x10;
   }
 
   get FlagVBlankEnable() {
