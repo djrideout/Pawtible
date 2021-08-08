@@ -240,8 +240,9 @@ export class APU {
       // If length is being enabled, and length counter is greater than 0, the length counter is clocked.
       if ((this.step & 1) === 0 && !this.channels[chan].length.enabled && (val & 0x40) && this.channels[chan].length.counter > 0) {
         this.channels[chan].length.counter--;
-        // Disable the channel if length is 0 as usual, unless it is being enabled by a trigger event on this write.
-        if (this.channels[chan].length.counter === 0 && !(val & 0x80)) {
+        // Disable the channel if length is 0 as usual.
+        // If there is a trigger event happening on this write, the channel will be re-enabled there.
+        if (this.channels[chan].length.counter === 0) {
           this.channels[chan].enabled = false;
         }
       }
