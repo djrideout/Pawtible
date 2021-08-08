@@ -32,6 +32,13 @@ export const Masks = [
   0x00, 0x00, 0x70
 ];
 
+const MaxLengths = [
+  64,
+  64,
+  256,
+  64
+];
+
 export class APU {
   constructor(gameBoy) {
     this.GB = gameBoy;
@@ -174,10 +181,8 @@ export class APU {
   stepLength_() {
     for (let i = 0; i < this.channels.length; i++) {
       let chan = this.channels[i];
-      if (chan.length.enabled && chan.length.counter > 0) {
-        if (--chan.length.counter === 0) {
-          chan.enabled = false;
-        }
+      if (chan.length.enabled && chan.length.counter > 0 && --chan.length.counter === 0) {
+        chan.enabled = false;
       }
     }
   }
@@ -191,42 +196,71 @@ export class APU {
   }
 
   set(reg, val) {
+    // Only writes to NR52 are allowed if APU is disabled globally
     if (reg !== Registers.NR52 && !this.enabled) {
       return;
     }
+
+    // NR52 controls whether sound is on or off globally (bit 7).
+    // The other bits are for the individual channels, and are read only.
     if (reg === Registers.NR52) {
       val &= ~0x0F;
+      // When disabling sound globally, all APU registers are set to 0
       if (!(val & 0x80)) {
-        // When disabling sound, all registers are set to 0
         for (let i = 0; i < this.Reg.length; i++) {
           this.Reg[i] = 0;
         }
       }
     }
+
     let chan = (reg - 1) / 5;
+    // Writing to NRx1
     if (chan % 1 === 0 && chan < 4) {
-      // When writing length data, counter must be set as well
-      let mask = chan === 2 ? 0xFF : 0x3F;
+      // When writing length data, the length counter must be set as well
+      let mask = MaxLengths[chan] - 1;
       this.channels[chan].length.counter = mask + 1 - (val & mask);
     }
-    chan = (reg - 4) / 5;
-    if (chan % 1 === 0 && chan < 4 && (val & 0x80)) {
-      // Causing trigger event
-      if (this.channels[chan].dac_enabled) {
-        this.channels[chan].enabled = true;
-      }
-      if (this.channels[chan].length.counter === 0) {
-        this.channels[chan].length.counter = chan === 2 ? 256 : 64;
-      }
-    }
+
     chan = (reg - 2) / 5;
+    // Writing to NRx2
+    // DAC is being disabled for channels 1, 2, or 4
     if (chan % 1 === 0 && chan < 4 && chan !== 2 && (val & 0xF8) === 0) {
-      // DAC disabled for channel 1, 2, or 4
       this.channels[chan].enabled = false;
     }
+    // DAC is being disabled for channel 3
     if (chan % 1 === 0 && chan === 2 && (val & 0x80) === 0) {
-      // DAC disabled for channel 3
       this.channels[chan].enabled = false;
+    }
+
+    chan = (reg - 4) / 5;
+    // Writing to NRx4
+    // See https://gbdev.gg8.se/wiki/articles/Gameboy_sound_hardware#Obscure_Behavior for more documentation on some of this behaviour.
+    if (chan % 1 === 0 && chan < 4) {
+      // On write to register 4, if the next sequencer step does not clock length, there is obscure behaviour.
+      // If length is being enabled, and length counter is greater than 0, the length counter is clocked.
+      if ((this.step & 1) === 0 && !this.channels[chan].length.enabled && (val & 0x40) && this.channels[chan].length.counter > 0) {
+        this.channels[chan].length.counter--;
+        // Disable the channel if length is 0 as usual, unless it is being enabled by a trigger event on this write.
+        if (this.channels[chan].length.counter === 0 && !(val & 0x80)) {
+          this.channels[chan].enabled = false;
+        }
+      }
+      // Causing trigger event
+      if (val & 0x80) {
+        this.channels[chan].enabled = true;
+        // On a trigger event, if the length counter is 0, it will be set to the max value for this channel.
+        if (this.channels[chan].length.counter === 0) {
+          this.channels[chan].length.counter = MaxLengths[chan];
+          // If the sequencer's next step doesn't clock length and length is enabled with this write, the length counter is clocked.
+          if ((this.step & 1) === 0 && (val & 0x40)) {
+            this.channels[chan].length.counter--;
+          }
+        }
+        // If the channel's DAC is off, the channel becomes disabled again after the trigger work is done.
+        if (!this.channels[chan].dac_enabled) {
+          this.channels[chan].enabled = false;
+        }
+      }
     }
     this.Reg[reg] = val;
   }
