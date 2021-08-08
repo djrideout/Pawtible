@@ -251,7 +251,8 @@ export class APU {
         // On a trigger event, if the length counter is 0, it will be set to the max value for this channel.
         if (this.channels[chan].length.counter === 0) {
           this.channels[chan].length.counter = MaxLengths[chan];
-          // If the sequencer's next step doesn't clock length and length is enabled with this write, the length counter is clocked.
+          // If the sequencer's next step doesn't clock length and length is enabled with this write (regardless of whether it was already enabled),
+          // the length counter is clocked.
           if ((this.step & 1) === 0 && (val & 0x40)) {
             this.channels[chan].length.counter--;
           }
