@@ -39,6 +39,13 @@ const MaxLengths = [
   64
 ];
 
+const Duties = [
+  0b00000001,
+  0b00000011,
+  0b00001111,
+  0b11111100
+];
+
 export class APU {
   constructor(gameBoy) {
     this.GB = gameBoy;
@@ -47,10 +54,11 @@ export class APU {
 
   reset() {
     this.Reg = new Uint8Array(23);
-    this.step = 0;
+    this.step_ = 0;
     let that = this;
     this.channels = [
       {
+        duty_position: 0,
         get enabled() {
           return that.Reg[Registers.NR52] & 0x01;
         },
@@ -74,9 +82,16 @@ export class APU {
           set data(val) {
             that.Reg[Registers.NR11] = (that.Reg[Registers.NR11] & ~0x3F) | (val & 0x3F);
           }
+        },
+        frequency: {
+          counter: 0,
+          get value() {
+            return ((that.Reg[Registers.NR14] & 7) <<8) | that.Reg[Registers.NR13];
+          }
         }
       },
       {
+        duty_position: 0,
         get enabled() {
           return that.Reg[Registers.NR52] & 0x02;
         },
@@ -99,6 +114,12 @@ export class APU {
           },
           set data(val) {
             that.Reg[Registers.NR21] = (that.Reg[Registers.NR21] & ~0x3F) | (val & 0x3F);
+          }
+        },
+        frequency: {
+          counter: 0,
+          get value() {
+            return ((that.Reg[Registers.NR24] & 7) <<8) | that.Reg[Registers.NR23];
           }
         }
       },
@@ -125,6 +146,12 @@ export class APU {
           },
           set data(val) {
             that.Reg[Registers.NR31] = val;
+          }
+        },
+        frequency: {
+          counter: 0,
+          get value() {
+            return ((that.Reg[Registers.NR34] & 7) <<8) | that.Reg[Registers.NR33];
           }
         }
       },
@@ -165,15 +192,41 @@ export class APU {
     this.Reg[Registers.NR52] = (this.Reg[Registers.NR52] & ~0x80) | (bool << 7);
   }
 
+  step(cycles) {
+    while (cycles > 0) {
+      cycles--;
+      for (let i = 0; i < this.channels.length; i++) {
+        // https://nightshade256.github.io/2021/03/27/gb-sound-emulation.html
+        // Each T-cycle the frequency timer is decremented by 1.
+        // As soon as it reaches 0, it is reloaded with a value calculated by:
+        // Frequency Timer = (2048 - Frequency) * 4
+        // and the wave duty position register is incremented by 1.
+        // Note: The wave duty position is wrapped back to 0 when it goes above 7.
+        //
+        // Only channels 1, 2 and 3 have frequency counters as channel 4 is a noise channel.
+        if (this.channels[i].enabled && i < 3) {
+          if (--this.channels[i].frequency.counter <= 0) {
+            this.channels[i].frequency.counter = (2048 - this.channels[i].frequency.value) * 4;
+            // Of the channels that have a frequency counter, only channels 1 and 2 have duty positions
+            // as the duty patterns in the table 'Duties' are for square waves only. Channel 3 is a wave channel.
+            if (i < 2) {
+              this.channels[i].duty_position = (this.channels[i].duty_position + 1) % 8;
+            }
+          }
+        }
+      }
+    }
+  }
+
   stepFrameSequencer() {
-    this.step = (this.step + 1) % 8;
-    if ((this.step % 2) === 0) {
+    this.step_ = (this.step_ + 1) % 8;
+    if ((this.step_ % 2) === 0) {
       this.stepLength_();
     }
-    if (this.step === 7) {
+    if (this.step_ === 7) {
       this.stepEnvelope_();
     }
-    if (this.step === 2 || this.step === 6) {
+    if (this.step_ === 2 || this.step_ === 6) {
       this.stepSweep_();
     }
   }
@@ -238,7 +291,7 @@ export class APU {
     if (chan % 1 === 0 && chan < 4) {
       // On write to register 4, if the next sequencer step does not clock length, there is obscure behaviour.
       // If length is being enabled, and length counter is greater than 0, the length counter is clocked.
-      if ((this.step & 1) === 0 && !this.channels[chan].length.enabled && (val & 0x40) && this.channels[chan].length.counter > 0) {
+      if ((this.step_ & 1) === 0 && !this.channels[chan].length.enabled && (val & 0x40) && this.channels[chan].length.counter > 0) {
         this.channels[chan].length.counter--;
         // Disable the channel if length is 0 as usual.
         // If there is a trigger event happening on this write, the channel will be re-enabled there.
@@ -254,7 +307,7 @@ export class APU {
           this.channels[chan].length.counter = MaxLengths[chan];
           // If the sequencer's next step doesn't clock length and length is enabled with this write (regardless of whether it was already enabled),
           // the length counter is clocked.
-          if ((this.step & 1) === 0 && (val & 0x40)) {
+          if ((this.step_ & 1) === 0 && (val & 0x40)) {
             this.channels[chan].length.counter--;
           }
         }
