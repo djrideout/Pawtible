@@ -46,6 +46,11 @@ const Duties = [
   0b11111100
 ];
 
+const SweepDirections = {
+  DECREASING: 1,
+  INCREASING: 0
+};
+
 export class APU {
   constructor(gameBoy) {
     this.GB = gameBoy;
@@ -86,7 +91,26 @@ export class APU {
         frequency: {
           counter: 0,
           get value() {
-            return ((that.Reg[Registers.NR14] & 7) <<8) | that.Reg[Registers.NR13];
+            return ((that.Reg[Registers.NR14] & 7) << 8) | that.Reg[Registers.NR13];
+          },
+          set value(val) {
+            that.Reg[Registers.NR13] = val;
+            that.Reg[Registers.NR14] = (that.Reg[Registers.NR14] & ~7) | ((val & 0x0700) >>> 8);
+          },
+          sweep: {
+            enabled: false,
+            will_disable_channel: false,
+            counter: 0,
+            shadow: 0,
+            get period() {
+              return (that.Reg[Registers.NR10] & 0x70) >>> 4;
+            },
+            get direction() {
+              return (that.Reg[Registers.NR10] & 0x08) >>> 3;
+            },
+            get shift() {
+              return that.Reg[Registers.NR10] & 0x07;
+            }
           }
         }
       },
@@ -245,7 +269,66 @@ export class APU {
   }
 
   stepSweep_() {
+    // The sweep function changes the frequency of channel 1 over time.
+    let chan = this.channels[0];
 
+    // Only step sweep if the channel is enabled, and sweep is enabled.
+    if (!chan.enabled || !chan.frequency.sweep.enabled) {
+      return;
+    }
+
+    // https://nightshade256.github.io/2021/03/27/gb-sound-emulation.html (modified)
+    // On a sweep clock from the frame sequencer the following step occur:
+    // 1. If the sweep timer is greater than 0, we decrement it.
+    if (chan.frequency.sweep.counter > 0) {
+      chan.frequency.sweep.counter--;
+    }
+
+    // 2. Now, if due to previous operation the sweep timer becomes zero only then continue with step 3.
+    if (chan.frequency.sweep.counter > 0) {
+      return;
+    }
+
+    // 3. The sweep timer is reloaded with the sweep period value.
+    // If sweep period is zero, then sweep timer is loaded with the value 8 instead.
+    if (chan.frequency.sweep.period === 0) {
+      chan.frequency.sweep.counter = 8;
+      return;
+    }
+    chan.frequency.sweep.counter = chan.frequency.sweep.period;
+
+    // 4. If sweep period is non-zero, a new frequency is calculated.
+    // In this step we also perform an additional routine called as the overflow check.
+    // (Overflow check is done in calcFrequency_)
+    let val = this.calcFrequency_();
+
+    // 5. Now, if the new frequency is less than 2048 and the sweep shift is non-zero,
+    // then the shadow frequency and frequency registers are loaded with this new frequency.
+    if (val < 2048 && chan.frequency.sweep.shift !== 0) {
+      chan.frequency.sweep.shadow = val;
+      chan.frequency.value = val;
+
+      // 6. We now perform the overflow check again since the frequency has been set on the shadow register,
+      // but we don't do anything with that calculated frequency.
+      this.calcFrequency_()
+    }
+  }
+
+  calcFrequency_() {
+    let chan = this.channels[0];
+    let freq = chan.frequency.sweep.shadow >>> chan.frequency.sweep.shift;
+    if (chan.frequency.sweep.direction === SweepDirections.DECREASING) {
+      chan.frequency.sweep.will_disable_channel = true;
+      freq = chan.frequency.sweep.shadow - freq;
+    } else {
+      freq = chan.frequency.sweep.shadow + freq;
+    }
+    // Here is the overflow check.
+    // If the new frequency is greater than 2047, the channel is disabled.
+    if (freq > 2047) {
+      chan.enabled = false;
+    }
+    return freq;
   }
 
   set(reg, val) {
@@ -266,7 +349,18 @@ export class APU {
       }
     }
 
-    let chan = (reg - 1) / 5;
+    let chan = reg / 5;
+    // Writing to NRx0
+    if (chan % 1 === 0 && chan < 4) {
+      // https://gbdev.gg8.se/wiki/articles/Gameboy_sound_hardware#Obscure_Behavior
+      // Clearing the sweep negate mode bit in NR10 after at least one sweep calculation has been made
+      // using the negate mode since the last trigger causes the channel to be immediately disabled.
+      if (chan === 0 && !(val & 8) && this.channels[chan].frequency.sweep.will_disable_channel) {
+        this.channels[chan].enabled = false;
+      }
+    }
+
+    chan = (reg - 1) / 5;
     // Writing to NRx1
     if (chan % 1 === 0 && chan < 4) {
       // When writing length data, the length counter must be set as well
@@ -302,6 +396,34 @@ export class APU {
       // Causing trigger event
       if (val & 0x80) {
         this.channels[chan].enabled = true;
+
+        // Channel 1 trigger events do a number of things with the frequency sweep.
+        if (chan === 0) {
+          // Reset the flag for the obscure negate disabling behaviour described above.
+          this.channels[chan].frequency.sweep.will_disable_channel = false;
+
+          // Since the following steps depend on the current frequency value,
+          // and this write to NR14 modifies the highest 3 bits of frequency,
+          // construct the new frequency using val and the value already in NR13.
+          let freq = ((val & 7) << 8) | this.Reg[Registers.NR13];
+
+          // https://nightshade256.github.io/2021/03/27/gb-sound-emulation.html
+          // 1. The shadow frequency register is loaded with the current frequency.
+          this.channels[chan].frequency.sweep.shadow = freq;
+
+          // 2. The sweep timer is loaded with sweep period.
+          // If sweep period is zero, then the sweep timer is loaded with the value 8 instead.
+          this.channels[chan].frequency.sweep.counter = this.channels[chan].frequency.sweep.period || 8;
+
+          // 3. The sweep enabled register is set if the sweep period is non-zero OR sweep shift is non-zero.
+          this.channels[chan].frequency.sweep.enabled = this.channels[chan].frequency.sweep.period !== 0 || this.channels[chan].frequency.sweep.shift !== 0;
+
+          // 4. If sweep shift is non-zero we run the overflow check.
+          if (this.channels[chan].frequency.sweep.shift !== 0) {
+            this.calcFrequency_();
+          }
+        }
+
         // On a trigger event, if the length counter is 0, it will be set to the max value for this channel.
         if (this.channels[chan].length.counter === 0) {
           this.channels[chan].length.counter = MaxLengths[chan];
