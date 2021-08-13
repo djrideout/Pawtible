@@ -32,11 +32,31 @@ export const Masks = [
   0x00, 0x00, 0x70
 ];
 
+export const Channels = {
+  SQUARE_1: 0,
+  SQUARE_2: 1,
+  WAVE: 2,
+  NOISE: 3
+};
+
 const MaxLengths = [
   64,
   64,
   256,
   64
+];
+
+const MaxWavePositions = [
+  8,
+  8,
+  32
+];
+
+const WaveShifts = [
+  4,
+  0,
+  1,
+  2
 ];
 
 const Duties = [
@@ -63,7 +83,7 @@ export class APU {
     let that = this;
     this.channels = [
       {
-        duty_position: 0,
+        wave_position: 0,
         get enabled() {
           return that.Reg[Registers.NR52] & 0x01;
         },
@@ -115,7 +135,7 @@ export class APU {
         }
       },
       {
-        duty_position: 0,
+        wave_position: 0,
         get enabled() {
           return that.Reg[Registers.NR52] & 0x02;
         },
@@ -156,6 +176,9 @@ export class APU {
         },
         get dac_enabled() {
           return that.Reg[Registers.NR30] & 0x80;
+        },
+        get shift() {
+          return WaveShifts[(that.Reg[Registers.NR32] & 0x60) >>> 5];
         },
         length: {
           counter: 0,
@@ -231,11 +254,11 @@ export class APU {
         if (this.channels[i].enabled && i < 3) {
           if (--this.channels[i].frequency.counter <= 0) {
             this.channels[i].frequency.counter = (2048 - this.channels[i].frequency.value) * 4;
-            // Of the channels that have a frequency counter, only channels 1 and 2 have duty positions
-            // as the duty patterns in the table 'Duties' are for square waves only. Channel 3 is a wave channel.
-            if (i < 2) {
-              this.channels[i].duty_position = (this.channels[i].duty_position + 1) % 8;
-            }
+            // Also update the wave position of each channel.
+            // Channels 1 and 2 have 8 wave positions, as each square wave duty is 8 bytes long,
+            // but the wave channel (channel 3) has 32 wave positions as the wave RAM contains
+            // 32 4-bit samples.
+            this.channels[i].wave_position = (this.channels[i].wave_position + 1) % MaxWavePositions[i];
           }
         }
       }
@@ -270,7 +293,7 @@ export class APU {
 
   stepSweep_() {
     // The sweep function changes the frequency of channel 1 over time.
-    let chan = this.channels[0];
+    let chan = this.channels[Channels.SQUARE_1];
 
     // Only step sweep if the channel is enabled, and sweep is enabled.
     if (!chan.enabled || !chan.frequency.sweep.enabled) {
@@ -315,7 +338,7 @@ export class APU {
   }
 
   calcFrequency_() {
-    let chan = this.channels[0];
+    let chan = this.channels[Channels.SQUARE_1];
     let freq = chan.frequency.sweep.shadow >>> chan.frequency.sweep.shift;
     if (chan.frequency.sweep.direction === SweepDirections.DECREASING) {
       chan.frequency.sweep.will_disable_channel = true;
@@ -353,8 +376,8 @@ export class APU {
         // the square duty units are reset to the first step of the waveform,
         // and the wave channel's sample buffer is reset to 0.
         this.step_ = -1;
-        this.channels[0].duty_position = 0;
-        this.channels[1].duty_position = 0;
+        this.channels[Channels.SQUARE_1].wave_position = 0;
+        this.channels[Channels.SQUARE_2].wave_position = 0;
         // Do the wave channel sample buffer later
       }
     }

@@ -1,4 +1,4 @@
-import { Masks } from "../apu";
+import { Masks, Channels } from "../apu";
 
 export class Memory {
   constructor(gameBoy) {
@@ -37,6 +37,18 @@ export class Memory {
         val |= (this.GB.APU.Reg[offsetAddr - 0xFF10] | Masks[offsetAddr - 0xFF10]) << shift;
       } else if(offsetAddr >= 0xFF27 && offsetAddr <= 0xFF2F) {
         val |= 0xFF; // APU: Unused, always reads 0xFF
+      } else if(offsetAddr >= 0xFF30 && offsetAddr <= 0xFF3F) {
+        // https://gbdev.gg8.se/wiki/articles/Gameboy_sound_hardware#Obscure_Behavior
+        // If the wave channel is enabled, accessing any byte from $FF30-$FF3F
+        // is equivalent to accessing the current byte selected by the waveform position.
+        // Further, on the DMG accesses will only work in this manner if made
+        // within a couple of clocks of the wave channel accessing wave RAM;
+        // if made at any other time, reads return $FF and writes have no effect.
+        if (this.GB.APU.channels[Channels.WAVE].enabled) {
+          val |= this.mem[offsetAddr] << shift;
+        } else {
+          val |= this.mem[offsetAddr] << shift;
+        }
       } else if(offsetAddr >= 0xFF40 && offsetAddr <= 0xFF4B) {
         val |= this.GB.PPU.Reg[offsetAddr & 0xF] << shift;
       } else {
