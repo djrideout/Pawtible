@@ -341,11 +341,21 @@ export class APU {
     // The other bits are for the individual channels, and are read only.
     if (reg === Registers.NR52) {
       val &= ~0x0F;
+      let newEnabledFlag = val & 0x80;
       // When disabling sound globally, all APU registers except NR52 are set to 0
-      if (!(val & 0x80)) {
+      if (this.enabled && !newEnabledFlag) {
         for (let i = 0; i < this.Reg.length - 1; i++) {
           this.Reg[i] = 0;
         }
+      } else if (!this.enabled && newEnabledFlag) {
+        // https://gbdev.gg8.se/wiki/articles/Gameboy_sound_hardware#Power_Control
+        // When powered on, the frame sequencer is reset so that the next step will be 0,
+        // the square duty units are reset to the first step of the waveform,
+        // and the wave channel's sample buffer is reset to 0.
+        this.step_ = -1;
+        this.channels[0].duty_position = 0;
+        this.channels[1].duty_position = 0;
+        // Do the wave channel sample buffer later
       }
     }
 
