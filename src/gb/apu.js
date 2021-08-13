@@ -341,9 +341,9 @@ export class APU {
     // The other bits are for the individual channels, and are read only.
     if (reg === Registers.NR52) {
       val &= ~0x0F;
-      // When disabling sound globally, all APU registers are set to 0
+      // When disabling sound globally, all APU registers except NR52 are set to 0
       if (!(val & 0x80)) {
-        for (let i = 0; i < this.Reg.length; i++) {
+        for (let i = 0; i < this.Reg.length - 1; i++) {
           this.Reg[i] = 0;
         }
       }
