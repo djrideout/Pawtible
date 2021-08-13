@@ -266,6 +266,9 @@ export class APU {
   }
 
   stepFrameSequencer() {
+    if (!this.enabled) {
+      return;
+    }
     this.step_ = (this.step_ + 1) % 8;
     if ((this.step_ % 2) === 0) {
       this.stepLength_();
@@ -355,9 +358,19 @@ export class APU {
   }
 
   set(reg, val) {
-    // Only writes to NR52 are allowed if APU is disabled globally
-    if (reg !== Registers.NR52 && !this.enabled) {
-      return;
+    if (!this.enabled) {
+      let chan = (reg - 1) / 5;
+      // https://gbdev.gg8.se/wiki/articles/Gameboy_sound_hardware#Differences
+      // Writes to length are allowed if the APU is powered off on DMG.
+      // Otherwise, only allow writes to NR52 if APU power is off.
+      if (chan % 1 === 0 && chan < 4) {
+        this.channels[chan].length.data = val;
+        let mask = MaxLengths[chan] - 1;
+        this.channels[chan].length.counter = mask + 1 - (val & mask);
+        return;
+      } else if (reg !== Registers.NR52) {
+        return;
+      }
     }
 
     // NR52 controls whether sound is on or off globally (bit 7).
@@ -368,7 +381,19 @@ export class APU {
       // When disabling sound globally, all APU registers except NR52 are set to 0
       if (this.enabled && !newEnabledFlag) {
         for (let i = 0; i < this.Reg.length - 1; i++) {
-          this.Reg[i] = 0;
+          // https://gbdev.gg8.se/wiki/articles/Gameboy_sound_hardware#Differences
+          // On DMG, length values are not cleared on power off.
+          switch (i) {
+            case Registers.NR11:
+            case Registers.NR21:
+            case Registers.NR31:
+            case Registers.NR41:
+              this.Reg[i] &= MaxLengths[(i - 1) / 5] - 1;
+              break;
+            default:
+              this.Reg[i] = 0;
+              break;
+          }
         }
       } else if (!this.enabled && newEnabledFlag) {
         // https://gbdev.gg8.se/wiki/articles/Gameboy_sound_hardware#Power_Control
