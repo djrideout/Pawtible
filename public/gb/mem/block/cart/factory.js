@@ -1,6 +1,6 @@
-import { Types, Cartridge } from "./index";
-import { MBC1 } from "./mbc1";
-import { MBC3 } from "./mbc3";
+import { Types, Cartridge } from "./index.js";
+import { MBC1 } from "./mbc1.js";
+import { MBC3 } from "./mbc3.js";
 
 export class CartridgeFactory {
   static create(byteArr, gameBoy) {

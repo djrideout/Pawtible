@@ -1,4 +1,4 @@
-import { Masks, Channels } from "../apu";
+import { Masks, Channels } from "../apu.js";
 
 export class Memory {
   constructor(gameBoy) {

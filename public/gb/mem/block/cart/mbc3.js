@@ -1,6 +1,6 @@
-import { Cartridge, Types } from ".";
-import { CPU_FREQUENCY } from "../../../cpu";
-import { RTCModes } from "../../..";
+import { Cartridge, Types } from "./index.js";
+import { CPU_FREQUENCY } from "../../../cpu.js";
+import { RTCModes } from "../../../index.js";
 
 const Registers = {
   SECONDS:    0x00,

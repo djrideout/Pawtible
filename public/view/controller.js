@@ -1,4 +1,4 @@
-import { Inputs } from "../gb/joypad";
+import { Inputs } from "../gb/joypad.js";
 
 const Keymap = {
   "KeyW": Inputs.UP,
