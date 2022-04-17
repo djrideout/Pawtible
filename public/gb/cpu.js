@@ -50,17 +50,10 @@ const CYCLES_PER_FRAME = Math.floor(CPU_FREQUENCY / 60);
 
 export class CPU {
   constructor(gameBoy) {
-    this.mapCBs_();
     this.GB = gameBoy;
     this.paused_ = true;
     this.breakpoints_ = new Map();
     this.reset();
-  }
-
-  mapCBs_() {
-    this.bit_f = [...new Array(8).keys()].map((val) => this.bit_.bind(this, val));
-    this.res_f = [...new Array(8).keys()].map((val) => this.res_.bind(this, val));
-    this.set_f = [...new Array(8).keys()].map((val) => this.set_.bind(this, val));
   }
 
   reset() {
@@ -1004,16 +997,10 @@ export class CPU {
       ];
       let location = r[z];
       let v = addr ? this.GB.M.get(location) : this.Reg8[location];
-      let f = [
-        null,
-        this.bit_f[y],
-        this.res_f[y],
-        this.set_f[y]
-      ];
+      let mask = addr ? 0xFF : Reg8Masks[location];
+      let new_val = null;
       if (x === 0) {
         // Rotation/shift operations
-        let mask = addr ? 0xFF : Reg8Masks[location];
-        let new_val = null;
         let carry = null;
         if (y === 0) {
           // RLC
@@ -1055,17 +1042,28 @@ export class CPU {
           carry = !!(v & 0x01);
           new_val = (v >>> 1) & mask;
         }
+        this.FlagN = false;
+        this.FlagH = false;
+        this.FlagZ = !new_val;
+        this.FlagC = carry;
+      } else if (x === 1) {
+        // Test bit
+        this.FlagZ = !(v & (0x01 << y));
+        this.FlagN = false;
+        this.FlagH = true;
+      } else if (x === 2) {
+        // Reset bit
+        new_val = (v & ~(0x01 << y)) & mask;
+      } else if (x === 3) {
+        // Set bit
+        new_val = (v | (0x01 << y)) & mask;
+      }
+      if (new_val !== null) {
         if (addr) {
           this.GB.M.set(location, new_val);
         } else {
           this.Reg8[location] = new_val;
         }
-        this.FlagN = false;
-        this.FlagH = false;
-        this.FlagZ = !new_val;
-        this.FlagC = carry;
-      } else {
-        f[x](r[z], addr);
       }
     }
     //RUN INSTRUCTION END
@@ -1501,34 +1499,6 @@ export class CPU {
     this.FlagN = false;
     this.FlagH = false;
     this.FlagC = !!bot;
-  }
-
-  bit_(bit, location, addr) {
-    let v = null;
-    if (addr) {
-      v = this.GB.M.get(location);
-    } else {
-      v = this.Reg8[location];
-    }
-    this.FlagZ = !(v & (0x01 << bit));
-    this.FlagN = false;
-    this.FlagH = true;
-  }
-
-  res_(bit, location, addr) {
-    if (addr) {
-      this.GB.M.set(location, this.GB.M.get(location) & ~(0x01 << bit));
-    } else {
-      this.Reg8[location] = (this.Reg8[location] & ~(0x01 << bit)) & Reg8Masks[location];
-    }
-  }
-
-  set_(bit, location, addr) {
-    if (addr) {
-      this.GB.M.set(location, this.GB.M.get(location) | (0x01 << bit));
-    } else {
-      this.Reg8[location] = (this.Reg8[location] | (0x01 << bit)) & Reg8Masks[location];
-    }
   }
 
   /**
