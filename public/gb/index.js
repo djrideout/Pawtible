@@ -1,11 +1,11 @@
-import { Memory } from "./mem";
-import { CartridgeFactory } from "./mem/block/cart/factory";
-import { CPU } from "./cpu";
-import { PPU } from "./ppu";
-import { Timer } from "./timer";
-import { Joypad } from "./joypad";
-import { APU, Registers } from "./apu";
-import { Cartridge, Types } from "./mem/block/cart";
+import { Memory } from "./mem/index.js";
+import { CartridgeFactory } from "./mem/block/cart/factory.js";
+import { CPU } from "./cpu.js";
+import { PPU } from "./ppu.js";
+import { Timer } from "./timer.js";
+import { Joypad } from "./joypad.js";
+import { APU, Registers } from "./apu.js";
+import { Cartridge, Types } from "./mem/block/cart/index.js";
 
 export const RTCModes = {
   SYSTEM: "Sync RTC to system clock",

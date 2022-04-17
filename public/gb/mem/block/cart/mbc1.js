@@ -1,4 +1,4 @@
-import { Cartridge } from ".";
+import { Cartridge } from "./index.js";
 
 /**
  * EXTRAM not implemented yet

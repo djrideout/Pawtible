@@ -1,4 +1,4 @@
-import { isLittleEndian } from "./utils";
+import { isLittleEndian } from "./utils.js";
 
 let tempReg8 = {};
 if (isLittleEndian()) {

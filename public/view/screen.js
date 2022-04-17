@@ -1,4 +1,4 @@
-import { GameController } from "./controller";
+import { GameController } from "./controller.js";
 
 export class Screen {
   constructor(canvas, gameBoy) {
