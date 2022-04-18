@@ -215,7 +215,7 @@ export class CPU {
             this.GB.M.set(this.Reg16[r16], this.Reg8[Registers8.A]);
           } else {
             // LD A
-            this.Reg8[Registers16.A] = this.GB.M.get(this.Reg16[r16]);
+            this.Reg8[Registers8.A] = this.GB.M.get(this.Reg16[r16]);
           }
           if (p === 2) {
             this.Reg16[r16]++;
@@ -258,9 +258,9 @@ export class CPU {
           // 8-bit load immediate
           let val = this.GB.M.get(this.Reg16[Registers16.PC]++);
           if (dest_addr) {
-            this.Reg8[dest] = val & dest_mask;
-          } else {
             this.GB.M.set(dest, val);
+          } else {
+            this.Reg8[dest] = val & dest_mask;
           }
         } else if (z === 7) {
           // Assorted operations on accumulator/flags
