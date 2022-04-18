@@ -153,7 +153,194 @@ export class CPU {
       let v = null;
       let mask = addr ? 0xFF : Reg8Masks[location];
       let new_val = null;
-      if (x === 1) {
+      if (x === 0) {
+        let rp = [
+          Registers16.BC,
+          Registers16.DE,
+          Registers16.HL,
+          Registers16.SP
+        ];
+        let reg = rp[p];
+        let dest = r[y];
+        let dest_addr = y === 6;
+        let dest_mask = dest_addr ? 0xFF : Reg8Masks[dest];
+        if (z === 0) {
+          // Relative jumps and assorted ops
+          if (y === 0) {
+            // NOP
+          } else if (y === 1) {
+            this.GB.M.set(this.GB.M.get(this.Reg16[Registers16.PC], 2), this.Reg16[Registers16.SP], 2);
+            this.Reg16[Registers16.PC] += 2;
+          } else if (y === 2) {
+            //Let's just say stop is halt for now.
+            //this.halted_ = true;
+          } else {
+            // Relative jumps
+            let conditions = [
+              !this.FlagZ,
+              this.FlagZ,
+              !this.FlagC,
+              this.FlagC
+            ];
+            let condition = y - 4 >= 0 ? conditions[y - 4] : true;
+            if (condition) {
+              let offset = this.GB.M.get(this.Reg16[Registers16.PC]++);
+              //JS numbers are 32-bit when using bitwise operators
+              //GB numbers are 8-bit, and so this happens
+              this.Reg16[Registers16.PC] += (offset & 0x80) ? -~(0xFFFFFF00 + offset - 1) : offset;
+            } else {
+              this.Reg16[Registers16.PC]++;
+            }
+            this.update(4);
+          }
+        } else if (z === 1) {
+          // 16-bit load immediate/add
+          if (q === 0) {
+            this.Reg16[reg] = this.GB.M.get(this.Reg16[Registers16.PC], 2) & Reg16Masks[reg];
+            this.Reg16[Registers16.PC] += 2;
+          } else {
+            let v0 = this.Reg16[Registers16.HL];
+            let value = this.Reg16[reg];
+            this.Reg16[Registers16.HL] = v0 + value;
+            this.FlagN = false;
+            this.FlagH = (v0 & 0xFFF) + (value & 0xFFF) > 0xFFF; //how is this a HALF carry???
+            this.FlagC = v0 + value > 0xFFFF;
+            this.update(4);
+          }
+        } else if (z === 2) {
+          // Indirect loading
+          let r16 = p === 3 ? Registers16.HL : reg;
+          if (q === 0) {
+            // LD addr
+            this.GB.M.set(this.Reg16[r16], this.Reg8[Registers8.A]);
+          } else {
+            // LD A
+            this.Reg8[Registers16.A] = this.GB.M.get(this.Reg16[r16]);
+          }
+          if (p === 2) {
+            this.Reg16[r16]++;
+          } else if (p === 3) {
+            this.Reg16[r16]--;
+          }
+        } else if (z === 3) {
+          // 16-bit INC/DEC
+          if (q === 0) {
+            this.Reg16[reg] = (this.Reg16[reg] + 1) & Reg16Masks[reg];
+          } else {
+            this.Reg16[reg] = (this.Reg16[reg] - 1) & Reg16Masks[reg];
+          }
+          this.update(4);
+        } else if (z === 4) {
+          // 8-bit INC
+          let v0 = dest_addr ? this.GB.M.get(dest) : this.Reg8[dest];
+          if (dest_addr) {
+            this.GB.M.set(dest, v0 + 1);
+          } else {
+            this.Reg8[dest] = (v0 + 1) & dest_mask;
+          }
+          let v1 = dest_addr ? this.GB.M.get(dest, 1, false) : this.Reg8[dest];
+          this.FlagZ = !v1;
+          this.FlagN = false;
+          this.FlagH = (v0 & 0xF) + 1 > 0xF;
+        } else if (z === 5) {
+          // 8-bit DEC
+          let v0 = dest_addr ? this.GB.M.get(dest) : this.Reg8[dest];
+          if (dest_addr) {
+            this.GB.M.set(dest, v0 - 1);
+          } else {
+            this.Reg8[dest] = (v0 - 1) & dest_mask;
+          }
+          let v1 = dest_addr ? this.GB.M.get(dest, 1, false) : this.Reg8[dest];
+          this.FlagZ = !v1;
+          this.FlagN = true;
+          this.FlagH = (v1 & 0xF) > (v0 & 0xF);
+        } else if (z === 6) {
+          // 8-bit load immediate
+          let val = this.GB.M.get(this.Reg16[Registers16.PC]++);
+          if (dest_addr) {
+            this.Reg8[dest] = val & dest_mask;
+          } else {
+            this.GB.M.set(dest, val);
+          }
+        } else if (z === 7) {
+          // Assorted operations on accumulator/flags
+          if (y === 0) {
+            // RLCA
+            let v = this.Reg8[Registers8.A];
+            let top = (v & 0x80) >>> 7;
+            this.Reg8[Registers8.A] = (v << 1) | top;
+            this.FlagZ = false;
+            this.FlagN = false;
+            this.FlagH = false;
+            this.FlagC = !!top;
+          } else if (y === 1) {
+            // RRCA
+            let v = this.Reg8[Registers8.A];
+            let bot = (v & 0x01) << 7;
+            this.Reg8[Registers8.A] = (v >>> 1) | bot;
+            this.FlagZ = false;
+            this.FlagN = false;
+            this.FlagH = false;
+            this.FlagC = !!bot;
+          } else if (y === 2) {
+            // RLA
+            let v = this.Reg8[Registers8.A];
+            let top = (v & 0x80) >>> 7;
+            this.Reg8[Registers8.A] = (v << 1) | (this.FlagC ? 0x01 : 0x00);
+            this.FlagZ = false;
+            this.FlagN = false;
+            this.FlagH = false;
+            this.FlagC = !!top;
+          } else if (y === 3) {
+            // RRA
+            let v = this.Reg8[Registers8.A];
+            let bot = v & 0x01;
+            this.Reg8[Registers8.A] = (v >>> 1) | (this.FlagC ? 0x80 : 0x00)
+            this.FlagZ = false;
+            this.FlagN = false;
+            this.FlagH = false;
+            this.FlagC = !!bot;
+          } else if (y === 4) {
+            // DAA
+            //Very good explanation here:
+            //https://forums.nesdev.com/viewtopic.php?f=20&t=15944#p196282
+            if (!this.FlagN) {
+              if (this.FlagC || this.Reg8[Registers8.A] > 0x99) {
+                this.Reg8[Registers8.A] = this.Reg8[Registers8.A] + 0x60;
+                this.FlagC = true;
+              }
+              if (this.FlagH || (this.Reg8[Registers8.A] & 0x0F) > 0x09) {
+                this.Reg8[Registers8.A] = this.Reg8[Registers8.A] + 0x06;
+              }
+            } else {
+              if (this.FlagC) {
+                this.Reg8[Registers8.A] = this.Reg8[Registers8.A] - 0x60;
+              }
+              if (this.FlagH) {
+                this.Reg8[Registers8.A] = this.Reg8[Registers8.A] - 0x06;
+              }
+            }
+            this.FlagZ = !this.Reg8[Registers8.A];
+            this.FlagH = 0;
+          } else if (y === 5) {
+            // CPL
+            this.FlagN = true;
+            this.FlagH = true;
+            this.Reg8[Registers8.A] = this.Reg8[Registers8.A] ^ 0xFF;
+          } else if (y === 6) {
+            // SCF
+            this.FlagN = false;
+            this.FlagH = false;
+            this.FlagC = true;
+          } else if (y === 7) {
+            // CCF
+            this.FlagN = false;
+            this.FlagH = false;
+            this.FlagC ^= true;
+          }
+        }
+      } else if (x === 1) {
+        // 8-bit loading
         v = addr ? this.GB.M.get(location) : this.Reg8[location]; // In here temporarily for refactor due to extra updates if not
         if (z === 6 && y === 6) {
           this.halted_ = true;
@@ -230,229 +417,6 @@ export class CPU {
         }
       } else {
         switch (op) {
-          case 0x00:
-            break;
-          case 0x01:
-            this.ldr16_(Registers16.BC, this.GB.M.get(this.Reg16[Registers16.PC], 2));
-            this.Reg16[Registers16.PC] += 2;
-            break;
-          case 0x02:
-            this.GB.M.set(this.Reg16[Registers16.BC], this.Reg8[Registers8.A]);
-            break;
-          case 0x03:
-            this.inc16_(Registers16.BC);
-            break;
-          case 0x04:
-            this.inc8r_(Registers8.B);
-            break;
-          case 0x05:
-            this.dec8r_(Registers8.B);
-            break;
-          case 0x06:
-            this.ldr8_(Registers8.B, this.GB.M.get(this.Reg16[Registers16.PC]++));
-            break;
-          case 0x07:
-            this.rlcakku_();
-            break;
-          case 0x08:
-            this.GB.M.set(this.GB.M.get(this.Reg16[Registers16.PC], 2), this.Reg16[Registers16.SP], 2);
-            this.Reg16[Registers16.PC] += 2;
-            break;
-          case 0x09:
-            this.addHL16r_(Registers16.BC);
-            break;
-          case 0x0A:
-            this.ldr8_(Registers8.A, this.GB.M.get(this.Reg16[Registers16.BC]));
-            break;
-          case 0x0B:
-            this.dec16_(Registers16.BC);
-            break;
-          case 0x0C:
-            this.inc8r_(Registers8.C);
-            break;
-          case 0x0D:
-            this.dec8r_(Registers8.C);
-            break;
-          case 0x0E:
-            this.ldr8_(Registers8.C, this.GB.M.get(this.Reg16[Registers16.PC]++));
-            break;
-          case 0x0F:
-            this.rrcakku_();
-            break;
-          case 0x10:
-            //Let's just say stop is halt for now.
-            //this.halted_ = true;
-            break;
-          case 0x11:
-            this.ldr16_(Registers16.DE, this.GB.M.get(this.Reg16[Registers16.PC], 2));
-            this.Reg16[Registers16.PC] += 2;
-            break;
-          case 0x12:
-            this.GB.M.set(this.Reg16[Registers16.DE], this.Reg8[Registers8.A]);
-            break;
-          case 0x13:
-            this.inc16_(Registers16.DE);
-            break;
-          case 0x14:
-            this.inc8r_(Registers8.D);
-            break;
-          case 0x15:
-            this.dec8r_(Registers8.D);
-            break;
-          case 0x16:
-            this.ldr8_(Registers8.D, this.GB.M.get(this.Reg16[Registers16.PC]++));
-            break;
-          case 0x17:
-            this.rlakku_();
-            break;
-          case 0x18:
-            this.jr_(this.GB.M.get(this.Reg16[Registers16.PC]++));
-            break;
-          case 0x19:
-            this.addHL16r_(Registers16.DE);
-            break;
-          case 0x1A:
-            this.ldr8_(Registers8.A, this.GB.M.get(this.Reg16[Registers16.DE]));
-            break;
-          case 0x1B:
-            this.dec16_(Registers16.DE);
-            break;
-          case 0x1C:
-            this.inc8r_(Registers8.E);
-            break;
-          case 0x1D:
-            this.dec8r_(Registers8.E);
-            break;
-          case 0x1E:
-            this.ldr8_(Registers8.E, this.GB.M.get(this.Reg16[Registers16.PC]++));
-            break;
-          case 0x1F:
-            this.rrakku_();
-            break;
-          case 0x20:
-            if (!this.FlagZ) {
-              this.jr_(this.GB.M.get(this.Reg16[Registers16.PC]++));
-            } else {
-              this.Reg16[Registers16.PC]++;
-              this.update(4);
-            }
-            break;
-          case 0x21:
-            this.ldr16_(Registers16.HL, this.GB.M.get(this.Reg16[Registers16.PC], 2));
-            this.Reg16[Registers16.PC] += 2;
-            break;
-          case 0x22:
-            this.GB.M.set(this.Reg16[Registers16.HL], this.Reg8[Registers8.A]);
-            this.inc16_(Registers16.HL, false);
-            break;
-          case 0x23:
-            this.inc16_(Registers16.HL);
-            break;
-          case 0x24:
-            this.inc8r_(Registers8.H);
-            break;
-          case 0x25:
-            this.dec8r_(Registers8.H);
-            break;
-          case 0x26:
-            this.ldr8_(Registers8.H, this.GB.M.get(this.Reg16[Registers16.PC]++));
-            break;
-          case 0x27:
-            this.daa_();
-            break;
-          case 0x28:
-            if (this.FlagZ) {
-              this.jr_(this.GB.M.get(this.Reg16[Registers16.PC]++));
-            } else {
-              this.Reg16[Registers16.PC]++;
-              this.update(4);
-            }
-            break;
-          case 0x29:
-            this.addHL16r_(Registers16.HL);
-            break;
-          case 0x2A:
-            this.ldr8_(Registers8.A, this.GB.M.get(this.Reg16[Registers16.HL]));
-            this.inc16_(Registers16.HL, false);
-            break;
-          case 0x2B:
-            this.dec16_(Registers16.HL);
-            break;
-          case 0x2C:
-            this.inc8r_(Registers8.L);
-            break;
-          case 0x2D:
-            this.dec8r_(Registers8.L);
-            break;
-          case 0x2E:
-            this.ldr8_(Registers8.L, this.GB.M.get(this.Reg16[Registers16.PC]++));
-            break;
-          case 0x2F:
-            this.FlagN = true;
-            this.FlagH = true;
-            this.Reg8[Registers8.A] = this.Reg8[Registers8.A] ^ 0xFF;
-            break;
-          case 0x30:
-            if (!this.FlagC) {
-              this.jr_(this.GB.M.get(this.Reg16[Registers16.PC]++));
-            } else {
-              this.Reg16[Registers16.PC]++;
-              this.update(4);
-            }
-            break;
-          case 0x31:
-            this.ldr16_(Registers16.SP, this.GB.M.get(this.Reg16[Registers16.PC], 2));
-            this.Reg16[Registers16.PC] += 2;
-            break;
-          case 0x32:
-            this.GB.M.set(this.Reg16[Registers16.HL], this.Reg8[Registers8.A]);
-            this.dec16_(Registers16.HL, false);
-            break;
-          case 0x33:
-            this.inc16_(Registers16.SP);
-            break;
-          case 0x34:
-            this.inc8a_(this.Reg16[Registers16.HL]);
-            break;
-          case 0x35:
-            this.dec8a_(this.Reg16[Registers16.HL]);
-            break;
-          case 0x36:
-            this.GB.M.set(this.Reg16[Registers16.HL], this.GB.M.get(this.Reg16[Registers16.PC]++));
-            break;
-          case 0x37:
-            this.scf_();
-            break;
-          case 0x38:
-            if (this.FlagC) {
-              this.jr_(this.GB.M.get(this.Reg16[Registers16.PC]++));
-            } else {
-              this.Reg16[Registers16.PC]++;
-              this.update(4);
-            }
-            break;
-          case 0x39:
-            this.addHL16r_(Registers16.SP);
-            break;
-          case 0x3A:
-            this.ldr8_(Registers8.A, this.GB.M.get(this.Reg16[Registers16.HL]));
-            this.dec16_(Registers16.HL, false);
-            break;
-          case 0x3B:
-            this.dec16_(Registers16.SP);
-            break;
-          case 0x3C:
-            this.inc8r_(Registers8.A);
-            break;
-          case 0x3D:
-            this.dec8r_(Registers8.A);
-            break;
-          case 0x3E:
-            this.ldr8_(Registers8.A, this.GB.M.get(this.Reg16[Registers16.PC]++));
-            break;
-          case 0x3F:
-            this.ccf_();
-            break;
           case 0xC0:
             if (!this.FlagZ) {
               this.ret_();
@@ -853,58 +817,7 @@ export class CPU {
     this.Reg16[Registers16.PC] = a16;
   }
 
-  inc16_(register, update = true) {
-    this.Reg16[register] = (this.Reg16[register] + 1) & Reg16Masks[register];
-    if (update) {
-      this.update(4);
-    }
-  }
-
-  inc8r_(register) {
-    let v0 = this.Reg8[register];
-    this.Reg8[register] = (v0 + 1) & Reg8Masks[register];
-    let v1 = this.Reg8[register];
-    this.FlagZ = !v1;
-    this.FlagN = false;
-    this.FlagH = (v0 & 0xF) + 1 > 0xF;
-  }
-
-  inc8a_(addr) {
-    let v0 = this.GB.M.get(addr);
-    this.GB.M.set(addr, v0 + 1);
-    let v1 = this.GB.M.get(addr, 1, false);
-    this.FlagZ = !v1;
-    this.FlagN = false;
-    this.FlagH = (v0 & 0xF) + 1 > 0xF;
-  }
-
-  dec16_(register, update = true) {
-    this.Reg16[register] = (this.Reg16[register] - 1) & Reg16Masks[register];
-    if (update) {
-      this.update(4);
-    }
-  }
-
-  dec8r_(register) {
-    let v0 = this.Reg8[register];
-    this.Reg8[register] = (v0 - 1) & Reg8Masks[register];
-    let v1 = this.Reg8[register];
-    this.FlagZ = !v1;
-    this.FlagN = true;
-    this.FlagH = (v1 & 0xF) > (v0 & 0xF);
-  }
-
-  dec8a_(addr) {
-    let v0 = this.GB.M.get(addr);
-    this.GB.M.set(addr, v0 - 1);
-    let v1 = this.GB.M.get(addr, 1, false);
-    this.FlagZ = !v1;
-    this.FlagN = true;
-    this.FlagH = (v1 & 0xF) > (v0 & 0xF);
-  }
-
   andv_(value) {
-    //Still used atm
     this.Reg8[Registers8.A] = this.Reg8[Registers8.A] & value;
     this.FlagZ = !this.Reg8[Registers8.A];
     this.FlagN = false;
@@ -913,7 +826,6 @@ export class CPU {
   }
 
   orv_(value) {
-    //Still used atm
     this.Reg8[Registers8.A] = this.Reg8[Registers8.A] | value;
     this.FlagZ = !this.Reg8[Registers8.A];
     this.FlagN = false;
@@ -922,7 +834,6 @@ export class CPU {
   }
 
   xorv_(value) {
-    //Still used atm
     this.Reg8[Registers8.A] = this.Reg8[Registers8.A] ^ value;
     this.FlagZ = !this.Reg8[Registers8.A];
     this.FlagN = false;
@@ -930,18 +841,7 @@ export class CPU {
     this.FlagC = false;
   }
 
-  addHL16r_(register) {
-    let v0 = this.Reg16[Registers16.HL];
-    let value = this.Reg16[register];
-    this.Reg16[Registers16.HL] = v0 + value;
-    this.FlagN = false;
-    this.FlagH = (v0 & 0xFFF) + (value & 0xFFF) > 0xFFF; //how is this a HALF carry???
-    this.FlagC = v0 + value > 0xFFFF;
-    this.update(4);
-  }
-
   add8v_(value) {
-    // Still used atm
     let v0 = this.Reg8[Registers8.A];
     this.Reg8[Registers8.A] = v0 + value;
     this.FlagZ = !this.Reg8[Registers8.A];
@@ -977,13 +877,11 @@ export class CPU {
   }
 
   subv_(value) {
-    //Still used atm
     this.cpv_(value);
     this.Reg8[Registers8.A] = this.Reg8[Registers8.A] - value;
   }
 
   adcv_(value) {
-    //Still used atm
     let v0 = this.Reg8[Registers8.A];
     this.Reg8[Registers8.A] = v0 + value + this.FlagC;
     this.FlagZ = !this.Reg8[Registers8.A];
@@ -993,7 +891,6 @@ export class CPU {
   }
 
   sbcv_(value) {
-    //Still used atm
     let sum = this.Reg8[Registers8.A] - value - this.FlagC;
     this.FlagH = (this.Reg8[Registers8.A] & 0xF) - (value & 0xF) - this.FlagC < 0
     this.FlagC = sum < 0;
@@ -1003,7 +900,6 @@ export class CPU {
   }
 
   cpv_(value) {
-    //Still used atm
     let a = this.Reg8[Registers8.A];
     this.FlagZ = a === value;
     this.FlagN = true;
@@ -1036,13 +932,6 @@ export class CPU {
     this.Reg16[Registers16.SP] += 2;
   }
 
-  jr_(offset) {
-    //JS numbers are 32-bit when using bitwise operators
-    //GB numbers are 8-bit, and so this happens
-    this.Reg16[Registers16.PC] += (offset & 0x80) ? -~(0xFFFFFF00 + offset - 1) : offset;
-    this.update(4);
-  }
-
   jp_(addr, update = false) {
     this.Reg16[Registers16.PC] = addr;
     if (update) {
@@ -1057,101 +946,6 @@ export class CPU {
     this.Reg16[Registers16.PC] = this.GB.M.get(this.Reg16[Registers16.SP], 2);
     this.update(4);
     this.Reg16[Registers16.SP] += 2;
-  }
-
-  rlakku_() {
-    let v = this.Reg8[Registers8.A];
-    let top = (v & 0x80) >>> 7;
-    this.Reg8[Registers8.A] = (v << 1) | (this.FlagC ? 0x01 : 0x00);
-    this.FlagZ = false;
-    this.FlagN = false;
-    this.FlagH = false;
-    this.FlagC = !!top;
-  }
-
-  rlcakku_() {
-    let v = this.Reg8[Registers8.A];
-    let top = (v & 0x80) >>> 7;
-    this.Reg8[Registers8.A] = (v << 1) | top;
-    this.FlagZ = false;
-    this.FlagN = false;
-    this.FlagH = false;
-    this.FlagC = !!top;
-  }
-
-  rrakku_() {
-    let v = this.Reg8[Registers8.A];
-    let bot = v & 0x01;
-    this.Reg8[Registers8.A] = (v >>> 1) | (this.FlagC ? 0x80 : 0x00)
-    this.FlagZ = false;
-    this.FlagN = false;
-    this.FlagH = false;
-    this.FlagC = !!bot;
-  }
-
-  rrcakku_() {
-    let v = this.Reg8[Registers8.A];
-    let bot = (v & 0x01) << 7;
-    this.Reg8[Registers8.A] = (v >>> 1) | bot;
-    this.FlagZ = false;
-    this.FlagN = false;
-    this.FlagH = false;
-    this.FlagC = !!bot;
-  }
-
-  scf_() {
-    this.FlagN = false;
-    this.FlagH = false;
-    this.FlagC = true;
-  }
-
-  ccf_() {
-    this.FlagN = false;
-    this.FlagH = false;
-    this.FlagC ^= true;
-  }
-
-  //Very good explanation here:
-  //https://forums.nesdev.com/viewtopic.php?f=20&t=15944#p196282
-  daa_() {
-    if (!this.FlagN) {
-      if (this.FlagC || this.Reg8[Registers8.A] > 0x99) {
-        this.Reg8[Registers8.A] = this.Reg8[Registers8.A] + 0x60;
-        this.FlagC = true;
-      }
-      if (this.FlagH || (this.Reg8[Registers8.A] & 0x0F) > 0x09) {
-        this.Reg8[Registers8.A] = this.Reg8[Registers8.A] + 0x06;
-      }
-    } else {
-      if (this.FlagC) {
-        this.Reg8[Registers8.A] = this.Reg8[Registers8.A] - 0x60;
-      }
-      if (this.FlagH) {
-        this.Reg8[Registers8.A] = this.Reg8[Registers8.A] - 0x06;
-      }
-    }
-    this.FlagZ = !this.Reg8[Registers8.A];
-    this.FlagH = 0;
-  }
-
-  rr_(location, addr) {
-    let v = null;
-    if (addr) {
-      v = this.GB.M.get(location);
-    } else {
-      v = this.Reg8[location];
-    }
-    let bot = v & 0x01;
-    if (addr) {
-      this.GB.M.set(location, (v >>> 1) | (this.FlagC ? 0x80 : 0x00));
-      this.FlagZ = !this.GB.M.get(location, 1, false);
-    } else {
-      this.Reg8[location] = ((v >>> 1) | (this.FlagC ? 0x80 : 0x00)) & Reg8Masks[location];
-      this.FlagZ = !this.Reg8[location];
-    }
-    this.FlagN = false;
-    this.FlagH = false;
-    this.FlagC = !!bot;
   }
 
   /**
