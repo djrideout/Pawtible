@@ -151,9 +151,23 @@ export class CPU {
       ];
       let location = r[z];
       let v = null;
-      let mask = addr ? 0xFF : Reg8Masks[location];;
+      let mask = addr ? 0xFF : Reg8Masks[location];
       let new_val = null;
-      if (x === 2) {
+      if (x === 1) {
+        v = addr ? this.GB.M.get(location) : this.Reg8[location]; // In here temporarily for refactor due to extra updates if not
+        if (z === 6 && y === 6) {
+          this.halted_ = true;
+        } else {
+          let dest = r[y];
+          let dest_addr = y === 6;
+          let dest_mask = dest_addr ? 0xFF : Reg8Masks[dest];
+          if (dest_addr) {
+            this.GB.M.set(dest, v & dest_mask);
+          } else {
+            this.Reg8[dest] = v & dest_mask;
+          }
+        }
+      } else if (x === 2) {
         let v0 = this.Reg8[Registers8.A];
         v = addr ? this.GB.M.get(location) : this.Reg8[location]; // In here temporarily for refactor due to extra updates if not
         // Operate on accumulator and register/memory location
@@ -438,198 +452,6 @@ export class CPU {
             break;
           case 0x3F:
             this.ccf_();
-            break;
-          case 0x40:
-            //this.ldr8_(Registers8.B, this.Reg8[Registers8.B]);
-            break;
-          case 0x41:
-            this.ldr8_(Registers8.B, this.Reg8[Registers8.C]);
-            break;
-          case 0x42:
-            this.ldr8_(Registers8.B, this.Reg8[Registers8.D]);
-            break;
-          case 0x43:
-            this.ldr8_(Registers8.B, this.Reg8[Registers8.E]);
-            break;
-          case 0x44:
-            this.ldr8_(Registers8.B, this.Reg8[Registers8.H]);
-            break;
-          case 0x45:
-            this.ldr8_(Registers8.B, this.Reg8[Registers8.L]);
-            break;
-          case 0x46:
-            this.ldr8_(Registers8.B, this.GB.M.get(this.Reg16[Registers16.HL]));
-            break;
-          case 0x47:
-            this.ldr8_(Registers8.B, this.Reg8[Registers8.A]);
-            break;
-          case 0x48:
-            this.ldr8_(Registers8.C, this.Reg8[Registers8.B]);
-            break;
-          case 0x49:
-            //this.ldr8_(Registers8.C, this.Reg8[Registers8.C]);
-            break;
-          case 0x4A:
-            this.ldr8_(Registers8.C, this.Reg8[Registers8.D]);
-            break;
-          case 0x4B:
-            this.ldr8_(Registers8.C, this.Reg8[Registers8.E]);
-            break;
-          case 0x4C:
-            this.ldr8_(Registers8.C, this.Reg8[Registers8.H]);
-            break;
-          case 0x4D:
-            this.ldr8_(Registers8.C, this.Reg8[Registers8.L]);
-            break;
-          case 0x4E:
-            this.ldr8_(Registers8.C, this.GB.M.get(this.Reg16[Registers16.HL]));
-            break;
-          case 0x4F:
-            this.ldr8_(Registers8.C, this.Reg8[Registers8.A]);
-            break;
-          case 0x50:
-            this.ldr8_(Registers8.D, this.Reg8[Registers8.B]);
-            break;
-          case 0x51:
-            this.ldr8_(Registers8.D, this.Reg8[Registers8.C]);
-            break;
-          case 0x52:
-            //this.ldr8_(Registers8.D, this.Reg8[Registers8.D]);
-            break;
-          case 0x53:
-            this.ldr8_(Registers8.D, this.Reg8[Registers8.E]);
-            break;
-          case 0x54:
-            this.ldr8_(Registers8.D, this.Reg8[Registers8.H]);
-            break;
-          case 0x55:
-            this.ldr8_(Registers8.D, this.Reg8[Registers8.L]);
-            break;
-          case 0x56:
-            this.ldr8_(Registers8.D, this.GB.M.get(this.Reg16[Registers16.HL]));
-            break;
-          case 0x57:
-            this.ldr8_(Registers8.D, this.Reg8[Registers8.A]);
-            break;
-          case 0x58:
-            this.ldr8_(Registers8.E, this.Reg8[Registers8.B]);
-            break;
-          case 0x59:
-            this.ldr8_(Registers8.E, this.Reg8[Registers8.C]);
-            break;
-          case 0x5A:
-            this.ldr8_(Registers8.E, this.Reg8[Registers8.D]);
-            break;
-          case 0x5B:
-            //this.ldr8_(Registers8.E, this.Reg8[Registers8.E]);
-            break;
-          case 0x5C:
-            this.ldr8_(Registers8.E, this.Reg8[Registers8.H]);
-            break;
-          case 0x5D:
-            this.ldr8_(Registers8.E, this.Reg8[Registers8.L]);
-            break;
-          case 0x5E:
-            this.ldr8_(Registers8.E, this.GB.M.get(this.Reg16[Registers16.HL]));
-            break;
-          case 0x5F:
-            this.ldr8_(Registers8.E, this.Reg8[Registers8.A]);
-            break;
-          case 0x60:
-            this.ldr8_(Registers8.H, this.Reg8[Registers8.B]);
-            break;
-          case 0x61:
-            this.ldr8_(Registers8.H, this.Reg8[Registers8.C]);
-            break;
-          case 0x62:
-            this.ldr8_(Registers8.H, this.Reg8[Registers8.D]);
-            break;
-          case 0x63:
-            this.ldr8_(Registers8.H, this.Reg8[Registers8.E]);
-            break;
-          case 0x64:
-            //this.ldr8_(Registers8.H, this.Reg8[Registers8.H]);
-            break;
-          case 0x65:
-            this.ldr8_(Registers8.H, this.Reg8[Registers8.L]);
-            break;
-          case 0x66:
-            this.ldr8_(Registers8.H, this.GB.M.get(this.Reg16[Registers16.HL]));
-            break;
-          case 0x67:
-            this.ldr8_(Registers8.H, this.Reg8[Registers8.A]);
-            break;
-          case 0x68:
-            this.ldr8_(Registers8.L, this.Reg8[Registers8.B]);
-            break;
-          case 0x69:
-            this.ldr8_(Registers8.L, this.Reg8[Registers8.C]);
-            break;
-          case 0x6A:
-            this.ldr8_(Registers8.L, this.Reg8[Registers8.D]);
-            break;
-          case 0x6B:
-            this.ldr8_(Registers8.L, this.Reg8[Registers8.E]);
-            break;
-          case 0x6C:
-            this.ldr8_(Registers8.L, this.Reg8[Registers8.H]);
-            break;
-          case 0x6D:
-            //this.ldr8_(Registers8.L, this.Reg8[Registers8.L]);
-            break;
-          case 0x6E:
-            this.ldr8_(Registers8.L, this.GB.M.get(this.Reg16[Registers16.HL]));
-            break;
-          case 0x6F:
-            this.ldr8_(Registers8.L, this.Reg8[Registers8.A]);
-            break;
-          case 0x70:
-            this.GB.M.set(this.Reg16[Registers16.HL], this.Reg8[Registers8.B]);
-            break;
-          case 0x71:
-            this.GB.M.set(this.Reg16[Registers16.HL], this.Reg8[Registers8.C]);
-            break;
-          case 0x72:
-            this.GB.M.set(this.Reg16[Registers16.HL], this.Reg8[Registers8.D]);
-            break;
-          case 0x73:
-            this.GB.M.set(this.Reg16[Registers16.HL], this.Reg8[Registers8.E]);
-            break;
-          case 0x74:
-            this.GB.M.set(this.Reg16[Registers16.HL], this.Reg8[Registers8.H]);
-            break;
-          case 0x75:
-            this.GB.M.set(this.Reg16[Registers16.HL], this.Reg8[Registers8.L]);
-            break;
-          case 0x76:
-            this.halted_ = true;
-            break;
-          case 0x77:
-            this.GB.M.set(this.Reg16[Registers16.HL], this.Reg8[Registers8.A]);
-            break;
-          case 0x78:
-            this.ldr8_(Registers8.A, this.Reg8[Registers8.B]);
-            break;
-          case 0x79:
-            this.ldr8_(Registers8.A, this.Reg8[Registers8.C]);
-            break;
-          case 0x7A:
-            this.ldr8_(Registers8.A, this.Reg8[Registers8.D]);
-            break;
-          case 0x7B:
-            this.ldr8_(Registers8.A, this.Reg8[Registers8.E]);
-            break;
-          case 0x7C:
-            this.ldr8_(Registers8.A, this.Reg8[Registers8.H]);
-            break;
-          case 0x7D:
-            this.ldr8_(Registers8.A, this.Reg8[Registers8.L]);
-            break;
-          case 0x7E:
-            this.ldr8_(Registers8.A, this.GB.M.get(this.Reg16[Registers16.HL]));
-            break;
-          case 0x7F:
-            //this.ldr8_(Registers8.A, this.Reg8[Registers8.A]);
             break;
           case 0xC0:
             if (!this.FlagZ) {
