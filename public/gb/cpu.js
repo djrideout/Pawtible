@@ -53,6 +53,8 @@ export class CPU {
     this.GB = gameBoy;
     this.paused_ = true;
     this.breakpoints_ = new Map();
+    this.frames_ = 0;
+    this.avg_ = 0;
     this.reset();
   }
 
@@ -105,6 +107,8 @@ export class CPU {
     if (this.paused_) {
       return;
     }
+    this.frames_++;
+    let t0 = performance.now();
     this.count_ = 0;
     while (this.count_ < CYCLES_PER_FRAME) {
       this.step();
@@ -113,6 +117,9 @@ export class CPU {
         return;
       }
     }
+    let t1 = performance.now();
+    let time = t1 - t0;
+    this.avg_ = (this.avg_ * (this.frames_ - 1) + time) / this.frames_;
   }
 
   update(cycles) {
