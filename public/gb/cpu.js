@@ -50,27 +50,10 @@ const CYCLES_PER_FRAME = Math.floor(CPU_FREQUENCY / 60);
 
 export class CPU {
   constructor(gameBoy) {
-    this.mapCBs_();
     this.GB = gameBoy;
     this.paused_ = true;
     this.breakpoints_ = new Map();
     this.reset();
-  }
-
-  mapCBs_() {
-    this.rot_f = [
-      this.rlc_.bind(this),
-      this.rrc_.bind(this),
-      this.rl_.bind(this),
-      this.rr_.bind(this),
-      this.sla_.bind(this),
-      this.sra_.bind(this),
-      this.swap_.bind(this),
-      this.srl_.bind(this)
-    ];
-    this.bit_f = [...new Array(8).keys()].map((val) => this.bit_.bind(this, val));
-    this.res_f = [...new Array(8).keys()].map((val) => this.res_.bind(this, val));
-    this.set_f = [...new Array(8).keys()].map((val) => this.set_.bind(this, val));
   }
 
   reset() {
@@ -1013,13 +996,76 @@ export class CPU {
         this.Reg16[Registers16.HL],
         Registers8.A
       ];
-      let f = [
-        this.rot_f[y],
-        this.bit_f[y],
-        this.res_f[y],
-        this.set_f[y]
-      ];
-      f[x](r[z], addr);
+      let location = r[z];
+      let v = addr ? this.GB.M.get(location) : this.Reg8[location];
+      let mask = addr ? 0xFF : Reg8Masks[location];
+      let new_val = null;
+      if (x === 0) {
+        // Rotation/shift operations
+        let carry = null;
+        if (y === 0) {
+          // RLC
+          let top = (v & 0x80) >>> 7;
+          new_val = ((v << 1) | top) & mask;
+          carry = !!top;
+        } else if (y === 1) {
+          // RRC
+          let bot = (v & 0x01) << 7;
+          new_val = ((v >>> 1) | bot) & mask;
+          carry = !!bot;
+        } else if (y === 2) {
+          // RL
+          let top = (v & 0x80) >>> 7;
+          new_val = ((v << 1) | (this.FlagC ? 0x01 : 0x00)) & mask;
+          carry = !!top;
+        } else if (y === 3) {
+          // RR
+          let bot = v & 0x01;
+          new_val = ((v >>> 1) | (this.FlagC ? 0x80 : 0x00)) & mask;
+          carry = !!bot;
+        } else if (y === 4) {
+          // SLA
+          carry = !!(v & 0x80);
+          new_val = (v << 1) & mask;
+        } else if (y === 5) {
+          // SRA
+          let top = v & 0x80;
+          carry = !!(v & 0x01);
+          new_val = (v >> 1 | top) & mask;
+        } else if (y === 6) {
+          // SWAP
+          let top = v & 0xF0;
+          let bot = v & 0x0F;
+          carry = false;
+          new_val = ((bot << 4) | (top >>> 4)) & mask;
+        } else if (y === 7) {
+          // SRL
+          carry = !!(v & 0x01);
+          new_val = (v >>> 1) & mask;
+        }
+        this.FlagN = false;
+        this.FlagH = false;
+        this.FlagZ = !new_val;
+        this.FlagC = carry;
+      } else if (x === 1) {
+        // Test bit
+        this.FlagZ = !(v & (0x01 << y));
+        this.FlagN = false;
+        this.FlagH = true;
+      } else if (x === 2) {
+        // Reset bit
+        new_val = (v & ~(0x01 << y)) & mask;
+      } else if (x === 3) {
+        // Set bit
+        new_val = (v | (0x01 << y)) & mask;
+      }
+      if (new_val !== null) {
+        if (addr) {
+          this.GB.M.set(location, new_val);
+        } else {
+          this.Reg8[location] = new_val;
+        }
+      }
     }
     //RUN INSTRUCTION END
 
@@ -1436,66 +1482,6 @@ export class CPU {
     this.FlagH = 0;
   }
 
-  rlc_(location, addr) {
-    let v = null;
-    if (addr) {
-      v = this.GB.M.get(location);
-    } else {
-      v = this.Reg8[location];
-    }
-    let top = (v & 0x80) >>> 7;
-    if (addr) {
-      this.GB.M.set(location, (v << 1) | top);
-      this.FlagZ = !this.GB.M.get(location, 1, false);
-    } else {
-      this.Reg8[location] = ((v << 1) | top) & Reg8Masks[location];
-      this.FlagZ = !this.Reg8[location];
-    }
-    this.FlagN = false;
-    this.FlagH = false;
-    this.FlagC = !!top;
-  }
-
-  rrc_(location, addr) {
-    let v = null;
-    if (addr) {
-      v = this.GB.M.get(location);
-    } else {
-      v = this.Reg8[location];
-    }
-    let bot = (v & 0x01) << 7;
-    if (addr) {
-      this.GB.M.set(location, (v >>> 1) | bot);
-      this.FlagZ = !this.GB.M.get(location, 1, false);
-    } else {
-      this.Reg8[location] = ((v >>> 1) | bot) & Reg8Masks[location];
-      this.FlagZ = !this.Reg8[location];
-    }
-    this.FlagN = false;
-    this.FlagH = false;
-    this.FlagC = !!bot;
-  }
-
-  rl_(location, addr) {
-    let v = null;
-    if (addr) {
-      v = this.GB.M.get(location);
-    } else {
-      v = this.Reg8[location];
-    }
-    let top = (v & 0x80) >>> 7;
-    if (addr) {
-      this.GB.M.set(location, (v << 1) | (this.FlagC ? 0x01 : 0x00));
-      this.FlagZ = !this.GB.M.get(location, 1, false);
-    } else {
-      this.Reg8[location] = ((v << 1) | (this.FlagC ? 0x01 : 0x00)) & Reg8Masks[location];
-      this.FlagZ = !this.Reg8[location];
-    }
-    this.FlagN = false;
-    this.FlagH = false;
-    this.FlagC = !!top;
-  }
-
   rr_(location, addr) {
     let v = null;
     if (addr) {
@@ -1514,113 +1500,6 @@ export class CPU {
     this.FlagN = false;
     this.FlagH = false;
     this.FlagC = !!bot;
-  }
-
-  sla_(location, addr) {
-    let v = null;
-    if (addr) {
-      v = this.GB.M.get(location);
-    } else {
-      v = this.Reg8[location];
-    }
-    this.FlagC = !!(v & 0x80);
-    this.FlagN = false;
-    this.FlagH = false;
-    if (addr) {
-      this.GB.M.set(location, v << 1);
-      this.FlagZ = !this.GB.M.get(location, 1, false);
-    } else {
-      this.Reg8[location] = (v << 1) & Reg8Masks[location];
-      this.FlagZ = !this.Reg8[location];
-    }
-  }
-
-  sra_(location, addr) {
-    let v = null;
-    if (addr) {
-      v = this.GB.M.get(location);
-    } else {
-      v = this.Reg8[location];
-    }
-    let top = v & 0x80;
-    this.FlagC = !!(v & 0x01);
-    this.FlagN = false;
-    this.FlagH = false;
-    if (addr) {
-      this.GB.M.set(location, (v >> 1 | top));
-      this.FlagZ = !this.GB.M.get(location, 1, false);
-    } else {
-      this.Reg8[location] = (v >> 1 | top) & Reg8Masks[location];
-      this.FlagZ = !this.Reg8[location];
-    }
-  }
-
-  swap_(location, addr) {
-    let v = null;
-    if (addr) {
-      v = this.GB.M.get(location);
-    } else {
-      v = this.Reg8[location];
-    }
-    let top = v & 0xF0;
-    let bot = v & 0x0F;
-    this.FlagN = false;
-    this.FlagH = false;
-    this.FlagC = false;
-    if (addr) {
-      this.GB.M.set(location, (bot << 4) | (top >>> 4));
-      this.FlagZ = !this.GB.M.get(location, 1, false);
-    } else {
-      this.Reg8[location] = ((bot << 4) | (top >>> 4)) & Reg8Masks[location];
-      this.FlagZ = !this.Reg8[location];
-    }
-  }
-
-  srl_(location, addr) {
-    let v = null;
-    if (addr) {
-      v = this.GB.M.get(location);
-    } else {
-      v = this.Reg8[location];
-    }
-    this.FlagC = !!(v & 0x01);
-    this.FlagN = false;
-    this.FlagH = false;
-    if (addr) {
-      this.GB.M.set(location, v >>> 1);
-      this.FlagZ = !this.GB.M.get(location, 1, false);
-    } else {
-      this.Reg8[location] = (v >>> 1) & Reg8Masks[location];
-      this.FlagZ = !this.Reg8[location];
-    }
-  }
-
-  bit_(bit, location, addr) {
-    let v = null;
-    if (addr) {
-      v = this.GB.M.get(location);
-    } else {
-      v = this.Reg8[location];
-    }
-    this.FlagZ = !(v & (0x01 << bit));
-    this.FlagN = false;
-    this.FlagH = true;
-  }
-
-  res_(bit, location, addr) {
-    if (addr) {
-      this.GB.M.set(location, this.GB.M.get(location) & ~(0x01 << bit));
-    } else {
-      this.Reg8[location] = (this.Reg8[location] & ~(0x01 << bit)) & Reg8Masks[location];
-    }
-  }
-
-  set_(bit, location, addr) {
-    if (addr) {
-      this.GB.M.set(location, this.GB.M.get(location) | (0x01 << bit));
-    } else {
-      this.Reg8[location] = (this.Reg8[location] | (0x01 << bit)) & Reg8Masks[location];
-    }
   }
 
   /**
