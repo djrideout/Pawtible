@@ -1,5 +1,6 @@
 # Pawtible
 Game Boy emulator and debugger
+
 2024 UPDATE: I wrote most of this in 2019. It is quite a bit slower than it should be and should probably be rewritten with much less bloat (no modules, classes, etc.)
 
 ### Passing test suites
