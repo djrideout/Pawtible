@@ -25,14 +25,6 @@ export class Memory {
         val |= this.mem[offsetAddr - 0x2000] << shift;
       } else if(offsetAddr === 0xFF00) {
         val |= this.GB.Joypad.Regs[this.GB.Joypad.Mode] << shift;
-      } else if(offsetAddr === 0xFF04) {
-        val |= this.GB.Timer.DIV << shift;
-      } else if(offsetAddr === 0xFF05) {
-        val |= this.GB.Timer.TIMA << shift;
-      } else if(offsetAddr === 0xFF06) {
-        val |= this.GB.Timer.TMA << shift;
-      } else if(offsetAddr === 0xFF07) {
-        val |= this.GB.Timer.TAC << shift;
       } else if(offsetAddr >= 0xFF10 && offsetAddr <= 0xFF26) {
         val |= (this.GB.APU.Reg[offsetAddr - 0xFF10] | Masks[offsetAddr - 0xFF10]) << shift;
       } else if(offsetAddr >= 0xFF27 && offsetAddr <= 0xFF2F) {
@@ -60,13 +52,14 @@ export class Memory {
       } else if(offsetAddr === 0xFF00) {
         this.GB.Joypad.Reg = val >> shift;
       } else if(offsetAddr === 0xFF04) {
-        this.GB.Timer.DIV = val >> shift;
-      } else if(offsetAddr === 0xFF05) {
-        this.GB.Timer.TIMA = val >> shift;
-      } else if(offsetAddr === 0xFF06) {
-        this.GB.Timer.TMA = val >> shift;
+        let ctr = (this.mem[offsetAddr] << 8) | this.GB.Timer.ctrLow;
+        this.GB.Timer.prev = ctr;
+        this.mem[offsetAddr] = 0;
+        this.GB.Timer.ctrLow = 0;
+        this.GB.Timer.onCounterChange();
       } else if(offsetAddr === 0xFF07) {
-        this.GB.Timer.TAC = val >> shift;
+        // Timer TAC: Only the lower 3 bits are R/W
+        this.mem[offsetAddr] = (this.mem[offsetAddr] & ~0x07 | val & 0x07) >> shift;
       } else if(offsetAddr >= 0xFF10 && offsetAddr <= 0xFF26) {
         this.GB.APU.set(offsetAddr - 0xFF10, val >> shift);
       } else if(offsetAddr === 0xFF40) {
