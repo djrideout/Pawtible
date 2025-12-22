@@ -30,7 +30,7 @@ body {
 
 #check, #selector {
   position: absolute;
-  top: 440px; //do you think about me?
+  top: 440px; /* do you think about me? */
 }
 
 #check {
